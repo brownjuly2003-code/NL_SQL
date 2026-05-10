@@ -40,6 +40,90 @@ from nl_sql.render.formats import (
 )
 from nl_sql.schema_index.indexer import SchemaIndex
 
+# --------------------------------------------------------- sample questions
+# Hand-picked from the cached n=200 ablation (matched=True under
+# C+sort+s=3, the production candidate). These are guaranteed cache hits,
+# so a recruiter sees a sub-second answer on first click.
+
+SAMPLE_QUESTIONS: dict[str, list[tuple[str, str]]] = {
+    "chinook": [
+        ("simple", "How many albums are in the store?"),
+        ("simple", "Which 5 artists have the most albums?"),
+        ("moderate", "What is the total revenue per genre?"),
+    ],
+    "bird_california_schools": [
+        (
+            "simple",
+            "How many schools with an average score in Math greater than 400 in the SAT test are exclusively virtual?",
+        ),
+        (
+            "simple",
+            "What is the average number of test takers from Fresno schools that opened between 1/1/1980 and 12/31/1980?",
+        ),
+        (
+            "moderate",
+            "What is the ratio of merged Unified School District schools in Orange County to merged Elementary School District schools?",
+        ),
+    ],
+    "bird_card_games": [
+        ("simple", "How many cards have infinite power?"),
+        ("simple", "What language is the set of 180 cards that belongs to the Ravnica block translated into?"),
+        ("moderate", "Among the sets in the block 'Ice Age', how many of them have an Italian translation?"),
+    ],
+    "bird_codebase_community": [
+        ("simple", "When did 'chl' cast its first vote in a post?"),
+        ("simple", "What is the display name of the user who acquired the first Autobiographer badge?"),
+        (
+            "moderate",
+            "Among the posts with views ranging from 100 to 150, what is the comment with the highest score?",
+        ),
+    ],
+    "bird_debit_card_specializing": [
+        ("simple", "What segment did the customer have at 2012/8/23 21:20:00?"),
+        ("simple", "What is the percentage of 'premium' against the overall segment in Country = 'SVK'?"),
+        ("moderate", "What was the average monthly consumption of customers in SME for the year 2013?"),
+    ],
+    "bird_european_football_2": [
+        ("simple", "List down most tallest players' name."),
+        ("simple", "Please name one player whose overall strength is the greatest."),
+        ("moderate", "What was the overall rating for Aaron Mooy on 2016/2/4?"),
+    ],
+    "bird_financial": [
+        ("simple", "For the female client who was born in 1976/1/29, which district did she opened her account?"),
+        (
+            "simple",
+            "List out the no. of districts that have female average salary is more than 6000 but less than 10000?",
+        ),
+        ("moderate", "Provide the IDs and age of the client with high level credit card, which is eligible for loans."),
+    ],
+    "bird_formula_1": [
+        ("simple", "What's the reference name of Marina Bay Street Circuit?"),
+        ("simple", "Please state the reference name of the oldest German driver."),
+        ("simple", "What's Bruno Senna's Q1 result in the qualifying race No. 354?"),
+    ],
+    "bird_student_club": [
+        ("simple", "What's Angela Sanders's major?"),
+        ("simple", "Mention the total expense used on 8/20/2019."),
+        ("simple", "What is the total amount of money spent for food?"),
+    ],
+    "bird_superhero": [
+        ("simple", "What is Copycat's race?"),
+        ("moderate", "Which hero was the fastest?"),
+        ("moderate", "Who is the dumbest superhero?"),
+    ],
+    "bird_thrombosis_prediction": [
+        ("simple", "How many female patients were given an APS diagnosis?"),
+        ("moderate", "State the ID and age of patient with positive degree of coagulation."),
+        ("moderate", "Was the patient with the number 57266's uric acid within a normal range?"),
+    ],
+    "bird_toxicology": [
+        ("simple", "How many connections does the atom 19 have?"),
+        ("moderate", "Which non-carcinogenic molecules consisted more than 5 atoms?"),
+        ("challenging", "List the elements of all the triple bonds."),
+    ],
+}
+
+
 # --------------------------------------------------------- resource bootstrap
 
 
@@ -193,6 +277,47 @@ def _render_show_working(result: PipelineRunResult) -> None:
             st.error(f"Error: {result.error_kind} — {result.error_message}")
 
 
+# ----------------------------------------------------------------- welcome
+
+
+def _render_welcome(db_id: str) -> None:
+    """Empty-state hero shown before any chat turn — recruiter-friendly."""
+    col_intro, col_metric = st.columns([2, 1])
+    with col_intro:
+        st.markdown(
+            "Ask a natural-language question about the selected database. "
+            "The pipeline retrieves relevant tables (schema-RAG over Chroma), "
+            "generates SQL with `codestral-latest`, validates it through "
+            "sqlglot AST guards, executes against a read-only engine, and "
+            "renders the result in the cleanest format for the shape of "
+            "the answer."
+        )
+    with col_metric:
+        st.metric(
+            label="Execution Accuracy on BIRD Mini-Dev (n=200)",
+            value="47.0%",
+            help="C+sort_schema_block, codestral-latest, $0 budget. "
+            "Reference: GPT-4 zero-shot on the same split = 47.8%.",
+        )
+
+    samples = SAMPLE_QUESTIONS.get(db_id)
+    if not samples:
+        st.info(f"No sample questions curated for `{db_id}` yet — type your own below.")
+        return
+
+    st.markdown("**Try a sample question:**")
+    cols = st.columns(len(samples))
+    for col, (difficulty, question) in zip(cols, samples, strict=False):
+        with col:
+            if st.button(
+                f"{difficulty}\n\n{question}",
+                key=f"sample_{db_id}_{hash(question)}",
+                use_container_width=True,
+            ):
+                st.session_state.pending_question = question
+                st.rerun()
+
+
 # ---------------------------------------------------------------------- main
 
 
@@ -250,6 +375,10 @@ def main() -> None:
     if "messages" not in st.session_state:
         st.session_state.messages = []
 
+    # --- welcome / empty state with sample questions
+    if not st.session_state.messages:
+        _render_welcome(db_id)
+
     # --- chat history
     for msg in st.session_state.messages:
         with st.chat_message(msg["role"]):
@@ -258,8 +387,10 @@ def main() -> None:
             else:
                 _replay_assistant_turn(msg)
 
-    # --- new question
-    question = st.chat_input("Спроси по данным выбранной БД…")
+    # --- new question (typed input OR queued sample button click)
+    typed = st.chat_input("Спроси по данным выбранной БД…")
+    queued = st.session_state.pop("pending_question", None)
+    question = queued or typed
     if not question:
         return
 
