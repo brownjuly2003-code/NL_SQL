@@ -36,8 +36,8 @@ def get_default_registry(data_root: Path = DATA_ROOT) -> DatabaseRegistry:
     """Build a registry by scanning the data/ tree.
 
     Resolution order:
-    - data/chinook/Chinook.sqlite      → id="chinook"
-    - data/bird_mini_dev/<db>/<db>.sqlite → id=f"bird_{db}"
+    - data/chinook/Chinook.sqlite                                 → id="chinook"
+    - data/bird_mini_dev/MINIDEV/dev_databases/<db>/<db>.sqlite   → id=f"bird_{db}"
     """
     registry = DatabaseRegistry()
 
@@ -52,9 +52,9 @@ def get_default_registry(data_root: Path = DATA_ROOT) -> DatabaseRegistry:
             )
         )
 
-    bird_root = data_root / "bird_mini_dev"
-    if bird_root.is_dir():
-        for db_dir in sorted(p for p in bird_root.iterdir() if p.is_dir()):
+    bird_dev_root = data_root / "bird_mini_dev" / "MINIDEV" / "dev_databases"
+    if bird_dev_root.is_dir():
+        for db_dir in sorted(p for p in bird_dev_root.iterdir() if p.is_dir()):
             sqlite_file = db_dir / f"{db_dir.name}.sqlite"
             if sqlite_file.exists():
                 registry.register(

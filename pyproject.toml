@@ -20,6 +20,7 @@ dependencies = [
     "sqlglot>=25.0",
     "requests>=2.32",
     "chromadb>=0.5",
+    "gdown>=5.2",
 ]
 
 [project.optional-dependencies]

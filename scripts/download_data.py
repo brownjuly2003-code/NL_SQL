@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import shutil
 import sys
 import zipfile
 from collections.abc import Callable
@@ -29,14 +30,14 @@ CHINOOK_URL: Final = (
 )
 CHINOOK_FILENAME: Final = "Chinook.sqlite"
 
-# BIRD Mini-Dev moved off the GitHub repo and is now hosted on HuggingFace +
-# Google Drive. Direct fetch via the HF dataset API requires `huggingface_hub`
-# auth-aware download or a Google Drive resumable cookie dance. Implementing
-# that properly is its own task (see docs/SESSION_HANDOFF.md "next session" §2).
-BIRD_MINI_DEV_URL: Final = (
-    "https://bird-bench.oss-cn-beijing.aliyuncs.com/minidev.zip"
-)
-BIRD_MINI_DEV_HF_REPO: Final = "birdsql/bird_mini_dev"
+# BIRD Mini-Dev: the canonical bundle (questions + 11 SQLite DBs) lives on Google
+# Drive. The official Aliyun mirror is firewalled in some regions; the HuggingFace
+# `birdsql/bird_mini_dev` repo only carries the questions JSON, not the SQLite
+# databases, so we cannot use snapshot_download here. gdown handles GD's confirm
+# token redirect for >100 MB files.
+BIRD_MINI_DEV_GDRIVE_ID: Final = "13VLWIwpw5E3d5DUkMvzw7hvHE67a4XkG"
+BIRD_MINI_DEV_ARCHIVE: Final = "minidev.zip"
+BIRD_MINI_DEV_INNER_PREFIX: Final = "minidev/"  # zip wraps everything one level deep
 
 
 def _download_file(url: str, dest: Path, *, chunk_size: int = 1 << 15) -> Path:
@@ -80,13 +81,41 @@ def download_chinook() -> None:
 def download_bird_mini_dev() -> None:
     target_dir = DATA_ROOT / "bird_mini_dev"
     target_dir.mkdir(parents=True, exist_ok=True)
-    archive = target_dir / "minidev.zip"
-    _download_file(BIRD_MINI_DEV_URL, archive)
+    minidev_dir = target_dir / "MINIDEV"
+    if minidev_dir.is_dir() and (minidev_dir / "dev_databases").is_dir():
+        print(f"[skip] {minidev_dir} already populated")
+        return
+
+    archive = target_dir / BIRD_MINI_DEV_ARCHIVE
+    if not archive.exists():
+        import gdown
+
+        url = f"https://drive.google.com/uc?id={BIRD_MINI_DEV_GDRIVE_ID}"
+        print(f"[gdown] {url} → {archive}")
+        gdown.download(url, str(archive), quiet=False)
+    else:
+        print(f"[skip] {archive} already downloaded ({archive.stat().st_size:,} bytes)")
     _write_checksum(archive)
-    print(f"[unzip] {archive} → {target_dir}")
+
+    print(f"[unzip] {archive} → {target_dir} (stripping '{BIRD_MINI_DEV_INNER_PREFIX}', skipping __MACOSX)")
     with zipfile.ZipFile(archive) as zf:
-        zf.extractall(target_dir)
-    print(f"[done] {target_dir}")
+        for member in zf.infolist():
+            name = member.filename
+            if name.startswith("__MACOSX/") or "/._" in name or name.endswith("/.DS_Store"):
+                continue
+            if not name.startswith(BIRD_MINI_DEV_INNER_PREFIX):
+                continue
+            stripped = name[len(BIRD_MINI_DEV_INNER_PREFIX):]
+            if not stripped:
+                continue
+            dest = target_dir / stripped
+            if member.is_dir():
+                dest.mkdir(parents=True, exist_ok=True)
+                continue
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            with zf.open(member) as src, dest.open("wb") as fh:
+                shutil.copyfileobj(src, fh)
+    print(f"[done] {minidev_dir}")
 
 
 DOWNLOADERS: Final[dict[str, Callable[[], None]]] = {

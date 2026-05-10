@@ -38,9 +38,9 @@ def test_default_registry_picks_up_chinook(tmp_path: Path) -> None:
 
 
 def test_default_registry_picks_up_bird_subfolders(tmp_path: Path) -> None:
-    bird_root = tmp_path / "bird_mini_dev"
+    bird_dev = tmp_path / "bird_mini_dev" / "MINIDEV" / "dev_databases"
     for db_name in ("california_schools", "card_games"):
-        db_dir = bird_root / db_name
+        db_dir = bird_dev / db_name
         db_dir.mkdir(parents=True)
         (db_dir / f"{db_name}.sqlite").touch()
 
