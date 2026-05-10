@@ -45,13 +45,18 @@ coverage.xml
 Thumbs.db
 
 # Project-specific
-data/                  # BIRD dump, StackExchange dump, Chinook DB — не в репо
-chroma_data/           # Chroma vector store — генерируется индексером
-.diskcache/            # LLM API response cache
-.cassettes/            # vcr.py cassettes (committed are in tests/cassettes/)
-eval/reports/*.html    # генерируемые HTML отчёты
-eval/reports/*.json    # raw run data
-.tmp/                  # любые scratch/временные файлы
+# BIRD dump, StackExchange dump, Chinook DB — не в репо
+data/
+# Chroma vector store — генерируется индексером
+chroma_data/
+chroma_data.*/
+# legacy diskcache root — superseded by .cache/llm/
+.diskcache/
+# diskcache root: nl_sql.llm.cache writes gen/ + embed/ here
+.cache/
+# vcr.py cassettes (committed are in tests/cassettes/)
+.cassettes/
+.tmp/
 *.log
 
 # Reviews scratch (полные обзоры коммитятся, runtime артефакты — нет)

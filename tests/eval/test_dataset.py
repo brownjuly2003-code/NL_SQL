@@ -86,6 +86,18 @@ def test_dev_split_different_seed_can_differ(fake_bird_root: Path) -> None:
     assert len(b) == 2
 
 
+def test_dev_split_stable_prefix_property(fake_bird_root: Path) -> None:
+    """Growing n at the same seed must keep all earlier IDs.
+
+    Without this, every cache hit from the smaller slice is wasted when
+    we bump to n=100 or n=200. Property: set(n=2) ⊆ set(n=3).
+    """
+    examples = load_bird_mini_dev(fake_bird_root)
+    small = {e.question_id for e in dev_split(examples, n=2, seed=0)}
+    large = {e.question_id for e in dev_split(examples, n=3, seed=0)}
+    assert small.issubset(large)
+
+
 def test_dev_split_n_exceeds_pool_returns_all_sorted(fake_bird_root: Path) -> None:
     examples = load_bird_mini_dev(fake_bird_root)
     result = dev_split(examples, n=999)
@@ -115,6 +127,42 @@ class TestExtractGoldTables:
     def test_dedupe(self) -> None:
         sql = "SELECT * FROM Album JOIN Album b ON Album.id = b.id"
         assert extract_gold_tables(sql) == ["Album"]
+
+    def test_correlated_subquery_in_where(self) -> None:
+        """Tables referenced only inside WHERE subqueries used to escape
+        the regex; sqlglot AST walks them."""
+        sql = (
+            "SELECT a.id FROM Album a "
+            "WHERE a.artist_id IN (SELECT id FROM Artist WHERE country = 'US') "
+            "AND a.id > (SELECT MIN(id) FROM Track)"
+        )
+        assert set(extract_gold_tables(sql)) == {"Album", "Artist", "Track"}
+
+    def test_in_subquery_only(self) -> None:
+        sql = (
+            "SELECT name FROM Customer "
+            "WHERE id IN (SELECT customer_id FROM Invoice WHERE total > 100)"
+        )
+        assert set(extract_gold_tables(sql)) == {"Customer", "Invoice"}
+
+    def test_cte_alias_excluded(self) -> None:
+        """CTE names should not count as base tables; only the underlying
+        base table referenced inside the CTE body should be returned."""
+        sql = (
+            "WITH RecentInvoices AS (SELECT * FROM Invoice WHERE date > '2020') "
+            "SELECT i.id FROM RecentInvoices i JOIN Customer c ON i.cust_id = c.id"
+        )
+        result = set(extract_gold_tables(sql))
+        assert "Invoice" in result
+        assert "Customer" in result
+        assert "RecentInvoices" not in result
+
+    def test_unparseable_falls_back_to_regex(self) -> None:
+        """Strange dialect quirks should not crash — return something."""
+        # Garbled but with FROM word — regex fallback returns "Album"
+        bad = "SELECT @!#$ FROM Album WHERE !!? not_valid_syntax"
+        result = extract_gold_tables(bad)
+        assert "Album" in result
 
 
 def test_is_in_dev_split_exact_match(fake_bird_root: Path) -> None:

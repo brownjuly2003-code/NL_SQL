@@ -34,6 +34,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Literal
 
+import sqlglot
+from sqlglot import expressions as exp
+
 Difficulty = Literal["simple", "moderate", "challenging"]
 Dialect = Literal["sqlite", "mysql", "postgresql"]
 
@@ -96,11 +99,16 @@ def dev_split(
     n: int,
     seed: int = 0,
 ) -> list[BirdExample]:
-    """Deterministic sample of `n` examples.
+    """Deterministic sample of `n` examples with stable-prefix property.
 
-    Uses `random.Random(seed).sample(examples, n)` — same seed gives the
-    same split across runs and across machines. Sorted by question_id in
-    the result for reader stability (the underlying sample is unordered).
+    Implementation: shuffle the pool once with `random.Random(seed)` and
+    take the first `n`. This guarantees that for the same seed,
+    `dev_split(..., n=k1)` is a prefix of `dev_split(..., n=k2)` whenever
+    `k1 <= k2` — so growing the eval slice (50 → 100 → 200) re-uses every
+    cached prompt from the smaller run instead of re-rolling.
+
+    Result is sorted by question_id for reader stability (the underlying
+    shuffle is unordered, but eval reports want stable IDs).
     """
     if n <= 0:
         return []
@@ -108,17 +116,64 @@ def dev_split(
     if n >= len(pool):
         return sorted(pool, key=lambda e: e.question_id)
     rng = random.Random(seed)
-    chosen = rng.sample(pool, n)
+    shuffled = pool[:]
+    rng.shuffle(shuffled)
+    chosen = shuffled[:n]
     return sorted(chosen, key=lambda e: e.question_id)
 
 
 def extract_gold_tables(sql: str) -> list[str]:
-    """Pull table identifiers from FROM/JOIN clauses of a SQL string.
+    """Walk the SQL AST and collect every base-table reference.
 
-    Best-effort, regex-based. Handles common BIRD shapes (CTEs, aliases,
-    schema-qualified names) without dragging in sqlglot for what is a 100%
-    static lookup. Used by Schema Recall@k.
+    Used by Schema Recall@k. Captures tables referenced anywhere in the
+    query — FROM, JOIN, correlated subqueries inside WHERE / SELECT,
+    IN-list subqueries, set operations, etc. CTE names defined via
+    ``WITH ... AS (...)`` are excluded because they shadow base tables
+    in scope and would inflate recall against the schema_chunks index.
+
+    Falls back to the FROM/JOIN regex if sqlglot can't parse the SQL —
+    BIRD ships a small fraction of dialect-specific quirks that even
+    the lenient parser may reject; better to under-count than crash.
     """
+    try:
+        tree = sqlglot.parse_one(sql, read="sqlite")
+    except sqlglot.errors.ParseError:
+        return _extract_via_regex(sql)
+    if tree is None:
+        return _extract_via_regex(sql)
+
+    # CTE names live in a WITH block above the body — collect them so we
+    # can drop matches that point at a CTE alias rather than a base table.
+    cte_names: set[str] = {
+        cte.alias_or_name.lower()
+        for cte in tree.find_all(exp.CTE)
+        if cte.alias_or_name
+    }
+
+    tables: list[str] = []
+    seen: set[str] = set()
+    for node in tree.find_all(exp.Table):
+        # Walk up to detect tables that are themselves the alias side of
+        # a CTE definition (the body of WITH x AS (...) — sqlglot models
+        # the inner SELECT's tables here, which we still want; only skip
+        # references whose .name matches a CTE alias).
+        name = node.name
+        if not name:
+            continue
+        key = name.lower()
+        if key in cte_names:
+            continue
+        if key in seen:
+            continue
+        seen.add(key)
+        tables.append(name)
+    if not tables:
+        return _extract_via_regex(sql)
+    return tables
+
+
+def _extract_via_regex(sql: str) -> list[str]:
+    """Legacy regex-based fallback for the ~1% of SQLs sqlglot can't parse."""
     tables: list[str] = []
     seen: set[str] = set()
     for match in _TABLE_RE.finditer(sql):
@@ -126,10 +181,6 @@ def extract_gold_tables(sql: str) -> list[str]:
         key = table.lower()
         if key in seen:
             continue
-        # Skip CTE-style names defined inside the same query — heuristic:
-        # if the same name appears after `WITH ... AS (` it's still in the
-        # match list. Dropping that requires real parsing; the cost of a
-        # false positive in recall is small (CTEs rarely shadow base tables).
         seen.add(key)
         tables.append(table)
     return tables

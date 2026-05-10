@@ -20,11 +20,21 @@ from nl_sql.eval.runner import Configuration, EvalRecord, EvalRun, EvalSummary
 REPORTS_ROOT = Path("eval") / "reports"
 
 
-def write_json_report(run: EvalRun, *, root: Path | str = REPORTS_ROOT) -> Path:
-    """Dump one EvalRun as `eval/reports/<date>/<config>.json`."""
+def write_json_report(
+    run: EvalRun,
+    *,
+    root: Path | str = REPORTS_ROOT,
+    name_suffix: str = "",
+) -> Path:
+    """Dump one EvalRun as `eval/reports/<date>/<config>[<-suffix>].json`.
+
+    `name_suffix` lets knob-bump runs (top-k=8, fk-hops=2, etc.) live
+    alongside the baseline report on the same day without overwriting it.
+    """
     out_dir = _date_dir(root)
     out_dir.mkdir(parents=True, exist_ok=True)
-    path = out_dir / f"{run.configuration.value}.json"
+    suffix = f"-{name_suffix}" if name_suffix else ""
+    path = out_dir / f"{run.configuration.value}{suffix}.json"
     payload = {
         "configuration": run.configuration.value,
         "sql_model": run.sql_model,

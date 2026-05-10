@@ -56,21 +56,36 @@ def parse_generate_sql_output(text: str) -> GenerateSQLOutput:
     )
 
 
-def render_schema_block(context: ContextBundle | None) -> str:
+def render_schema_block(
+    context: ContextBundle | None,
+    *,
+    sort_alphabetically: bool = False,
+) -> str:
     """Render schema chunks + FK neighbours into a single text block.
 
     Order: top-k dense hits first, FK-extended neighbours after. Empty bundle
     yields a placeholder so prompt formatting still works.
+
+    `sort_alphabetically=True` overrides retrieval order and renders all
+    tables (dense hits + FK neighbours together) in alphabetical-by-table-name
+    order. The "FK-related tables" header is omitted in this mode because
+    the partition no longer exists. Empirically codestral is more accurate
+    when the schema block matches the alphabetical baseline order produced
+    by SQLAlchemy's `inspect()` — see docs/SESSION_HANDOFF.md (column-
+    ordering experiment).
     """
     if context is None:
         return "(no schema context)"
     blocks: list[str] = []
-    for hit in context.schema_hits:
-        blocks.append(hit.text)
-    if context.fk_neighbours:
-        blocks.append("# FK-related tables")
-        for hit in context.fk_neighbours:
-            blocks.append(hit.text)
+    if sort_alphabetically:
+        all_hits = list(context.schema_hits) + list(context.fk_neighbours)
+        all_hits.sort(key=lambda h: h.table_name.lower())
+        blocks.extend(hit.text for hit in all_hits)
+    else:
+        blocks.extend(hit.text for hit in context.schema_hits)
+        if context.fk_neighbours:
+            blocks.append("# FK-related tables")
+            blocks.extend(hit.text for hit in context.fk_neighbours)
     if not blocks:
         return "(no tables matched)"
     return "\n\n".join(blocks)

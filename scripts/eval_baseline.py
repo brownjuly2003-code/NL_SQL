@@ -35,6 +35,9 @@ from nl_sql.eval import (
     write_json_report,
 )
 from nl_sql.eval.dataset import DEFAULT_BIRD_ROOT
+from nl_sql.llm.cache import CachingEmbeddingProvider, CachingLLMProvider
+from nl_sql.llm.providers import build_provider
+from nl_sql.llm.providers.base import EmbeddingProvider, LLMProvider
 from nl_sql.llm.providers.mistral import MistralProvider
 from nl_sql.schema_index.indexer import SchemaIndex
 
@@ -73,6 +76,62 @@ def main(argv: list[str] | None = None) -> int:
         default="chroma_data",
         help="chroma persist directory (config C only; default: chroma_data/)",
     )
+    parser.add_argument(
+        "--no-cache",
+        action="store_true",
+        help=(
+            "disable diskcache wrappers around the LLM/embedding providers. "
+            "Default is cached — re-running the same examples is then $0 + "
+            "deterministic, so ablations compare apples to apples."
+        ),
+    )
+    parser.add_argument(
+        "--schema-top-k",
+        type=int,
+        default=5,
+        help="dense schema retrieval top-k (configs C/E; default: 5)",
+    )
+    parser.add_argument(
+        "--fk-hops",
+        type=int,
+        default=1,
+        help="FK graph expansion hops (configs C/E; default: 1)",
+    )
+    parser.add_argument(
+        "--table-budget",
+        type=int,
+        default=12,
+        help="max tables in the schema block (configs C/E; default: 12)",
+    )
+    parser.add_argument(
+        "--report-suffix",
+        default="",
+        help=(
+            "extra string appended to <config>.json so knob-bump runs don't "
+            "overwrite the baseline (e.g. '--report-suffix=topk8' → "
+            "C_dense_cards-topk8.json)"
+        ),
+    )
+    parser.add_argument(
+        "--sort-schema-block",
+        action="store_true",
+        help=(
+            "render schema_block in alphabetical-by-table-name order "
+            "(configs C/E only; default: retrieval-distance + FK BFS order). "
+            "Tests the hypothesis that codestral is order-sensitive on "
+            "moderate-tier BIRD questions."
+        ),
+    )
+    parser.add_argument(
+        "--provider",
+        choices=["mistral", "groq", "github_models", "ollama"],
+        default="mistral",
+        help=(
+            "LLM provider for generation (embedding stays mistral — only "
+            "Mistral implements EmbeddingProvider). Used for the "
+            "architecture §1 provider bakeoff."
+        ),
+    )
     args = parser.parse_args(argv)
 
     settings = get_settings()
@@ -102,12 +161,19 @@ def main(argv: list[str] | None = None) -> int:
         )
         return 4
 
-    sql_provider = MistralProvider(
-        api_key=settings.mistral_api_key,
-        gen_model=settings.mistral_gen_model,
-        embed_model=settings.mistral_embed_model,
-        base_url=settings.mistral_base_url,
-    )
+    raw_sql_provider = build_provider(args.provider, settings=settings)
+    print(f"[info] provider: {args.provider} (model={raw_sql_provider.model})")
+    sql_provider: LLMProvider
+    if args.no_cache:
+        sql_provider = raw_sql_provider
+        print("[info] cache: DISABLED (--no-cache)")
+    else:
+        sql_provider = CachingLLMProvider(
+            raw_sql_provider,
+            cache_dir=settings.llm_cache_dir,
+            size_limit_gb=settings.llm_cache_size_limit_gb,
+        )
+        print(f"[info] cache: ENABLED at {settings.llm_cache_dir}/")
 
     started = time.perf_counter()
 
@@ -140,11 +206,20 @@ def main(argv: list[str] | None = None) -> int:
             return 5
         chroma_client = chromadb.PersistentClient(path=str(persist_dir))
         # Embedding provider also Mistral — same key, same `mistral-embed`.
-        embedder = MistralProvider(
+        raw_embedder = MistralProvider(
             api_key=settings.mistral_api_key,
             gen_model=settings.mistral_gen_model,
             embed_model=settings.mistral_embed_model,
             base_url=settings.mistral_base_url,
+        )
+        embedder: EmbeddingProvider = (
+            raw_embedder
+            if args.no_cache
+            else CachingEmbeddingProvider(
+                raw_embedder,
+                cache_dir=settings.llm_cache_dir,
+                size_limit_gb=settings.llm_cache_size_limit_gb,
+            )
         )
         index = SchemaIndex(
             persist_dir=persist_dir, embedder=embedder, client=chroma_client
@@ -157,6 +232,10 @@ def main(argv: list[str] | None = None) -> int:
             explain_provider=explain_provider,
             schema_index=index,
             registry=registry,
+            schema_top_k=args.schema_top_k,
+            fk_hops=args.fk_hops,
+            table_budget=args.table_budget,
+            sort_schema_block=args.sort_schema_block,
             progress=_on_progress,
         )
     elapsed = time.perf_counter() - started
@@ -181,7 +260,9 @@ def main(argv: list[str] | None = None) -> int:
     print(f"Tokens P95:    {run.overall.tokens_p95:.0f}")
     print(f"Wall time:     {elapsed:.1f}s")
 
-    json_path = write_json_report(run, root=args.reports)
+    json_path = write_json_report(
+        run, root=args.reports, name_suffix=args.report_suffix
+    )
 
     # Combine today's run with any other configurations that finished earlier
     # so the HTML index keeps a single side-by-side ablation table per day.

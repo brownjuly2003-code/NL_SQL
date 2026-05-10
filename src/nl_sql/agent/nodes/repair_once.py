@@ -24,6 +24,7 @@ def make_repair_once_node(
     *,
     max_tokens: int = 1024,
     temperature: float = 0.0,
+    sort_schema_block: bool = False,
 ) -> Callable[[PipelineState], PipelineState]:
     def node(state: PipelineState) -> PipelineState:
         generated = state.get("generated")
@@ -36,7 +37,9 @@ def make_repair_once_node(
         prompt = load_prompt(
             "repair_sql",
             dialect=dialect,
-            schema_block=render_schema_block(context),
+            schema_block=render_schema_block(
+                context, sort_alphabetically=sort_schema_block
+            ),
             question=question,
             previous_sql=previous_sql,
             error_context=error_context,

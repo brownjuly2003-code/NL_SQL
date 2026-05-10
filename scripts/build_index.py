@@ -21,6 +21,8 @@ import chromadb
 
 from nl_sql.config import get_settings
 from nl_sql.db.registry import get_default_registry
+from nl_sql.llm.cache import CachingEmbeddingProvider
+from nl_sql.llm.providers.base import EmbeddingProvider
 from nl_sql.llm.providers.mistral import MistralProvider
 from nl_sql.schema_index.chunker import to_chunks
 from nl_sql.schema_index.indexer import SCHEMA_COLLECTION, SchemaIndex
@@ -63,6 +65,11 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Drop the schema_chunks collection before indexing.",
     )
+    parser.add_argument(
+        "--no-cache",
+        action="store_true",
+        help="Disable diskcache wrapper around the embedding provider.",
+    )
     args = parser.parse_args(argv)
 
     settings = get_settings()
@@ -76,11 +83,20 @@ def main(argv: list[str] | None = None) -> int:
         except Exception as exc:
             print(f"[reset] no existing {SCHEMA_COLLECTION} to drop ({exc})")
 
-    embedder = MistralProvider(
+    raw_embedder = MistralProvider(
         api_key=settings.mistral_api_key,
         gen_model=settings.mistral_gen_model,
         embed_model=settings.mistral_embed_model,
         base_url=settings.mistral_base_url,
+    )
+    embedder: EmbeddingProvider = (
+        raw_embedder
+        if args.no_cache
+        else CachingEmbeddingProvider(
+            raw_embedder,
+            cache_dir=settings.llm_cache_dir,
+            size_limit_gb=settings.llm_cache_size_limit_gb,
+        )
     )
     idx = SchemaIndex(persist_dir=persist, embedder=embedder, client=client)
 

@@ -71,6 +71,11 @@ class PipelineConfig:
     table_budget: int = 12
     statement_timeout_ms: int = 30_000
     row_cap: int = 10_000
+    sort_schema_block: bool = False
+    """Render schema_block in alphabetical-by-table-name order instead of
+    retrieval-distance + FK BFS order. Empirically helps codestral on
+    moderate-tier BIRD questions where it matches A_full_schema's
+    introspection order. See docs/SESSION_HANDOFF.md."""
 
 
 @dataclass(slots=True)
@@ -108,9 +113,13 @@ def build_pipeline(config: PipelineConfig) -> CompiledStateGraph[Any, Any, Any, 
             fk_hops=config.fk_hops,
             table_budget=config.table_budget,
         ),
-        "generate_sql": make_generate_sql_node(config.sql_provider),
+        "generate_sql": make_generate_sql_node(
+            config.sql_provider, sort_schema_block=config.sort_schema_block
+        ),
         "validate": make_validate_node(),
-        "repair_once": make_repair_once_node(config.sql_provider),
+        "repair_once": make_repair_once_node(
+            config.sql_provider, sort_schema_block=config.sort_schema_block
+        ),
         "execute": make_execute_node(
             registry=config.registry,
             statement_timeout_ms=config.statement_timeout_ms,

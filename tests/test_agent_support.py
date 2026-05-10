@@ -94,6 +94,31 @@ def test_render_schema_block_orders_seeds_then_neighbours() -> None:
     assert "# FK-related tables" in text
 
 
+def test_render_schema_block_alphabetical_sort_merges_partitions() -> None:
+    """`sort_alphabetically=True` collapses dense + FK into one
+    alphabetised block and drops the FK header.
+    """
+    bundle = ContextBundle(
+        db_id="d",
+        question="q",
+        schema_hits=[
+            _hit("event", "event block"),
+            _hit("budget", "budget block"),
+        ],
+        fk_neighbours=[
+            _hit("attendance", "attendance block"),
+            _hit("zip_code", "zip_code block"),
+        ],
+        fewshots=[],
+    )
+    text = render_schema_block(bundle, sort_alphabetically=True)
+    # alphabetical order: attendance < budget < event < zip_code
+    assert text.index("attendance block") < text.index("budget block")
+    assert text.index("budget block") < text.index("event block")
+    assert text.index("event block") < text.index("zip_code block")
+    assert "# FK-related tables" not in text
+
+
 def test_render_fewshot_block_empty() -> None:
     assert render_fewshot_block(None) == "(none)"
 

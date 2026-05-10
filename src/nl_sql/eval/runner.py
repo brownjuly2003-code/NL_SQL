@@ -178,6 +178,7 @@ def run_config_c(
     statement_timeout_ms: int = 60_000,
     row_cap: int = 10_000,
     max_tokens: int = 1024,
+    sort_schema_block: bool = False,
     progress: Callable[[int, int, EvalRecord], None] | None = None,
 ) -> EvalRun:
     """Run configuration C (dense schema cards + FK 1-hop, no fewshot, no repair).
@@ -199,6 +200,7 @@ def run_config_c(
             table_budget=table_budget,
             statement_timeout_ms=statement_timeout_ms,
             row_cap=row_cap,
+            sort_schema_block=sort_schema_block,
         )
     )
     records: list[EvalRecord] = []
@@ -238,6 +240,7 @@ def run_config_e(
     statement_timeout_ms: int = 60_000,
     row_cap: int = 10_000,
     max_tokens: int = 1024,
+    sort_schema_block: bool = False,
     progress: Callable[[int, int, EvalRecord], None] | None = None,
 ) -> EvalRun:
     """Run configuration E (config C + repair_once enabled) — final v2 config.
@@ -258,6 +261,7 @@ def run_config_e(
             table_budget=table_budget,
             statement_timeout_ms=statement_timeout_ms,
             row_cap=row_cap,
+            sort_schema_block=sort_schema_block,
         )
     )
     records: list[EvalRecord] = []
@@ -323,7 +327,7 @@ def _run_one_config_a(
             statement_timeout_ms=statement_timeout_ms,
             row_cap=row_cap,
         )
-        gold_rows, gold_columns = _execute_gold(
+        gold_rows, _gold_columns = _execute_gold(
             engine,
             example.sql,
             statement_timeout_ms=statement_timeout_ms,
@@ -359,8 +363,6 @@ def _run_one_config_a(
         )
     finally:
         engine.dispose()
-        # Suppress unused; gold_columns kept for future per-column F1 metric.
-        del gold_columns
 
 
 def _run_one_via_pipeline(
@@ -594,11 +596,12 @@ def _execute_gold(
             engine, sql, statement_timeout_ms=statement_timeout_ms, row_cap=row_cap
         ) as result:
             return list(result.rows), list(result.columns)
-    except SQLAlchemyError:
+    except (SQLAlchemyError, MemoryError):
         # Last-resort: try the raw connection to surface gold-SQL bugs in
         # logs without crashing the runner. BIRD ships ~1% gold SQLs that
-        # fail under sqlite default settings; we count them as gold-failure
-        # rather than pred-failure.
+        # fail under sqlite default settings (e.g. cross joins blowing up
+        # before the row cap kicks in → MemoryError); we count them as
+        # gold-failure rather than pred-failure.
         try:
             with engine.connect() as conn:
                 cursor = conn.execute(text(sql))
@@ -606,7 +609,7 @@ def _execute_gold(
                 rows = [tuple(r) for r in cursor.fetchmany(row_cap)]
                 cursor.close()
                 return rows, cols
-        except SQLAlchemyError:
+        except (SQLAlchemyError, MemoryError):
             return [], []
 
 

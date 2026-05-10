@@ -25,6 +25,7 @@ def make_generate_sql_node(
     *,
     max_tokens: int = 1024,
     temperature: float = 0.0,
+    sort_schema_block: bool = False,
 ) -> Callable[[PipelineState], PipelineState]:
     def node(state: PipelineState) -> PipelineState:
         question = state.get("question", "")
@@ -33,7 +34,9 @@ def make_generate_sql_node(
         prompt = load_prompt(
             "generate_sql",
             dialect=dialect,
-            schema_block=render_schema_block(context),
+            schema_block=render_schema_block(
+                context, sort_alphabetically=sort_schema_block
+            ),
             fewshot_block=render_fewshot_block(context),
             question=question,
         )

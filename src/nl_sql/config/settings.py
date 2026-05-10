@@ -41,6 +41,11 @@ class Settings(BaseSettings):
     github_token: str = Field(default="", validation_alias="GITHUB_TOKEN")
     groq_api_key: str = Field(default="", validation_alias="GROQ_API_KEY")
 
+    # diskcache for LLM generate/embed responses (per docs/02_architecture_v2.md §6.5).
+    # Two subdirs ("gen", "embed") are created under this root by `nl_sql.llm.cache`.
+    llm_cache_dir: str = ".cache/llm"
+    llm_cache_size_limit_gb: int = 4
+
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:

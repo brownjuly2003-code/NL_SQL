@@ -169,6 +169,28 @@ def test_run_config_a_per_difficulty_slices(chinook_registry: DatabaseRegistry) 
     assert run.overall.ea == pytest.approx(2 / 3)
 
 
+def test_run_config_a_handles_broken_gold_sql(
+    chinook_registry: DatabaseRegistry,
+) -> None:
+    """Regression: gold SQL that errors must not crash the runner.
+
+    Earlier the finally-block did `del gold_columns`, but `gold_columns`
+    only got bound on the success path inside the try. Any gold-side
+    failure (SQLAlchemyError, MemoryError on a runaway gold query) raised
+    UnboundLocalError before the EvalRecord could be returned.
+    """
+    pred = json.dumps({"sql": "SELECT COUNT(*) FROM Album", "tables_used": ["Album"]})
+    llm = ScriptedLLM([pred])
+    # Bogus gold SQL — references a non-existent table; both `execute_readonly`
+    # and the raw-connection fallback will raise SQLAlchemyError.
+    examples = [_example(99, "q", "SELECT COUNT(*) FROM TableThatDoesNotExist")]
+    run = run_config_a(examples, sql_provider=llm, registry=chinook_registry)
+
+    rec = run.records[0]
+    assert rec.match is False  # gold returned [], pred returned [(N,)]
+    assert rec.gold_row_count == 0
+
+
 def test_progress_callback_invoked(chinook_registry: DatabaseRegistry) -> None:
     correct = json.dumps({"sql": "SELECT COUNT(*) FROM Album"})
     llm = ScriptedLLM([correct, correct])
