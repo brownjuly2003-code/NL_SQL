@@ -30,6 +30,7 @@ from nl_sql.eval import (
     load_run_from_json,
     run_config_a,
     run_config_c,
+    run_config_e,
     write_html_report,
     write_json_report,
 )
@@ -60,9 +61,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--reports", default="eval/reports", help="output root")
     parser.add_argument(
         "--config",
-        choices=["A", "C"],
+        choices=["A", "C", "E"],
         default="A",
-        help="ablation configuration (A=full_schema, C=dense+FK, no fewshot/repair)",
+        help=(
+            "ablation configuration "
+            "(A=full_schema, C=dense+FK no repair, E=dense+FK+repair_once)"
+        ),
     )
     parser.add_argument(
         "--persist",
@@ -125,7 +129,7 @@ def main(argv: list[str] | None = None) -> int:
             registry=registry,
             progress=_on_progress,
         )
-    else:  # "C"
+    else:  # "C" or "E" — both need the Chroma index
         persist_dir = Path(args.persist)
         if not persist_dir.is_dir():
             print(
@@ -145,9 +149,9 @@ def main(argv: list[str] | None = None) -> int:
         index = SchemaIndex(
             persist_dir=persist_dir, embedder=embedder, client=chroma_client
         )
-        # Caption provider: Groq if configured (faster, free), else Mistral large.
         explain_provider = sql_provider  # codestral works for caption too in eval
-        run = run_config_c(
+        runner = run_config_c if args.config == "C" else run_config_e
+        run = runner(
             sample,
             sql_provider=sql_provider,
             explain_provider=explain_provider,
@@ -162,11 +166,13 @@ def main(argv: list[str] | None = None) -> int:
     print(f"Configuration: {run.configuration.value}")
     print(f"Model:         {run.sql_model}")
     print(f"Examples:      {run.overall.n}")
-    print(f"EA:            {run.overall.ea * 100:.1f}%")
+    print(f"EA (final):    {run.overall.ea * 100:.1f}%")
+    print(f"EA (1st pass): {run.overall.first_pass_ea * 100:.1f}%")
     print(f"  simple:      {run.per_difficulty['simple'].ea * 100:.1f}% (n={run.per_difficulty['simple'].n})")
     print(f"  moderate:    {run.per_difficulty['moderate'].ea * 100:.1f}% (n={run.per_difficulty['moderate'].n})")
     print(f"  challenging: {run.per_difficulty['challenging'].ea * 100:.1f}% (n={run.per_difficulty['challenging'].n})")
     print(f"Validity:      {run.overall.validity_rate * 100:.1f}%")
+    print(f"Repair fired:  {sum(1 for r in run.records if r.repair_attempted)}/{run.overall.n}; success rate {run.overall.repair_success_rate * 100:.1f}%")
     print(f"Schema rec@k:  {run.overall.schema_recall_at_k * 100:.1f}%  (k = full schema, so recall ≈ 100% expected)")
     print(f"Empty result:  {run.overall.empty_result_rate * 100:.1f}%")
     print(f"Latency P50:   {run.overall.latency_p50_ms:.0f} ms")

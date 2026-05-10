@@ -36,6 +36,7 @@ from nl_sql.eval.runner import (
     EvalSummary,
     run_config_a,
     run_config_c,
+    run_config_e,
 )
 
 __all__ = [
@@ -53,6 +54,7 @@ __all__ = [
     "load_run_from_json",
     "run_config_a",
     "run_config_c",
+    "run_config_e",
     "schema_recall_at_k",
     "write_html_report",
     "write_json_report",

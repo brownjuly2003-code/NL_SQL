@@ -187,8 +187,8 @@ def test_progress_callback_invoked(chinook_registry: DatabaseRegistry) -> None:
 
 
 def test_other_configs_not_implemented_yet() -> None:
-    # run_config_c now lives — only B/D/E remain stubbed.
-    for fn in (run_config_b, run_config_d, run_config_e):
+    # run_config_c and run_config_e now live — only B/D remain stubbed.
+    for fn in (run_config_b, run_config_d):
         with pytest.raises(NotImplementedError):
             fn()
 
@@ -293,6 +293,71 @@ def test_run_config_c_no_repair_on_invalid(
     assert rec.error_kind == ExecutionErrorKind.INVALID_SQL.value
     assert rec.repair_attempted is False
     assert sql_llm.call_count == 1  # exactly one generate, no repair pass
+
+
+# ---------------------------------------------------------------------------
+# Configuration E — config C + repair_once.
+# ---------------------------------------------------------------------------
+
+
+def test_run_config_e_repair_recovers_invalid_first_pass(
+    chinook_with_index: tuple[DatabaseRegistry, SchemaIndex],
+) -> None:
+    """Config E: first generate is invalid, repair fixes it, EA = True but
+    first_pass_match must be False to isolate the repair contribution."""
+    registry, index = chinook_with_index
+    bad = json.dumps({"sql": "DELETE FROM Album", "confidence": 0.1})
+    good = json.dumps(
+        {"sql": "SELECT COUNT(*) FROM Album", "tables_used": ["Album"], "confidence": 0.85}
+    )
+    sql_llm = ScriptedLLM([bad, good])
+    explain_llm = ScriptedLLM(["captioned"])
+    examples = [_example(1, "albums?", "SELECT COUNT(*) FROM Album")]
+    run = run_config_e(
+        examples,
+        sql_provider=sql_llm,
+        explain_provider=explain_llm,
+        schema_index=index,
+        registry=registry,
+        schema_top_k=2,
+        fk_hops=0,
+    )
+
+    assert run.configuration == Configuration.E_FINAL
+    rec = run.records[0]
+    assert rec.match is True            # final EA = True (repair fixed it)
+    assert rec.first_pass_match is False  # without repair, EA would be False
+    assert rec.repair_attempted is True
+    assert sql_llm.call_count == 2      # exactly one repair pass
+    # Per-config aggregates should reflect the split:
+    assert run.overall.ea == 1.0
+    assert run.overall.first_pass_ea == 0.0
+    assert run.overall.repair_success_rate == 1.0
+
+
+def test_run_config_e_no_repair_when_first_pass_succeeds(
+    chinook_with_index: tuple[DatabaseRegistry, SchemaIndex],
+) -> None:
+    registry, index = chinook_with_index
+    good = json.dumps({"sql": "SELECT COUNT(*) FROM Album", "confidence": 0.9})
+    sql_llm = ScriptedLLM([good])
+    explain_llm = ScriptedLLM(["captioned"])
+    examples = [_example(1, "albums?", "SELECT COUNT(*) FROM Album")]
+    run = run_config_e(
+        examples,
+        sql_provider=sql_llm,
+        explain_provider=explain_llm,
+        schema_index=index,
+        registry=registry,
+        schema_top_k=2,
+        fk_hops=0,
+    )
+
+    rec = run.records[0]
+    assert rec.match is True
+    assert rec.first_pass_match is True
+    assert rec.repair_attempted is False  # repair never fired
+    assert run.overall.repair_success_rate == 0.0  # no denominator
 
 
 def test_run_config_c_progress_callback(

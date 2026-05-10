@@ -225,8 +225,59 @@ def run_config_d(*_: Any, **__: Any) -> EvalRun:
     raise NotImplementedError("Configuration D (+ fewshot) ships in stage 6.d")
 
 
-def run_config_e(*_: Any, **__: Any) -> EvalRun:
-    raise NotImplementedError("Configuration E (+ repair) ships in stage 6.e")
+def run_config_e(
+    examples: Sequence[BirdExample],
+    *,
+    sql_provider: LLMProvider,
+    explain_provider: LLMProvider,
+    schema_index: SchemaIndex,
+    registry: DatabaseRegistry,
+    schema_top_k: int = 5,
+    fk_hops: int = 1,
+    table_budget: int = 12,
+    statement_timeout_ms: int = 60_000,
+    row_cap: int = 10_000,
+    max_tokens: int = 1024,
+    progress: Callable[[int, int, EvalRecord], None] | None = None,
+) -> EvalRun:
+    """Run configuration E (config C + repair_once enabled) — final v2 config.
+
+    The only difference from C is that the repair branch fires on the first
+    validate/execute failure. Results capture both first-pass and final EA
+    so the methodology report can isolate the repair contribution.
+    """
+    pipeline = build_pipeline(
+        PipelineConfig(
+            sql_provider=sql_provider,
+            explain_provider=explain_provider,
+            schema_index=schema_index,
+            registry=registry,
+            schema_top_k=schema_top_k,
+            fewshot_top_k=0,
+            fk_hops=fk_hops,
+            table_budget=table_budget,
+            statement_timeout_ms=statement_timeout_ms,
+            row_cap=row_cap,
+        )
+    )
+    records: list[EvalRecord] = []
+    for idx, example in enumerate(examples, start=1):
+        record = _run_one_via_pipeline(
+            example,
+            pipeline=pipeline,
+            registry=registry,
+            statement_timeout_ms=statement_timeout_ms,
+            row_cap=row_cap,
+            disable_repair=False,
+        )
+        records.append(record)
+        if progress is not None:
+            progress(idx, len(examples), record)
+    return _summarise(
+        configuration=Configuration.E_FINAL,
+        sql_model=getattr(sql_provider, "model", "unknown"),
+        records=records,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -409,8 +460,13 @@ def _run_one_via_pipeline(
             # short-circuit routing — that's not a "repair happened" signal,
             # so suppress it in the record. When repair is enabled, trust the
             # pipeline's flag.
-            repair_attempted=False if disable_repair else result.repair_attempted,
-            first_pass_match=comparison.match,
+            repair_attempted=_repair_actually_fired(result, disable_repair),
+            # First-pass EA: if repair fired, the first generate definitely
+            # produced bad SQL → first_pass = False. If repair did not fire,
+            # the first SQL *was* the final SQL, so first_pass = final match.
+            first_pass_match=(
+                False if _repair_actually_fired(result, disable_repair) else comparison.match
+            ),
             latency_ms=elapsed_ms,
             input_tokens=in_tok,
             output_tokens=out_tok,
@@ -422,6 +478,19 @@ def _run_one_via_pipeline(
         )
     finally:
         gold_engine.dispose()
+
+
+def _repair_actually_fired(result: Any, disable_repair: bool) -> bool:
+    """True iff the repair_once node ran during this pipeline invocation.
+
+    `disable_repair=True` seeds the flag in the initial state, so we can't
+    just trust `result.repair_attempted` — that returns True whether repair
+    fired or not. When disable_repair=True we know repair could not fire
+    (routing falls through), so the answer is False.
+    """
+    if disable_repair:
+        return False
+    return bool(result.repair_attempted)
 
 
 def _retrieved_from_trace(trace: list[dict[str, object]]) -> tuple[str, ...]:
