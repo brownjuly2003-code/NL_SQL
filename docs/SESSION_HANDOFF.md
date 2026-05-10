@@ -1,4 +1,4 @@
-# NL_SQL — Session Handoff (2026-05-10, late)
+# NL_SQL — Session Handoff (2026-05-10, stage 6 baseline live)
 
 > Read this first when picking up. It's the single source of truth for
 > "where we stopped" and "what to do next". When you take action, update
@@ -9,15 +9,23 @@
 ## Current state in 30 seconds
 
 - **Repo:** `D:\NL_SQL\` on `main`
-- **HEAD:** see `git log -1 --oneline` (most recent: stage 4 LangGraph pipeline)
-- **Tests:** 131/131 passing, ruff clean, mypy strict clean (42 src files)
-- **Stages closed (autonomous): 1, 2, 3, 4, 5, 9** + provider adapter expanded with Groq
-- **Stages waiting: 6+** (eval harness)
+- **HEAD:** see `git log -1 --oneline` (stage 6 eval harness committed)
+- **Tests:** 169/169 passing, ruff clean, mypy strict clean (49 src files)
+- **Stages closed (autonomous): 1, 2, 3, 4, 5, 6 (config A only), 9** + provider adapter expanded with Groq
+- **Stages waiting: 6 (configs B–E)**, then 7+
 - **Hard budget:** still $0. All live providers tested are free-tier.
 
 Live signals:
 - Schema recall@5 on Chinook (`mistral-embed`) = **5/5 (100%)** — `scripts/smoke_schema_recall.py`
 - Full pipeline on Chinook (`codestral-latest` + `mistral-large-latest`) = **5/5 succeeded** — `scripts/smoke_pipeline.py`
+- Eval harness baseline (config A, 50 BIRD Mini-Dev SQLite, codestral-latest, seed=0):
+  - **EA = 46.0%** (simple 57.1% / moderate 45.5% / challenging 35.7%)
+  - Validity = 96.0%, Schema Recall@k = 98.0% (k = full schema), Empty-result = 6.0%
+  - Latency P50 = 1.3s, P95 = 37s (Mistral free-tier rate-limit backoff on 2 calls)
+  - Tokens P50 = 4 742, P95 = 10 055; wall time 413s
+  - **Above the week-3 hard checkpoint of EA ≥ 35%** → continue tuning loop, no scope-down.
+  - Reference: GPT-4 zero-shot on Mini-Dev SQLite = 47.8% (BIRD leaderboard).
+  - Artefacts: `eval/reports/2026-05-10/A_full_schema.json` + `index.html`.
 
 ## How to start the next session
 
@@ -44,6 +52,7 @@ Then say: *"Продолжай stage 6 — eval harness."*
 | 3 | `src/nl_sql/schema_index/` | 27 | introspector → chunker → indexer (Chroma) → retriever (FK 1-hop, table_budget). Live recall@5 = 100% on Chinook. |
 | 4 | `src/nl_sql/agent/` | 29 | LangGraph 6-node pipeline + repair_once + structured-output JSON parser + 5/5 live smoke on Chinook. |
 | 5 | `src/nl_sql/execution/` | 31 | sqlglot AST guard, 3-layer defence, error taxonomy |
+| 6 (cfg A) | `src/nl_sql/eval/` | 38 | dataset loader, EA + Schema Recall@k metrics, full_schema runner, JSON+HTML report writer. Live baseline: see `eval/reports/<date>/`. |
 | 9 | `src/nl_sql/render/` | 14 | deterministic chart picker, no LLM |
 
 Live API status (with keys from `.env`):
@@ -71,36 +80,48 @@ Not blocking — Groq is the active default frontier.
 `winget install Ollama.Ollama` then `ollama pull qwen2.5-coder:7b-instruct`.
 Not blocking until stage 11 bakeoff.
 
-### 4. Stage 4 caveats (NEW)
+### 4. Stage 4 caveats (UNCHANGED but now scoped to non-A configs)
 
-- **`fewshot_qsql` collection has zero records** — pipeline runs with
-  `fewshot_top_k=0` for now. Stage 6 (eval) will populate from BIRD
-  *train* split (NEVER dev — see `03_eval_methodology.md` §5).
+- **`fewshot_qsql` collection has zero records** — config D needs BIRD
+  *train* split (NEVER dev — see `03_eval_methodology.md` §5). Config A
+  doesn't use fewshot, so this isn't blocking the first eval number.
 - **Business-hint glossary is empty** — `to_chunks(..., business_hints={})`
-  is wired but no glossary file. Add when prompt eval shows the LLM
-  missing domain terms.
+  is wired but no glossary file. Optional ablation in §7.2.
 - **`mistral-large-latest` caption rate-limited under load** — graceful
   fallback to error sentence; consider switching caption to Groq's free
-  llama-3.3-70b if rate-limit becomes a recurring smoke issue.
-- **No few-shot in pipeline.** `PipelineConfig.fewshot_top_k` defaults to 3
-  but `smoke_pipeline.py` passes 0 because the index has none.
+  llama-3.3-70b if rate-limit becomes recurring under full eval load.
+
+### 5. Stage 6 caveats (NEW)
+
+- **Only configuration A is implemented.** B/C/D/E exist as enum members
+  and `run_config_*` stubs that raise `NotImplementedError`. Adding them
+  is mechanical (config C ≈ existing pipeline minus repair, config E =
+  full pipeline) — see `runner.py` for the slot.
+- **No diskcache yet.** Each eval call hits Mistral live, so re-running
+  the same 50 examples doubles the API spend. `03_eval_methodology.md`
+  §6.2 calls for `(provider, model, prompt_hash) → response` cache; add
+  before scaling to 250 dev split.
+- **No CI smoke-eval cassettes.** `03_eval_methodology.md` §6.1 wants
+  vcr.py-style replay; not wired up. Live runs only for now.
 
 ## Next session — recommended order
 
-### Step A — Stage 6: eval harness (5-8h)
+### Step A — Configurations C/D/E
 
-`src/nl_sql/eval/`:
-- `runner.py` — orchestrates ablation matrix per `03_eval_methodology.md` §4
-- `metrics/execution_accuracy.py` — order-insensitive result comparison
-- `metrics/schema_recall.py` — recall@k on retrieved tables vs gold
-- `report.py` — HTML report writer
+Implement runner equivalents that build the existing LangGraph pipeline
+with the right `PipelineConfig`. Config C wires retrieval+FK already in
+place; D needs the few-shot pool; E flips repair on. Track each new
+config alongside A in the same HTML report.
 
-First milestone: baseline EA on 50 BIRD examples, configuration A only
-(full_schema). Number doesn't matter — just need the harness working.
-
-After harness: build the few-shot pool from BIRD *train* split (separate
-download — current bundle has Mini-Dev only; train split needs its own
-HF dataset or curated subset).
+Order of operations:
+1. `eval/runner.run_config_c` — reuses `build_pipeline` with
+   `fewshot_top_k=0`, then strips repair via `repair_attempted=True`
+   in the initial state (the cheapest "no-repair" knob without changing
+   the graph).
+2. BIRD *train* split download → `data/bird_train/` + index into Chroma
+   `fewshot_qsql` (CI test `test_no_dev_in_fewshot` to enforce hygiene).
+3. `run_config_d` once the few-shot pool exists.
+4. `run_config_e` last — uses the full pipeline as-is.
 
 ### Step B — Hard checkpoint (week 3 of original roadmap)
 
@@ -125,13 +146,15 @@ D:\NL_SQL\
 │   ├── execution/                ← sqlglot guards + runner + errors
 │   ├── render/                   ← deterministic format/chart picker
 │   ├── schema_index/             ← introspect → chunk → index → retrieve
-│   └── agent/                    ← LangGraph 6 nodes + state + prompts
-├── tests/                        ← 131 tests, all green
+│   ├── agent/                    ← LangGraph 6 nodes + state + prompts
+│   └── eval/                     ← BIRD loader, EA + recall metrics, runner, HTML report
+├── tests/                        ← 169 tests, all green
 ├── scripts/
 │   ├── download_data.py          ← chinook + bird-mini-dev (gdown)
 │   ├── build_index.py            ← live: build chroma_data/ from db
 │   ├── smoke_schema_recall.py    ← live: recall@5 sanity on chinook
 │   ├── smoke_pipeline.py         ← live: full 6-node pipeline on chinook
+│   ├── eval_baseline.py          ← live: configuration A on N BIRD examples → JSON+HTML
 │   └── sql/postgres_init.sql     ← read-only role for postgres
 ├── data/                         ← gitignored
 │   ├── chinook/Chinook.sqlite    ← 1 MB
@@ -169,6 +192,10 @@ uv run python scripts/smoke_schema_recall.py
 # Full pipeline smoke (5 hand-picked Chinook questions, live Mistral)
 uv run python scripts/smoke_pipeline.py
 uv run python scripts/smoke_pipeline.py --question "..." --verbose
+
+# Eval baseline (config A, N BIRD examples; live Mistral codestral)
+uv run python scripts/eval_baseline.py --n 50 --seed 0
+uv run python scripts/eval_baseline.py --n 5 --db bird_california_schools
 ```
 
 ## Things to NOT redo
@@ -189,16 +216,18 @@ uv run python scripts/smoke_pipeline.py --question "..." --verbose
 ## Final state for memory
 
 ```
-HEAD:   stage 4 LangGraph pipeline (see git log)
+HEAD:   stage 6 eval harness (see git log)
 Branch: main
-Tests:  131/131 passing
+Tests:  169/169 passing
 Lint:   ruff clean
-Type:   mypy strict clean (42 src files)
+Type:   mypy strict clean (49 src files)
 Live:   Mistral OK (codestral + embed + large), Groq OK,
         GitHub Models 401, Ollama not installed
 Data:   Chinook + 11 BIRD DBs downloaded; chroma_data/ has chinook indexed
-Stages: 1, 2, 3, 4, 5, 9 done. 6+ next.
+Stages: 1, 2, 3, 4, 5, 6 (cfg A only), 9 done. 6 (B–E) next.
 Smoke:  schema recall@5 = 5/5 on Chinook
         full pipeline   = 5/5 on Chinook
+Eval:   config A on 50 BIRD = 46.0% EA (above 35% hard checkpoint)
+        — `eval/reports/2026-05-10/A_full_schema.json`
 Budget: $0 hard constraint, all live providers free-tier.
 ```
