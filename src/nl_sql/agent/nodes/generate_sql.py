@@ -34,9 +34,7 @@ def make_generate_sql_node(
         prompt = load_prompt(
             "generate_sql",
             dialect=dialect,
-            schema_block=render_schema_block(
-                context, sort_alphabetically=sort_schema_block
-            ),
+            schema_block=render_schema_block(context, sort_alphabetically=sort_schema_block),
             fewshot_block=render_fewshot_block(context),
             question=question,
         )

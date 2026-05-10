@@ -46,9 +46,7 @@ def fake_bird_root(tmp_path: Path) -> Path:
             "difficulty": "challenging",
         },
     ]
-    (root / "mini_dev_sqlite.json").write_text(
-        json.dumps(payload), encoding="utf-8"
-    )
+    (root / "mini_dev_sqlite.json").write_text(json.dumps(payload), encoding="utf-8")
     return root
 
 

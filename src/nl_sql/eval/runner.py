@@ -315,7 +315,9 @@ def _run_one_config_a(
         chunks = _full_schema_chunks(
             engine, db_id=example.registry_db_id, cache=schema_cache, sample_size=sample_size
         )
-        bundle = _bundle_from_chunks(chunks, question=example.question, db_id=example.registry_db_id)
+        bundle = _bundle_from_chunks(
+            chunks, question=example.question, db_id=example.registry_db_id
+        )
         prompt = load_prompt(
             "generate_sql",
             dialect=example.dialect,
@@ -686,9 +688,7 @@ def _summary_for(records: Iterable[EvalRecord]) -> EvalSummary:
         )
     matches = [r.match for r in rs]
     valid = [r.error_kind != ExecutionErrorKind.INVALID_SQL.value for r in rs]
-    repair_success = [
-        r.match for r in rs if r.repair_attempted
-    ]
+    repair_success = [r.match for r in rs if r.repair_attempted]
     empty = [r.error_kind == ExecutionErrorKind.EMPTY_RESULT.value for r in rs]
     latencies = sorted(r.latency_ms for r in rs)
     tokens = sorted((r.input_tokens + r.output_tokens) for r in rs)

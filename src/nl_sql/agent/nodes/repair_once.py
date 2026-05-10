@@ -37,9 +37,7 @@ def make_repair_once_node(
         prompt = load_prompt(
             "repair_sql",
             dialect=dialect,
-            schema_block=render_schema_block(
-                context, sort_alphabetically=sort_schema_block
-            ),
+            schema_block=render_schema_block(context, sort_alphabetically=sort_schema_block),
             question=question,
             previous_sql=previous_sql,
             error_context=error_context,

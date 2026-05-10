@@ -54,13 +54,15 @@ def pick_format(
         return Scalar(value=data[0][0], column=cols[0])
 
     if n_cols >= 2 and _is_temporal_column(data, 0) and n_rows <= _MAX_LINE_ROWS:
-        return LineChart(
-            columns=cols,
-            rows=data,
-            x_field=cols[0],
-            y_fields=[c for c in cols[1:] if _is_numeric_column(data, cols.index(c))],
-        ) if any(_is_numeric_column(data, i) for i in range(1, n_cols)) else Table(
-            columns=cols, rows=data
+        return (
+            LineChart(
+                columns=cols,
+                rows=data,
+                x_field=cols[0],
+                y_fields=[c for c in cols[1:] if _is_numeric_column(data, cols.index(c))],
+            )
+            if any(_is_numeric_column(data, i) for i in range(1, n_cols))
+            else Table(columns=cols, rows=data)
         )
 
     if (
@@ -128,7 +130,9 @@ def _is_categorical_column(rows: Sequence[Sequence[Any]], idx: int) -> bool:
 def _looks_like_share(rows: Sequence[Sequence[Any]]) -> bool:
     """Heuristic: looks like a share-of-total breakdown if the numeric column
     is non-negative and the largest category is < 80% of the total."""
-    values = [row[1] for row in rows if isinstance(row[1], int | float) and not isinstance(row[1], bool)]
+    values = [
+        row[1] for row in rows if isinstance(row[1], int | float) and not isinstance(row[1], bool)
+    ]
     if len(values) < 2 or any(v < 0 for v in values):
         return False
     total = sum(values)

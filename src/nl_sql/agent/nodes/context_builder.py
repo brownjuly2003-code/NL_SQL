@@ -47,9 +47,7 @@ def make_context_builder_node(
         if not question or not db_id:
             return {
                 "context": None,
-                "trace": _append_trace(
-                    state, "context_builder", note="missing question or db_id"
-                ),
+                "trace": _append_trace(state, "context_builder", note="missing question or db_id"),
             }
         engine: Engine | None = None
         if mixture_enabled:
@@ -80,9 +78,7 @@ def make_context_builder_node(
                 fewshots=len(bundle.fewshots),
                 truncated=bundle.truncated,
                 extended_sample_tables=(
-                    sorted(bundle.extended_samples)
-                    if bundle.extended_samples
-                    else []
+                    sorted(bundle.extended_samples) if bundle.extended_samples else []
                 ),
             ),
         }

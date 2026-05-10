@@ -50,8 +50,7 @@ class FakeEmbedder:
         import hashlib
 
         vectors = [
-            [b / 255.0 for b in hashlib.sha1(t.encode("utf-8")).digest()[:8]]
-            for t in req.texts
+            [b / 255.0 for b in hashlib.sha1(t.encode("utf-8")).digest()[:8]] for t in req.texts
         ]
         return EmbedResponse(vectors=vectors, model="fake")
 
@@ -121,9 +120,7 @@ def chinook_db(tmp_path: Path) -> Iterator[tuple[DatabaseSpec, Engine]]:
 
 
 @pytest.fixture
-def populated_index(
-    tmp_path: Path, chinook_db: tuple[DatabaseSpec, Engine]
-) -> SchemaIndex:
+def populated_index(tmp_path: Path, chinook_db: tuple[DatabaseSpec, Engine]) -> SchemaIndex:
     spec, eng = chinook_db
     client = chromadb.PersistentClient(path=str(tmp_path / "chroma"))
     idx = SchemaIndex(persist_dir=tmp_path / "chroma", embedder=FakeEmbedder(), client=client)

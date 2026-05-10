@@ -103,9 +103,7 @@ def _render_table_text(table: TableInfo, *, hints: list[str]) -> str:
         stats += f", distinct={col.distinct_count}"
         samples = _format_samples(col.sample_values)
         suffix = f" | samples: {samples}" if samples else ""
-        lines.append(
-            f"  - {col.name}: {col.type} [{' '.join(flags)}] | {stats}{suffix}"
-        )
+        lines.append(f"  - {col.name}: {col.type} [{' '.join(flags)}] | {stats}{suffix}")
 
     if table.foreign_keys:
         lines.append("Foreign keys:")

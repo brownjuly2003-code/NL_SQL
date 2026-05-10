@@ -63,7 +63,7 @@ class BirdExample:
     """One BIRD Mini-Dev question + gold SQL + difficulty + db_id."""
 
     question_id: int
-    db_id: str           # raw bird key, e.g. "debit_card_specializing"
+    db_id: str  # raw bird key, e.g. "debit_card_specializing"
     question: str
     evidence: str
     sql: str
@@ -145,9 +145,7 @@ def extract_gold_tables(sql: str) -> list[str]:
     # CTE names live in a WITH block above the body — collect them so we
     # can drop matches that point at a CTE alias rather than a base table.
     cte_names: set[str] = {
-        cte.alias_or_name.lower()
-        for cte in tree.find_all(exp.CTE)
-        if cte.alias_or_name
+        cte.alias_or_name.lower() for cte in tree.find_all(exp.CTE) if cte.alias_or_name
     }
 
     tables: list[str] = []

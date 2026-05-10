@@ -176,9 +176,7 @@ def test_fetch_extended_samples_handles_empty_table() -> None:
         raw.commit()
         eng = create_engine("sqlite://", creator=lambda: raw, future=True)
 
-        out = fetch_extended_samples(
-            eng, ["empty_t"], primary_size=2, extended_size=5
-        )
+        out = fetch_extended_samples(eng, ["empty_t"], primary_size=2, extended_size=5)
         assert out == {}
     finally:
         raw.close()

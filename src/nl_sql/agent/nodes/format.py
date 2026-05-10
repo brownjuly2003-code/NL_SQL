@@ -26,9 +26,7 @@ def make_format_node() -> Callable[[PipelineState], PipelineState]:
                 outcome.error_message if outcome else "no result available"
             )
             placeholder = Sentence(text=f"could not produce a result: {error_msg}")
-            trace.append(
-                {"node": "deterministic_format", "shape": "error_sentence"}
-            )
+            trace.append({"node": "deterministic_format", "shape": "error_sentence"})
             return {"output_format": placeholder, "trace": trace}
 
         result = outcome.result

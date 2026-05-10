@@ -82,9 +82,7 @@ def test_caching_llm_key_distinguishes_inputs(cache_dir: Path) -> None:
     cached.generate(GenerateRequest(prompt="B", temperature=0.0, max_tokens=64))
     cached.generate(GenerateRequest(prompt="A", temperature=0.7, max_tokens=64))
     cached.generate(GenerateRequest(prompt="A", temperature=0.0, max_tokens=128))
-    cached.generate(
-        GenerateRequest(prompt="A", system="sys-1", temperature=0.0, max_tokens=64)
-    )
+    cached.generate(GenerateRequest(prompt="A", system="sys-1", temperature=0.0, max_tokens=64))
 
     assert len(inner.calls) == 5
     cached.close()

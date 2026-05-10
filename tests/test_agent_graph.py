@@ -42,8 +42,7 @@ class FakeEmbedder:
 
         return EmbedResponse(
             vectors=[
-                [b / 255.0 for b in hashlib.sha1(t.encode("utf-8")).digest()[:8]]
-                for t in req.texts
+                [b / 255.0 for b in hashlib.sha1(t.encode("utf-8")).digest()[:8]] for t in req.texts
             ],
             model="fake",
         )
@@ -91,9 +90,7 @@ def chinook_setup(tmp_path: Path) -> Iterator[tuple[DatabaseRegistry, SchemaInde
     intro_engine: Engine = spec.make_engine()
     try:
         client = chromadb.PersistentClient(path=str(tmp_path / "chroma"))
-        index = SchemaIndex(
-            persist_dir=tmp_path / "chroma", embedder=FakeEmbedder(), client=client
-        )
+        index = SchemaIndex(persist_dir=tmp_path / "chroma", embedder=FakeEmbedder(), client=client)
         index.index_schema(to_chunks(introspect(intro_engine, sample_size=2), db_id="chinook"))
         yield registry, index
     finally:

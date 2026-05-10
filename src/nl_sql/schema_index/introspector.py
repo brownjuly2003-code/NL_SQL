@@ -210,9 +210,7 @@ def fetch_extended_samples(
             if tname not in available:
                 continue
             sa_table = Table(tname, metadata, autoload_with=engine)
-            row_count = conn.execute(
-                select(func.count()).select_from(sa_table)
-            ).scalar_one()
+            row_count = conn.execute(select(func.count()).select_from(sa_table)).scalar_one()
             if not int(row_count or 0):
                 continue
             per_col: dict[str, tuple[Any, ...]] = {}

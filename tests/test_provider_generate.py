@@ -37,9 +37,7 @@ def _completion_payload(model: str, text: str) -> dict[str, object]:
 @respx.mock
 def test_mistral_generate_returns_normalized_response() -> None:
     route = respx.post("https://api.mistral.ai/v1/chat/completions").mock(
-        return_value=httpx.Response(
-            200, json=_completion_payload("codestral-latest", "SELECT 1;")
-        )
+        return_value=httpx.Response(200, json=_completion_payload("codestral-latest", "SELECT 1;"))
     )
     provider = MistralProvider(api_key="test-key")
 
@@ -96,9 +94,7 @@ def test_generate_passes_system_prompt_when_provided() -> None:
         import json as _json
 
         captured.update(_json.loads(request.content))
-        return httpx.Response(
-            200, json=_completion_payload("codestral-latest", "ok")
-        )
+        return httpx.Response(200, json=_completion_payload("codestral-latest", "ok"))
 
     respx.post("https://api.mistral.ai/v1/chat/completions").mock(side_effect=_capture)
 

@@ -78,9 +78,7 @@ def test_garbage_sql_blocked_before_execute(engine: Engine) -> None:
 
 
 def test_empty_result_marked_explicitly(engine: Engine) -> None:
-    outcome = execute_validated(
-        engine, "SELECT * FROM Artists WHERE name = 'NonexistentBand'"
-    )
+    outcome = execute_validated(engine, "SELECT * FROM Artists WHERE name = 'NonexistentBand'")
 
     assert outcome.error_kind == ExecutionErrorKind.EMPTY_RESULT
     assert outcome.result is not None

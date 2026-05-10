@@ -119,9 +119,7 @@ class PipelineRunResult:
 
 
 def build_pipeline(config: PipelineConfig) -> CompiledStateGraph[Any, Any, Any, Any]:
-    graph: StateGraph[PipelineState, None, PipelineState, PipelineState] = StateGraph(
-        PipelineState
-    )
+    graph: StateGraph[PipelineState, None, PipelineState, PipelineState] = StateGraph(PipelineState)
 
     nodes: dict[str, Any] = {
         "context_builder": make_context_builder_node(

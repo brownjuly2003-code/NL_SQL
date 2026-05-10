@@ -46,9 +46,7 @@ def write_json_report(
     return path
 
 
-def write_html_report(
-    runs: Sequence[EvalRun], *, root: Path | str = REPORTS_ROOT
-) -> Path:
+def write_html_report(runs: Sequence[EvalRun], *, root: Path | str = REPORTS_ROOT) -> Path:
     """Render `eval/reports/<date>/index.html` with one table per run."""
     out_dir = _date_dir(root)
     out_dir.mkdir(parents=True, exist_ok=True)

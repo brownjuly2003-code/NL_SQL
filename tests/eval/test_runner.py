@@ -226,8 +226,7 @@ class FakeEmbedder:
     def embed(self, req: EmbedRequest) -> EmbedResponse:
         return EmbedResponse(
             vectors=[
-                [b / 255.0 for b in hashlib.sha1(t.encode("utf-8")).digest()[:8]]
-                for t in req.texts
+                [b / 255.0 for b in hashlib.sha1(t.encode("utf-8")).digest()[:8]] for t in req.texts
             ],
             model="fake",
         )
@@ -347,10 +346,10 @@ def test_run_config_e_repair_recovers_invalid_first_pass(
 
     assert run.configuration == Configuration.E_FINAL
     rec = run.records[0]
-    assert rec.match is True            # final EA = True (repair fixed it)
+    assert rec.match is True  # final EA = True (repair fixed it)
     assert rec.first_pass_match is False  # without repair, EA would be False
     assert rec.repair_attempted is True
-    assert sql_llm.call_count == 2      # exactly one repair pass
+    assert sql_llm.call_count == 2  # exactly one repair pass
     # Per-config aggregates should reflect the split:
     assert run.overall.ea == 1.0
     assert run.overall.first_pass_ea == 0.0
@@ -407,9 +406,7 @@ def test_run_config_c_progress_callback(
     assert seen == [(1, 2), (2, 2)]
 
 
-def test_report_writers_round_trip(
-    chinook_registry: DatabaseRegistry, tmp_path: Path
-) -> None:
+def test_report_writers_round_trip(chinook_registry: DatabaseRegistry, tmp_path: Path) -> None:
     correct = json.dumps({"sql": "SELECT COUNT(*) FROM Album"})
     llm = ScriptedLLM([correct])
     examples = [_example(1, "q1", "SELECT COUNT(*) FROM Album")]

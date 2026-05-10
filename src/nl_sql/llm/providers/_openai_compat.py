@@ -61,5 +61,3 @@ def chat_complete(
         output_tokens=output_tokens,
         latency_ms=latency_ms,
     )
-
-

@@ -11,12 +11,12 @@ from enum import StrEnum
 
 
 class ExecutionErrorKind(StrEnum):
-    INVALID_SQL = "invalid_sql"          # AST guard rejected before execute
+    INVALID_SQL = "invalid_sql"  # AST guard rejected before execute
     EXECUTION_TIMEOUT = "execution_timeout"
     EXECUTION_FAILED = "execution_failed"  # database raised at execute time
-    EMPTY_RESULT = "empty_result"          # not an error per se; tracked for slicing
-    LOW_CONFIDENCE = "low_confidence"      # confidence flag from generator
-    REPAIR_FAILED = "repair_failed"        # second-pass also rejected
+    EMPTY_RESULT = "empty_result"  # not an error per se; tracked for slicing
+    LOW_CONFIDENCE = "low_confidence"  # confidence flag from generator
+    REPAIR_FAILED = "repair_failed"  # second-pass also rejected
 
 
 class ExecutionError(Exception):

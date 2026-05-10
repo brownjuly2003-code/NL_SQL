@@ -16,8 +16,7 @@ def _embedding_payload(model: str, vectors: list[list[float]]) -> dict[str, obje
         "object": "list",
         "model": model,
         "data": [
-            {"object": "embedding", "index": i, "embedding": vec}
-            for i, vec in enumerate(vectors)
+            {"object": "embedding", "index": i, "embedding": vec} for i, vec in enumerate(vectors)
         ],
         "usage": {"prompt_tokens": 4, "total_tokens": 4},
     }

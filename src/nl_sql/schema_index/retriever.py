@@ -75,9 +75,7 @@ def retrieve_context(
     by `make_context_builder_node` via the registry's read-only engine.
     """
     schema_hits = (
-        index.query_schema(question, db_id=db_id, top_k=schema_top_k)
-        if schema_top_k > 0
-        else []
+        index.query_schema(question, db_id=db_id, top_k=schema_top_k) if schema_top_k > 0 else []
     )
     fewshots = (
         index.query_fewshots(question, db_id=db_id, top_k=fewshot_top_k)
