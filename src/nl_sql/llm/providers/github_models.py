@@ -1,8 +1,9 @@
 """GitHub Models provider — frontier slot in $0-budget bakeoff.
 
-Endpoint: https://models.inference.ai.azure.com (OpenAI-compatible).
-Auth: GitHub Personal Access Token (no scope required, or read:user).
-Free for personal GitHub accounts with daily rate limits.
+Endpoint: https://models.github.ai/inference (OpenAI-compatible REST shape).
+Model names use the publisher/name form, e.g. ``openai/gpt-4o-mini``.
+Auth: GitHub Personal Access Token with ``models:read`` permission
+(fine-grained PAT). Free for personal GitHub accounts with daily rate limits.
 """
 
 from __future__ import annotations
@@ -23,8 +24,8 @@ class GitHubModelsProvider:
     def __init__(
         self,
         token: str,
-        model: str = "gpt-4o-mini",
-        base_url: str = "https://models.inference.ai.azure.com",
+        model: str = "openai/gpt-4o-mini",
+        base_url: str = "https://models.github.ai/inference",
     ) -> None:
         if not token:
             raise ProviderError("GitHubModelsProvider requires non-empty GitHub PAT")

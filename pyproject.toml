@@ -19,6 +19,7 @@ dependencies = [
     "psycopg[binary]>=3.2",
     "sqlglot>=25.0",
     "requests>=2.32",
+    "chromadb>=0.5",
 ]
 
 [project.optional-dependencies]
@@ -84,4 +85,8 @@ disallow_untyped_defs = false
 
 [[tool.mypy.overrides]]
 module = ["sqlglot.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["chromadb.*"]
 ignore_missing_imports = true

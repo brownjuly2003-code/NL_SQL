@@ -22,7 +22,7 @@ def test_factory_builds_github_models() -> None:
     provider = build_provider("github_models", settings=settings)
     assert isinstance(provider, GitHubModelsProvider)
     assert provider.name == "github_models"
-    assert provider.model == "gpt-4o-mini"
+    assert provider.model == "openai/gpt-4o-mini"
 
 
 def test_factory_builds_ollama_without_credentials() -> None:

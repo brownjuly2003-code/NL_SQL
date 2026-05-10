@@ -55,11 +55,9 @@ def test_mistral_generate_returns_normalized_response() -> None:
 
 @respx.mock
 def test_github_models_generate_returns_normalized_response() -> None:
-    route = respx.post(
-        "https://models.inference.ai.azure.com/chat/completions"
-    ).mock(
+    route = respx.post("https://models.github.ai/inference/chat/completions").mock(
         return_value=httpx.Response(
-            200, json=_completion_payload("gpt-4o-mini", "the answer is 42")
+            200, json=_completion_payload("openai/gpt-4o-mini", "the answer is 42")
         )
     )
     provider = GitHubModelsProvider(token="test-pat")
@@ -68,7 +66,7 @@ def test_github_models_generate_returns_normalized_response() -> None:
 
     assert route.called
     assert response.text == "the answer is 42"
-    assert response.model == "gpt-4o-mini"
+    assert response.model == "openai/gpt-4o-mini"
     assert response.input_tokens == 17
     assert response.output_tokens == 5
 

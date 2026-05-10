@@ -30,6 +30,8 @@ def create_app() -> FastAPI:
             configured.append("mistral")
         if settings.github_token:
             configured.append("github_models")
+        if settings.groq_api_key:
+            configured.append("groq")
         configured.append("ollama")
         return HealthResponse(
             status="ok",

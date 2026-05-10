@@ -29,9 +29,14 @@ CHINOOK_URL: Final = (
 )
 CHINOOK_FILENAME: Final = "Chinook.sqlite"
 
+# BIRD Mini-Dev moved off the GitHub repo and is now hosted on HuggingFace +
+# Google Drive. Direct fetch via the HF dataset API requires `huggingface_hub`
+# auth-aware download or a Google Drive resumable cookie dance. Implementing
+# that properly is its own task (see docs/SESSION_HANDOFF.md "next session" §2).
 BIRD_MINI_DEV_URL: Final = (
-    "https://github.com/bird-bench/mini_dev/raw/main/llm/mini_dev_data/minidev.zip"
+    "https://bird-bench.oss-cn-beijing.aliyuncs.com/minidev.zip"
 )
+BIRD_MINI_DEV_HF_REPO: Final = "birdsql/bird_mini_dev"
 
 
 def _download_file(url: str, dest: Path, *, chunk_size: int = 1 << 15) -> Path:
