@@ -45,6 +45,28 @@ from nl_sql.schema_index.indexer import SchemaIndex
 # C+sort+s=3, the production candidate). These are guaranteed cache hits,
 # so a recruiter sees a sub-second answer on first click.
 
+SOURCE_LINKS: dict[str, tuple[str, str]] = {
+    "chinook": (
+        "Chinook SQLite sample (lerocha/chinook-database)",
+        "https://github.com/lerocha/chinook-database",
+    ),
+    # All BIRD Mini-Dev DBs share a single public source page; the per-db
+    # schema is documented inside the BIRD bundle itself.
+    "_bird_default": (
+        "BIRD Mini-Dev (bird-bench.github.io)",
+        "https://bird-bench.github.io/",
+    ),
+}
+
+
+def _source_link_for(db_id: str) -> tuple[str, str] | None:
+    if db_id in SOURCE_LINKS:
+        return SOURCE_LINKS[db_id]
+    if db_id.startswith("bird_"):
+        return SOURCE_LINKS["_bird_default"]
+    return None
+
+
 SAMPLE_QUESTIONS: dict[str, list[tuple[str, str]]] = {
     "chinook": [
         ("simple", "How many albums are in the store?"),
@@ -277,6 +299,54 @@ def _render_show_working(result: PipelineRunResult) -> None:
             st.error(f"Error: {result.error_kind} — {result.error_message}")
 
 
+# ----------------------------------------------------------------- schema explorer
+
+
+@st.cache_data(show_spinner=False)
+def _fetch_schema_chunks(_index_id: int, db_id: str) -> list[tuple[str, str]]:
+    """Pull all schema chunks for a db_id straight from Chroma.
+
+    Cached per (index, db_id) so flipping between DBs is instant after
+    the first view. `_index_id` is `id(schema_index)` — used to invalidate
+    the cache if the bootstrap re-creates the index, without making
+    SchemaIndex hashable.
+    """
+    schema_index = st.session_state.get("_schema_index")
+    if schema_index is None:
+        return []
+    records = schema_index.schema_collection.get(
+        where={"db_id": db_id},
+        include=["documents", "metadatas"],
+    )
+    docs = records.get("documents") or []
+    metas = records.get("metadatas") or []
+    pairs: list[tuple[str, str]] = []
+    for doc, meta in zip(docs, metas, strict=False):
+        table_name = str((meta or {}).get("table_name") or "")
+        if table_name:
+            pairs.append((table_name, str(doc)))
+    pairs.sort(key=lambda p: p[0].lower())
+    return pairs
+
+
+def _render_schema_explorer(db_id: str) -> None:
+    schema_index = st.session_state.get("_schema_index")
+    if schema_index is None:
+        return
+    chunks = _fetch_schema_chunks(id(schema_index), db_id)
+    if not chunks:
+        st.caption("Schema index empty for this DB. Run `build_index.py`.")
+        return
+    with st.expander(f"Schema · {len(chunks)} tables", expanded=False):
+        st.caption(
+            "Same chunks the retriever sees — table cards with columns, "
+            "types, null/distinct stats, sample values, and FKs."
+        )
+        for table_name, text in chunks:
+            with st.expander(table_name, expanded=False):
+                st.code(text, language="text")
+
+
 # ----------------------------------------------------------------- welcome
 
 
@@ -293,12 +363,32 @@ def _render_welcome(db_id: str) -> None:
             "the answer."
         )
     with col_metric:
-        st.metric(
-            label="Execution Accuracy on BIRD Mini-Dev (n=200)",
-            value="47.0%",
-            help="C+sort_schema_block, codestral-latest, $0 budget. "
-            "Reference: GPT-4 zero-shot on the same split = 47.8%.",
+        st.markdown(
+            """
+            <div style="border:1px solid #e5e7eb; border-radius:8px;
+                        padding:12px 14px; background:#f9fafb;">
+              <div style="font-size:0.78rem; color:#475569;
+                          letter-spacing:.02em; margin-bottom:2px;">
+                Execution accuracy benchmark
+              </div>
+              <div style="font-size:1.7rem; font-weight:600;
+                          color:#0f172a; line-height:1.1;">
+                47.0%
+              </div>
+              <div style="font-size:0.78rem; color:#475569; margin-top:6px;">
+                on BIRD Mini-Dev (n=200, codestral-latest, $0 budget)
+                ≈ GPT-4 zero-shot reference (47.8%)
+              </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
         )
+
+    st.markdown(
+        ":speech_balloon: **Ask anything about the data in this database** — the "
+        "samples below are just to get you started; the pipeline takes free-form "
+        "natural-language questions in EN or RU."
+    )
 
     samples = SAMPLE_QUESTIONS.get(db_id)
     if not samples:
@@ -338,6 +428,9 @@ def main() -> None:
     except RuntimeError as exc:
         st.error(str(exc))
         st.stop()
+    # Stash schema_index so cached helpers (schema explorer) can reach it
+    # without making SchemaIndex hashable for st.cache_data keys.
+    st.session_state["_schema_index"] = schema_index
 
     # --- sidebar: DB + knobs
     with st.sidebar:
@@ -356,6 +449,13 @@ def main() -> None:
         st.caption(f"Dialect: `{spec.dialect}`")
         if spec.description:
             st.caption(spec.description)
+
+        link = _source_link_for(db_id)
+        if link is not None:
+            label, url = link
+            st.markdown(f"Source: [{label}]({url})")
+
+        _render_schema_explorer(db_id)
 
         st.divider()
         st.subheader("Retrieval knobs")
