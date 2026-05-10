@@ -44,6 +44,18 @@ is the executive copy for fast pickup.
   primary..extended per column. No chroma rebuild needed.
   CLI: `--extended-sample-size 5`. See "Sample mixture
   architecture" below.
+- ✅ Stage 10 (was deferred, user nudge "а интерфейс…?") —
+  **Streamlit UI shipped** at `app/streamlit_app.py`. Chat
+  history in session_state, DB switcher (registry-driven),
+  retrieval-knob sliders (top_k / fk_hops / table_budget /
+  sort / extended_sample_size), four output formats rendered
+  via `render.formats` (Scalar = `st.metric`, Sentence =
+  `st.markdown`, Table = `st.dataframe`, Chart = Plotly via
+  `px`), "Show working" expander with full pipeline trace +
+  metadata + rationale. Verified end-to-end with codestral
+  on `bird_california_schools` (qid 5: scalar=4, wall=5.5s).
+  Run with `make ui` or
+  `uv run streamlit run app/streamlit_app.py`.
 
 **Remaining priorities for next pickup:**
 
@@ -178,8 +190,8 @@ Artefact: `eval/reports/2026-05-10/C_dense_cards-mixture-s3-5-n50.json`.
 - **Repo:** `D:\NL_SQL\` on `main` (committed all session work).
 - **HEAD:** see `git log -1 --oneline` (n=200 ablation + sort_schema_block + sample_size + AST extractor + sort default ON + sample mixture renderer).
 - **Tests:** 200/200 passing, ruff clean, mypy strict clean (50 src files)
-- **Stages closed (autonomous): 1, 2, 3, 4, 5, 6 (configs A + C + E + sort_schema_block knob + sample mixture knob), 9** + diskcache (§6.5) + stable-prefix sampler + n=200 baseline + order knob + sample_size knob + AST gold-table extractor + sort=ON default + extended_sample_size mixture renderer
-- **Stages waiting: 6 (config D, optional B)**, then 7+
+- **Stages closed (autonomous): 1, 2, 3, 4, 5, 6 (configs A + C + E + sort_schema_block knob + sample mixture knob), 9, 10 (Streamlit UI)** + diskcache (§6.5) + stable-prefix sampler + n=200 baseline + order knob + sample_size knob + AST gold-table extractor + sort=ON default + extended_sample_size mixture renderer
+- **Stages waiting: 6 (config D, optional B)**, then 7, 8, 11, 12
 - **Hard budget:** still $0. All live providers tested are free-tier.
 
 > **Headline finding (n=200, authoritative):** Three configurations
@@ -429,6 +441,7 @@ Then say: *"Продолжай stage 6 — eval harness."*
 | 6 (A+C+E) | `src/nl_sql/eval/` | 44 | dataset loader, EA + Schema Recall@k, full_schema (A) / dense+FK (C) / dense+FK+repair (E) runners, JSON+HTML report. `disable_repair` knob added to `run_pipeline`. First-pass vs final EA correctly isolated when repair fires. Cached A vs C baseline in `eval/reports/2026-05-10/`; Step B knob ablations also there. |
 | 6 (Step A: cache) | `src/nl_sql/llm/cache.py` | 8 | `CachingLLMProvider` + `CachingEmbeddingProvider` — diskcache wrappers, sha256 keys over (provider, model, prompt, system, temperature, max_tokens). Per-text embedding cache splits batches into hits + misses. `eval_baseline.py --no-cache` opt-out. Wired into eval flow; verified deterministic on A re-run. |
 | 9 | `src/nl_sql/render/` | 14 | deterministic chart picker, no LLM |
+| 10 | `app/streamlit_app.py` | manual | Chat UI: DB switcher, retrieval-knob sliders, 4-format renderer (scalar/sentence/table/plotly chart), show-working expander with pipeline trace + rationale + metadata. Run: `make ui`. |
 
 Live API status (with keys from `.env`):
 - Mistral `codestral-latest` — works, ~3-13s/req depending on prompt size, free tier
@@ -753,14 +766,14 @@ uv run python scripts/eval_baseline.py --n 5 --db bird_california_schools
 ## Final state for memory
 
 ```
-HEAD:   uncommitted: sort_schema_block default flipped to True
-        + sample-mixture renderer (extended_sample_size knob)
-        + 11 new tests + n=50 mixture eval result
-        (last committed: bee8d16 stage 6 ablation harness:
-         diskcache + sort_schema_block + sample_size sweep
-         + AST gold extractor)
+HEAD:   uncommitted: Streamlit UI (app/streamlit_app.py)
+        + UI optional-deps + Makefile ui target + README
+        Quick-start
+        (last committed: 73877a8 sample-mixture renderer +
+         sort_schema_block default ON)
 Branch: main
-Tests:  200/200 passing
+Tests:  200/200 passing (Streamlit verified manually via
+        Playwright — qid 5 on bird_california_schools)
 Lint:   ruff clean
 Type:   mypy strict clean (50 src files)
 Live:   Mistral OK (codestral + embed + large), Groq OK,

@@ -2,7 +2,26 @@
 
 Portfolio demo для Senior Data Engineer / Data Analyst. Принимает вопрос на естественном языке (RU/EN), возвращает ответ из реляционной БД в одной из четырёх форм: число, предложение, таблица, график. Всегда показывает использованный SQL и объяснение.
 
-**Статус:** stages 1, 2, 5, 9 закрыты (2026-05-10). 75 тестов зелёные, ruff/mypy strict clean. Live API verified: Mistral + Groq. См. [`docs/SESSION_HANDOFF.md`](docs/SESSION_HANDOFF.md) — single source of truth для следующей сессии.
+**Статус:** stages 1-6 + 9 + 10 (Streamlit UI) закрыты (2026-05-10 follow-up). 200 тестов зелёные, ruff/mypy strict clean. Live API verified: Mistral + Groq. n=200 ablation: A=47.0% / C+sort+s=3=47.0% / C+sort+s=5=46.0% — at-or-above GPT-4 zero-shot reference (47.8%). См. [`docs/SESSION_HANDOFF.md`](docs/SESSION_HANDOFF.md) — single source of truth для следующей сессии.
+
+## Quick start
+
+```powershell
+# 1. Sync deps (incl. UI)
+make install-ui                                  # or: uv sync --extra dev --extra ui
+
+# 2. Download data (one-time)
+uv run python scripts/download_data.py chinook
+uv run python scripts/download_data.py bird-mini-dev
+
+# 3. Build the schema index (one-time, ~2 min for all 12 DBs)
+uv run python scripts/build_index.py --db all
+
+# 4. Launch the chat UI
+make ui                                          # or: uv run streamlit run app/streamlit_app.py
+```
+
+The UI reads `MISTRAL_API_KEY` from `.env`; copy `.env.example` first.
 
 ## Документация
 

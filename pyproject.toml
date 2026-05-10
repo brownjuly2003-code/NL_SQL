@@ -35,6 +35,11 @@ dev = [
     "mypy>=1.13",
     "types-requests",
 ]
+ui = [
+    "streamlit>=1.40",
+    "plotly>=5.24",
+    "pandas>=2.2",
+]
 
 [build-system]
 requires = ["hatchling"]
@@ -101,4 +106,8 @@ ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 module = ["diskcache.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["plotly.*", "streamlit", "pandas", "pandas.*"]
 ignore_missing_imports = true
