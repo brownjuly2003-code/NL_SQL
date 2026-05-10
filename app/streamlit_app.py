@@ -369,15 +369,19 @@ def _render_welcome(db_id: str) -> None:
                         padding:12px 14px; background:#f9fafb;">
               <div style="font-size:0.78rem; color:#475569;
                           letter-spacing:.02em; margin-bottom:2px;">
-                Execution accuracy benchmark
+                On 200 questions from the
+                <a href="https://bird-bench.github.io/" target="_blank"
+                   style="color:#475569; text-decoration:underline;">BIRD</a>
+                NL→SQL benchmark
               </div>
               <div style="font-size:1.7rem; font-weight:600;
-                          color:#0f172a; line-height:1.1;">
-                47.0%
+                          color:#0f172a; line-height:1.1; margin-top:4px;">
+                94 / 200 correct &nbsp;·&nbsp; 47.0%
               </div>
               <div style="font-size:0.78rem; color:#475569; margin-top:6px;">
-                on BIRD Mini-Dev (n=200, codestral-latest, $0 budget)
-                ≈ GPT-4 zero-shot reference (47.8%)
+                "Correct" = result rows match the reference SQL exactly
+                (execution accuracy). codestral-latest, $0 API budget.
+                GPT-4 zero-shot on the same split = 47.8%.
               </div>
             </div>
             """,
