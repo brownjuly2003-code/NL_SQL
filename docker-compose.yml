@@ -1,0 +1,38 @@
+services:
+  postgres:
+    profiles: ["postgres", "all"]
+    image: postgres:16-alpine
+    container_name: nl_sql_postgres
+    environment:
+      POSTGRES_DB: nl_sql_demo
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - nl_sql_pg_data:/var/lib/postgresql/data
+      - ./scripts/sql/postgres_init.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d nl_sql_demo"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  langfuse:
+    profiles: ["langfuse", "all"]
+    image: langfuse/langfuse:latest
+    container_name: nl_sql_langfuse
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/nl_sql_demo
+      NEXTAUTH_SECRET: "${LANGFUSE_NEXTAUTH_SECRET:-dev-secret-change-me}"
+      SALT: "${LANGFUSE_SALT:-dev-salt-change-me}"
+      NEXTAUTH_URL: "http://localhost:3000"
+      TELEMETRY_ENABLED: "false"
+    ports:
+      - "3000:3000"
+
+volumes:
+  nl_sql_pg_data:
