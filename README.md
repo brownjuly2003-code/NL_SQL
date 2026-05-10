@@ -23,6 +23,9 @@ make ui                                          # or: uv run streamlit run app/
 
 The UI reads `MISTRAL_API_KEY` from `.env`; copy `.env.example` first.
 
+For the public Streamlit Cloud demo (free, ~5 min setup), see
+[`DEPLOY.md`](DEPLOY.md).
+
 ## Документация
 
 | Файл | Содержание |

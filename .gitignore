@@ -45,10 +45,48 @@ coverage.xml
 Thumbs.db
 
 # Project-specific
-# BIRD dump, StackExchange dump, Chinook DB — не в репо
-data/
-# Chroma vector store — генерируется индексером
-chroma_data/
+# BIRD dump + Chinook DB. Only the SQLite engines themselves are
+# committed (the runtime needs them); eval-only artefacts (gold SQL,
+# database_description CSVs, the MINIDEV_*sql/ siblings, and the
+# original minidev.zip) stay ignored. Three BIRD DBs (>= 250 MB each:
+# card_games, codebase_community, european_football_2) bust GitHub's
+# 100 MB hard limit and stay ignored too — they only matter for
+# local eval.
+#
+# Pattern: ignore data/** by default and re-include only the SQLite
+# engines we want shipped. git doesn't allow re-include if the
+# parent directory is itself excluded — see man gitignore(5) — so
+# we have to walk every parent.
+data/*
+data/**/*
+# Walk parents we need to traverse
+!data/chinook/
+!data/bird_mini_dev/
+!data/bird_mini_dev/MINIDEV/
+!data/bird_mini_dev/MINIDEV/dev_databases/
+!data/bird_mini_dev/MINIDEV/dev_databases/california_schools/
+!data/bird_mini_dev/MINIDEV/dev_databases/debit_card_specializing/
+!data/bird_mini_dev/MINIDEV/dev_databases/financial/
+!data/bird_mini_dev/MINIDEV/dev_databases/formula_1/
+!data/bird_mini_dev/MINIDEV/dev_databases/student_club/
+!data/bird_mini_dev/MINIDEV/dev_databases/superhero/
+!data/bird_mini_dev/MINIDEV/dev_databases/thrombosis_prediction/
+!data/bird_mini_dev/MINIDEV/dev_databases/toxicology/
+# Re-include only the SQLite engines themselves
+!data/chinook/Chinook.sqlite
+!data/bird_mini_dev/MINIDEV/dev_databases/california_schools/california_schools.sqlite
+!data/bird_mini_dev/MINIDEV/dev_databases/debit_card_specializing/debit_card_specializing.sqlite
+!data/bird_mini_dev/MINIDEV/dev_databases/financial/financial.sqlite
+!data/bird_mini_dev/MINIDEV/dev_databases/formula_1/formula_1.sqlite
+!data/bird_mini_dev/MINIDEV/dev_databases/student_club/student_club.sqlite
+!data/bird_mini_dev/MINIDEV/dev_databases/superhero/superhero.sqlite
+!data/bird_mini_dev/MINIDEV/dev_databases/thrombosis_prediction/thrombosis_prediction.sqlite
+!data/bird_mini_dev/MINIDEV/dev_databases/toxicology/toxicology.sqlite
+# Chroma vector store. Committing the prebuilt index so the deployed
+# app can serve queries without first re-embedding via the Mistral
+# API. Local rebuilds via build_index.py overwrite this directory.
+!chroma_data/
+!chroma_data/**
 chroma_data.*/
 # legacy diskcache root — superseded by .cache/llm/
 .diskcache/
