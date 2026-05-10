@@ -24,6 +24,7 @@ from typing import Any
 from sqlalchemy import Engine, text
 from sqlalchemy.exc import SQLAlchemyError
 
+from nl_sql.agent import PipelineConfig, build_pipeline, run_pipeline
 from nl_sql.agent.nodes._support import (
     parse_generate_sql_output,
     render_fewshot_block,
@@ -43,7 +44,7 @@ from nl_sql.execution.errors import ExecutionErrorKind
 from nl_sql.execution.runner import ExecutionOutcome, execute_validated
 from nl_sql.llm.providers.base import GenerateRequest, LLMProvider
 from nl_sql.schema_index.chunker import SchemaChunk, to_chunks
-from nl_sql.schema_index.indexer import SchemaQueryHit
+from nl_sql.schema_index.indexer import SchemaIndex, SchemaQueryHit
 from nl_sql.schema_index.introspector import introspect
 from nl_sql.schema_index.retriever import ContextBundle
 
@@ -164,8 +165,60 @@ def run_config_b(*_: Any, **__: Any) -> EvalRun:
     raise NotImplementedError("Configuration B (BM25) ships in stage 6.b")
 
 
-def run_config_c(*_: Any, **__: Any) -> EvalRun:
-    raise NotImplementedError("Configuration C (dense cards) ships in stage 6.c")
+def run_config_c(
+    examples: Sequence[BirdExample],
+    *,
+    sql_provider: LLMProvider,
+    explain_provider: LLMProvider,
+    schema_index: SchemaIndex,
+    registry: DatabaseRegistry,
+    schema_top_k: int = 5,
+    fk_hops: int = 1,
+    table_budget: int = 12,
+    statement_timeout_ms: int = 60_000,
+    row_cap: int = 10_000,
+    max_tokens: int = 1024,
+    progress: Callable[[int, int, EvalRecord], None] | None = None,
+) -> EvalRun:
+    """Run configuration C (dense schema cards + FK 1-hop, no fewshot, no repair).
+
+    Reuses the production LangGraph pipeline so the eval signal directly
+    measures the same code path the API will serve. `disable_repair=True`
+    flips the route_after_validate/execute conditional edges to fall through
+    to deterministic_format on first failure, so we measure first-pass EA.
+    """
+    pipeline = build_pipeline(
+        PipelineConfig(
+            sql_provider=sql_provider,
+            explain_provider=explain_provider,
+            schema_index=schema_index,
+            registry=registry,
+            schema_top_k=schema_top_k,
+            fewshot_top_k=0,
+            fk_hops=fk_hops,
+            table_budget=table_budget,
+            statement_timeout_ms=statement_timeout_ms,
+            row_cap=row_cap,
+        )
+    )
+    records: list[EvalRecord] = []
+    for idx, example in enumerate(examples, start=1):
+        record = _run_one_via_pipeline(
+            example,
+            pipeline=pipeline,
+            registry=registry,
+            statement_timeout_ms=statement_timeout_ms,
+            row_cap=row_cap,
+            disable_repair=True,
+        )
+        records.append(record)
+        if progress is not None:
+            progress(idx, len(examples), record)
+    return _summarise(
+        configuration=Configuration.C_DENSE,
+        sql_model=getattr(sql_provider, "model", "unknown"),
+        records=records,
+    )
 
 
 def run_config_d(*_: Any, **__: Any) -> EvalRun:
@@ -257,6 +310,141 @@ def _run_one_config_a(
         engine.dispose()
         # Suppress unused; gold_columns kept for future per-column F1 metric.
         del gold_columns
+
+
+def _run_one_via_pipeline(
+    example: BirdExample,
+    *,
+    pipeline: Any,
+    registry: DatabaseRegistry,
+    statement_timeout_ms: int,
+    row_cap: int,
+    disable_repair: bool,
+) -> EvalRecord:
+    """Drive one example through the compiled LangGraph pipeline.
+
+    Used by configurations C/D/E (and any future config that wants the
+    production code path with knobs flipped). EA is computed against the
+    same gold engine via `_execute_gold` to keep parity with config A.
+    """
+    started = time.perf_counter()
+    spec = registry.get(example.registry_db_id)
+    gold_engine = spec.make_engine()
+    try:
+        try:
+            result = run_pipeline(
+                pipeline,
+                question=_compose_question(example),
+                db_id=example.registry_db_id,
+                dialect=_to_dialect(example.dialect),
+                disable_repair=disable_repair,
+            )
+        except Exception as exc:
+            elapsed_ms = (time.perf_counter() - started) * 1000.0
+            return EvalRecord(
+                question_id=example.question_id,
+                db_id=example.db_id,
+                difficulty=example.difficulty,
+                dialect=example.dialect,
+                question=example.question,
+                gold_sql=example.sql,
+                pred_sql="",
+                match=False,
+                schema_recall=False,
+                error_kind="pipeline_exception",
+                error_message=str(exc),
+                repair_attempted=False,
+                first_pass_match=False,
+                latency_ms=elapsed_ms,
+                input_tokens=0,
+                output_tokens=0,
+                gold_tables=tuple(extract_gold_tables(example.sql)),
+                retrieved_tables=(),
+                pred_row_count=0,
+                gold_row_count=0,
+                comparison_reason=f"pipeline raised: {exc!r}",
+            )
+        gold_rows, _ = _execute_gold(
+            gold_engine,
+            example.sql,
+            statement_timeout_ms=statement_timeout_ms,
+            row_cap=row_cap,
+        )
+        # The pipeline's outcome is what `match` should reflect — but the
+        # comparison runs against the gold rows we just fetched. Build a
+        # synthetic outcome view for `_compare_outcome`, or pull rows out.
+        if result.outcome is not None and result.outcome.result is not None:
+            comparison = compare_results(
+                gold_rows,
+                result.outcome.result.rows,
+                gold_sql=example.sql,
+            )
+        else:
+            comparison = ResultComparison(
+                match=False,
+                reason=(
+                    f"pred failed: {result.error_kind.value if result.error_kind else 'unknown'}"
+                ),
+                gold_rows=len(gold_rows),
+                pred_rows=0,
+            )
+        gold_tables = tuple(extract_gold_tables(example.sql))
+        retrieved = _retrieved_from_trace(result.trace)
+        recall = schema_recall_at_k(gold_tables, retrieved)
+        in_tok, out_tok = _tokens_from_trace(result.trace)
+        elapsed_ms = (time.perf_counter() - started) * 1000.0
+        return EvalRecord(
+            question_id=example.question_id,
+            db_id=example.db_id,
+            difficulty=example.difficulty,
+            dialect=example.dialect,
+            question=example.question,
+            gold_sql=example.sql,
+            pred_sql=result.sql,
+            match=comparison.match,
+            schema_recall=recall,
+            error_kind=result.error_kind.value if result.error_kind else None,
+            error_message=result.error_message,
+            # `disable_repair=True` seeds repair_attempted in initial state to
+            # short-circuit routing — that's not a "repair happened" signal,
+            # so suppress it in the record. When repair is enabled, trust the
+            # pipeline's flag.
+            repair_attempted=False if disable_repair else result.repair_attempted,
+            first_pass_match=comparison.match,
+            latency_ms=elapsed_ms,
+            input_tokens=in_tok,
+            output_tokens=out_tok,
+            gold_tables=gold_tables,
+            retrieved_tables=tuple(retrieved),
+            pred_row_count=comparison.pred_rows,
+            gold_row_count=comparison.gold_rows,
+            comparison_reason=comparison.reason,
+        )
+    finally:
+        gold_engine.dispose()
+
+
+def _retrieved_from_trace(trace: list[dict[str, object]]) -> tuple[str, ...]:
+    """Pull `tables` from the context_builder trace step (set by node)."""
+    for step in trace:
+        if step.get("node") == "context_builder":
+            tables = step.get("tables")
+            if isinstance(tables, list):
+                return tuple(str(t) for t in tables)
+            break
+    return ()
+
+
+def _tokens_from_trace(trace: list[dict[str, object]]) -> tuple[int, int]:
+    """Sum input + output tokens across all generate-style trace steps."""
+    in_tok = 0
+    out_tok = 0
+    for step in trace:
+        i = step.get("input_tokens")
+        o = step.get("output_tokens")
+        in_tok += int(i) if isinstance(i, (int, float)) else 0
+        out_tok += int(o) if isinstance(o, (int, float)) else 0
+    return in_tok, out_tok
 
 
 def _full_schema_chunks(

@@ -1,16 +1,13 @@
-"""Live eval-baseline: configuration A on a small BIRD slice.
+"""Live eval-baseline: configurations A or C on a BIRD Mini-Dev slice.
 
-Runs the `full_schema` baseline through the codestral-latest provider against
-N BIRD Mini-Dev examples (default 50), prints per-question status, and writes
-both JSON and HTML artefacts to `eval/reports/<date>/`.
-
-This is the first end-to-end harness call — its purpose is "the harness
-works on real data", not "the EA number is good". The number is reported
-as-is per `docs/03_eval_methodology.md` §10.
+Runs an ablation configuration through the codestral-latest provider against
+N BIRD examples (default 50), prints per-question status, and writes both
+JSON and HTML artefacts to `eval/reports/<date>/`. Configurations B/D/E are
+not yet implemented; they will join the same CLI shape when they ship.
 
 Usage:
-    uv run python scripts/eval_baseline.py
-    uv run python scripts/eval_baseline.py --n 50 --seed 0
+    uv run python scripts/eval_baseline.py --config A --n 50 --seed 0
+    uv run python scripts/eval_baseline.py --config C --n 50 --seed 0
     uv run python scripts/eval_baseline.py --n 5 --db bird_california_schools
 """
 
@@ -21,19 +18,24 @@ import sys
 import time
 from pathlib import Path
 
+import chromadb
+
 from nl_sql.config import get_settings
 from nl_sql.db.registry import get_default_registry
 from nl_sql.eval import (
-    Configuration,
     EvalRecord,
+    EvalRun,
     dev_split,
     load_bird_mini_dev,
+    load_run_from_json,
     run_config_a,
+    run_config_c,
     write_html_report,
     write_json_report,
 )
 from nl_sql.eval.dataset import DEFAULT_BIRD_ROOT
 from nl_sql.llm.providers.mistral import MistralProvider
+from nl_sql.schema_index.indexer import SchemaIndex
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -58,9 +60,14 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--reports", default="eval/reports", help="output root")
     parser.add_argument(
         "--config",
-        choices=["A"],
+        choices=["A", "C"],
         default="A",
-        help="ablation configuration (only A implemented in stage 6 milestone 1)",
+        help="ablation configuration (A=full_schema, C=dense+FK, no fewshot/repair)",
+    )
+    parser.add_argument(
+        "--persist",
+        default="chroma_data",
+        help="chroma persist directory (config C only; default: chroma_data/)",
     )
     args = parser.parse_args(argv)
 
@@ -110,17 +117,49 @@ def main(argv: list[str] | None = None) -> int:
         )
 
     print(f"[info] running configuration {args.config} on {len(sample)} examples …")
-    run = run_config_a(
-        sample,
-        sql_provider=sql_provider,
-        registry=registry,
-        progress=_on_progress,
-    )
+    run: EvalRun
+    if args.config == "A":
+        run = run_config_a(
+            sample,
+            sql_provider=sql_provider,
+            registry=registry,
+            progress=_on_progress,
+        )
+    else:  # "C"
+        persist_dir = Path(args.persist)
+        if not persist_dir.is_dir():
+            print(
+                f"[error] chroma persist dir not found: {persist_dir}. "
+                f"Run `python scripts/build_index.py --db all` first.",
+                file=sys.stderr,
+            )
+            return 5
+        chroma_client = chromadb.PersistentClient(path=str(persist_dir))
+        # Embedding provider also Mistral — same key, same `mistral-embed`.
+        embedder = MistralProvider(
+            api_key=settings.mistral_api_key,
+            gen_model=settings.mistral_gen_model,
+            embed_model=settings.mistral_embed_model,
+            base_url=settings.mistral_base_url,
+        )
+        index = SchemaIndex(
+            persist_dir=persist_dir, embedder=embedder, client=chroma_client
+        )
+        # Caption provider: Groq if configured (faster, free), else Mistral large.
+        explain_provider = sql_provider  # codestral works for caption too in eval
+        run = run_config_c(
+            sample,
+            sql_provider=sql_provider,
+            explain_provider=explain_provider,
+            schema_index=index,
+            registry=registry,
+            progress=_on_progress,
+        )
     elapsed = time.perf_counter() - started
 
     print()
     print("=" * 78)
-    print(f"Configuration: {Configuration.A_FULL_SCHEMA.value}")
+    print(f"Configuration: {run.configuration.value}")
     print(f"Model:         {run.sql_model}")
     print(f"Examples:      {run.overall.n}")
     print(f"EA:            {run.overall.ea * 100:.1f}%")
@@ -137,7 +176,19 @@ def main(argv: list[str] | None = None) -> int:
     print(f"Wall time:     {elapsed:.1f}s")
 
     json_path = write_json_report(run, root=args.reports)
-    html_path = write_html_report([run], root=args.reports)
+
+    # Combine today's run with any other configurations that finished earlier
+    # so the HTML index keeps a single side-by-side ablation table per day.
+    today_dir = json_path.parent
+    prior_runs: list[EvalRun] = []
+    for other in sorted(today_dir.glob("*.json")):
+        if other == json_path:
+            continue
+        try:
+            prior_runs.append(load_run_from_json(other))
+        except (KeyError, ValueError) as exc:
+            print(f"[warn] skipped {other.name}: {exc}", file=sys.stderr)
+    html_path = write_html_report([*prior_runs, run], root=args.reports)
     print()
     print(f"[json] {json_path}")
     print(f"[html] {html_path}")

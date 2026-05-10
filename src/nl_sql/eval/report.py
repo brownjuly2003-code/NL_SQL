@@ -13,8 +13,9 @@ from dataclasses import asdict
 from datetime import UTC, datetime
 from html import escape
 from pathlib import Path
+from typing import Any
 
-from nl_sql.eval.runner import EvalRecord, EvalRun, EvalSummary
+from nl_sql.eval.runner import Configuration, EvalRecord, EvalRun, EvalSummary
 
 REPORTS_ROOT = Path("eval") / "reports"
 
@@ -57,6 +58,37 @@ def write_html_report(
 
 def _date_dir(root: Path | str) -> Path:
     return Path(root) / datetime.now(tz=UTC).strftime("%Y-%m-%d")
+
+
+def load_run_from_json(path: Path | str) -> EvalRun:
+    """Re-hydrate an EvalRun previously written by `write_json_report`.
+
+    Used by the live driver so an HTML report can combine today's freshly-
+    finished configuration with whatever runs already sit in the same date
+    directory. Roundtrip-stable on all dataclass fields (tuples come back
+    as tuples; the `_json_default` writer sends them as lists).
+    """
+    raw = json.loads(Path(path).read_text(encoding="utf-8"))
+    overall = EvalSummary(**raw["overall"])
+    per_difficulty = {k: EvalSummary(**v) for k, v in (raw.get("per_difficulty") or {}).items()}
+    records = [_record_from_dict(r) for r in raw.get("records") or []]
+    return EvalRun(
+        configuration=Configuration(raw["configuration"]),
+        sql_model=raw["sql_model"],
+        overall=overall,
+        per_difficulty=per_difficulty,
+        records=records,
+    )
+
+
+def _record_from_dict(raw: dict[str, Any]) -> EvalRecord:
+    """Convert one record dict into an EvalRecord; tuple fields are restored."""
+    coerced = dict(raw)
+    for key in ("gold_tables", "retrieved_tables"):
+        value = coerced.get(key)
+        if isinstance(value, list):
+            coerced[key] = tuple(value)
+    return EvalRecord(**coerced)
 
 
 def _render_overall_table(runs: Iterable[EvalRun]) -> str:

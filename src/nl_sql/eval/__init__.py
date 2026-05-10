@@ -24,13 +24,18 @@ from nl_sql.eval.metrics.execution_accuracy import (
     execution_accuracy,
 )
 from nl_sql.eval.metrics.schema_recall import schema_recall_at_k
-from nl_sql.eval.report import write_html_report, write_json_report
+from nl_sql.eval.report import (
+    load_run_from_json,
+    write_html_report,
+    write_json_report,
+)
 from nl_sql.eval.runner import (
     Configuration,
     EvalRecord,
     EvalRun,
     EvalSummary,
     run_config_a,
+    run_config_c,
 )
 
 __all__ = [
@@ -45,7 +50,9 @@ __all__ = [
     "execution_accuracy",
     "extract_gold_tables",
     "load_bird_mini_dev",
+    "load_run_from_json",
     "run_config_a",
+    "run_config_c",
     "schema_recall_at_k",
     "write_html_report",
     "write_json_report",

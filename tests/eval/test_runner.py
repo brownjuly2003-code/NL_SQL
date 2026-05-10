@@ -1,4 +1,4 @@
-"""Smoke tests for `eval.runner.run_config_a` with a fake LLM + tiny SQLite.
+"""Smoke tests for `eval.runner.run_config_a` + `run_config_c` with fake LLMs.
 
 We script the LLM to return three responses:
 - question 1: correct SQL → match=True
@@ -10,10 +10,14 @@ That covers the three EA outcomes we report on.
 
 from __future__ import annotations
 
+import gc
+import hashlib
 import json
 import sqlite3
+from collections.abc import Iterator
 from pathlib import Path
 
+import chromadb
 import pytest
 
 from nl_sql.db.connection import DatabaseSpec, sqlite_url_readonly
@@ -29,7 +33,15 @@ from nl_sql.eval.runner import (
     run_config_e,
 )
 from nl_sql.execution.errors import ExecutionErrorKind
-from nl_sql.llm.providers.base import GenerateRequest, GenerateResponse
+from nl_sql.llm.providers.base import (
+    EmbedRequest,
+    EmbedResponse,
+    GenerateRequest,
+    GenerateResponse,
+)
+from nl_sql.schema_index.chunker import to_chunks
+from nl_sql.schema_index.indexer import SchemaIndex
+from nl_sql.schema_index.introspector import introspect
 
 
 class ScriptedLLM:
@@ -175,9 +187,137 @@ def test_progress_callback_invoked(chinook_registry: DatabaseRegistry) -> None:
 
 
 def test_other_configs_not_implemented_yet() -> None:
-    for fn in (run_config_b, run_config_c, run_config_d, run_config_e):
+    # run_config_c now lives — only B/D/E remain stubbed.
+    for fn in (run_config_b, run_config_d, run_config_e):
         with pytest.raises(NotImplementedError):
             fn()
+
+
+# ---------------------------------------------------------------------------
+# Configuration C — dense retrieval, no fewshot, no repair.
+# ---------------------------------------------------------------------------
+
+
+class FakeEmbedder:
+    """Deterministic byte-hash embeddings — no network, stable across runs."""
+
+    def embed(self, req: EmbedRequest) -> EmbedResponse:
+        return EmbedResponse(
+            vectors=[
+                [b / 255.0 for b in hashlib.sha1(t.encode("utf-8")).digest()[:8]]
+                for t in req.texts
+            ],
+            model="fake",
+        )
+
+
+@pytest.fixture
+def chinook_with_index(
+    tmp_path: Path, chinook_registry: DatabaseRegistry
+) -> Iterator[tuple[DatabaseRegistry, SchemaIndex]]:
+    spec = chinook_registry.get("bird_chinook")
+    intro_engine = spec.make_engine()
+    try:
+        client = chromadb.PersistentClient(path=str(tmp_path / "chroma_c"))
+        index = SchemaIndex(
+            persist_dir=tmp_path / "chroma_c", embedder=FakeEmbedder(), client=client
+        )
+        index.index_schema(
+            to_chunks(
+                introspect(intro_engine, sample_size=2),
+                db_id="bird_chinook",
+            )
+        )
+        yield chinook_registry, index
+    finally:
+        intro_engine.dispose()
+        gc.collect()
+
+
+def test_run_config_c_correct_match(
+    chinook_with_index: tuple[DatabaseRegistry, SchemaIndex],
+) -> None:
+    registry, index = chinook_with_index
+    sql_response = json.dumps(
+        {
+            "sql": "SELECT COUNT(*) FROM Album",
+            "tables_used": ["Album"],
+            "confidence": 0.9,
+        }
+    )
+    sql_llm = ScriptedLLM([sql_response])
+    explain_llm = ScriptedLLM(["3 albums."])
+    examples = [_example(1, "how many albums?", "SELECT COUNT(*) FROM Album")]
+    run = run_config_c(
+        examples,
+        sql_provider=sql_llm,
+        explain_provider=explain_llm,
+        schema_index=index,
+        registry=registry,
+        schema_top_k=2,
+        fk_hops=0,
+    )
+
+    assert run.configuration == Configuration.C_DENSE
+    assert run.overall.n == 1
+    assert run.overall.ea == 1.0
+    rec = run.records[0]
+    assert rec.match is True
+    assert rec.error_kind is None
+    assert "Album" in rec.retrieved_tables  # context_builder populated trace
+    assert rec.input_tokens > 0  # tokens came from generate_sql trace
+    assert rec.output_tokens > 0
+
+
+def test_run_config_c_no_repair_on_invalid(
+    chinook_with_index: tuple[DatabaseRegistry, SchemaIndex],
+) -> None:
+    """Config C disables repair → first invalid SQL is the final SQL."""
+    registry, index = chinook_with_index
+    bad_sql = json.dumps({"sql": "DELETE FROM Album", "confidence": 0.1})
+    sql_llm = ScriptedLLM([bad_sql])
+    explain_llm = ScriptedLLM(["error caption"])
+    examples = [_example(2, "danger", "SELECT COUNT(*) FROM Album")]
+    run = run_config_c(
+        examples,
+        sql_provider=sql_llm,
+        explain_provider=explain_llm,
+        schema_index=index,
+        registry=registry,
+        schema_top_k=2,
+        fk_hops=0,
+    )
+
+    rec = run.records[0]
+    assert rec.match is False
+    assert rec.error_kind == ExecutionErrorKind.INVALID_SQL.value
+    assert rec.repair_attempted is False
+    assert sql_llm.call_count == 1  # exactly one generate, no repair pass
+
+
+def test_run_config_c_progress_callback(
+    chinook_with_index: tuple[DatabaseRegistry, SchemaIndex],
+) -> None:
+    registry, index = chinook_with_index
+    correct = json.dumps({"sql": "SELECT COUNT(*) FROM Album"})
+    sql_llm = ScriptedLLM([correct, correct])
+    explain_llm = ScriptedLLM(["a", "b"])
+    examples = [
+        _example(1, "q1", "SELECT COUNT(*) FROM Album"),
+        _example(2, "q2", "SELECT COUNT(*) FROM Album"),
+    ]
+    seen: list[tuple[int, int]] = []
+    run_config_c(
+        examples,
+        sql_provider=sql_llm,
+        explain_provider=explain_llm,
+        schema_index=index,
+        registry=registry,
+        schema_top_k=2,
+        fk_hops=0,
+        progress=lambda i, total, _r: seen.append((i, total)),
+    )
+    assert seen == [(1, 2), (2, 2)]
 
 
 def test_report_writers_round_trip(

@@ -1,4 +1,4 @@
-# NL_SQL — Session Handoff (2026-05-10, stage 6 baseline live)
+# NL_SQL — Session Handoff (2026-05-10, stage 6 configs A+C live)
 
 > Read this first when picking up. It's the single source of truth for
 > "where we stopped" and "what to do next". When you take action, update
@@ -9,23 +9,35 @@
 ## Current state in 30 seconds
 
 - **Repo:** `D:\NL_SQL\` on `main`
-- **HEAD:** see `git log -1 --oneline` (stage 6 eval harness committed)
-- **Tests:** 169/169 passing, ruff clean, mypy strict clean (49 src files)
-- **Stages closed (autonomous): 1, 2, 3, 4, 5, 6 (config A only), 9** + provider adapter expanded with Groq
-- **Stages waiting: 6 (configs B–E)**, then 7+
+- **HEAD:** see `git log -1 --oneline` (stage 6 configs A+C live)
+- **Tests:** 172/172 passing, ruff clean, mypy strict clean (49 src files)
+- **Stages closed (autonomous): 1, 2, 3, 4, 5, 6 (configs A + C), 9** + provider adapter expanded with Groq
+- **Stages waiting: 6 (configs B, D, E)**, then 7+
 - **Hard budget:** still $0. All live providers tested are free-tier.
 
 Live signals:
 - Schema recall@5 on Chinook (`mistral-embed`) = **5/5 (100%)** — `scripts/smoke_schema_recall.py`
 - Full pipeline on Chinook (`codestral-latest` + `mistral-large-latest`) = **5/5 succeeded** — `scripts/smoke_pipeline.py`
-- Eval harness baseline (config A, 50 BIRD Mini-Dev SQLite, codestral-latest, seed=0):
-  - **EA = 46.0%** (simple 57.1% / moderate 45.5% / challenging 35.7%)
-  - Validity = 96.0%, Schema Recall@k = 98.0% (k = full schema), Empty-result = 6.0%
-  - Latency P50 = 1.3s, P95 = 37s (Mistral free-tier rate-limit backoff on 2 calls)
-  - Tokens P50 = 4 742, P95 = 10 055; wall time 413s
-  - **Above the week-3 hard checkpoint of EA ≥ 35%** → continue tuning loop, no scope-down.
-  - Reference: GPT-4 zero-shot on Mini-Dev SQLite = 47.8% (BIRD leaderboard).
-  - Artefacts: `eval/reports/2026-05-10/A_full_schema.json` + `index.html`.
+- All 12 DBs indexed in Chroma (86 chunks, `chroma_data/`) via `scripts/build_index.py --db all`.
+
+### Ablation A vs C (50 BIRD Mini-Dev SQLite, codestral-latest, seed=0)
+
+| Config | Overall | Simple | Moderate | Challenging | Validity | Recall@k | Empty | P50 | P95 | Wall |
+|--------|---------|--------|----------|-------------|----------|----------|-------|------|-------|--------|
+| A (full_schema)  | 46.0% | 57.1% | 45.5% | 35.7% | 96.0% | 98.0% |  6.0% | 1.3s | 37.1s | 413s |
+| C (dense + FK 1-hop, no fewshot, no repair) | 46.0% | **64.3%** | **50.0%** | 21.4% | **100.0%** | 98.0% | 12.0% | 2.4s |  5.6s | **150s** |
+
+- **Overall EA tied at 46.0%** — but the per-difficulty split tells a real
+  engineering story: dense retrieval gains +7.2pp simple / +4.5pp moderate,
+  loses 14.3pp challenging. Challenging questions need multi-table joins;
+  the top-5 + 1-hop FK budget prunes too aggressively for those.
+- **Validity 100%** under C (vs 96%) — pruned schema gives the LLM less
+  surface area to hallucinate DML/PRAGMA/etc.
+- **Wall time 2.7× faster** under C — shorter prompts mean fewer Mistral
+  rate-limit backoffs (P95 5.6s vs 37s).
+- **Above the week-3 hard checkpoint of EA ≥ 35%** → continue tuning loop, no scope-down.
+- Reference: GPT-4 zero-shot on Mini-Dev SQLite = 47.8% (BIRD leaderboard).
+- Artefacts: `eval/reports/2026-05-10/{A_full_schema,C_dense_cards}.json` + `index.html`.
 
 ## How to start the next session
 
@@ -52,7 +64,7 @@ Then say: *"Продолжай stage 6 — eval harness."*
 | 3 | `src/nl_sql/schema_index/` | 27 | introspector → chunker → indexer (Chroma) → retriever (FK 1-hop, table_budget). Live recall@5 = 100% on Chinook. |
 | 4 | `src/nl_sql/agent/` | 29 | LangGraph 6-node pipeline + repair_once + structured-output JSON parser + 5/5 live smoke on Chinook. |
 | 5 | `src/nl_sql/execution/` | 31 | sqlglot AST guard, 3-layer defence, error taxonomy |
-| 6 (cfg A) | `src/nl_sql/eval/` | 38 | dataset loader, EA + Schema Recall@k metrics, full_schema runner, JSON+HTML report writer. Live baseline: see `eval/reports/<date>/`. |
+| 6 (A+C)   | `src/nl_sql/eval/` | 41 | dataset loader, EA + Schema Recall@k, full_schema (A) and dense+FK (C) runners, JSON+HTML report. `disable_repair` knob added to `run_pipeline`. Live A vs C baseline in `eval/reports/2026-05-10/`. |
 | 9 | `src/nl_sql/render/` | 14 | deterministic chart picker, no LLM |
 
 Live API status (with keys from `.env`):
@@ -91,37 +103,53 @@ Not blocking until stage 11 bakeoff.
   fallback to error sentence; consider switching caption to Groq's free
   llama-3.3-70b if rate-limit becomes recurring under full eval load.
 
-### 5. Stage 6 caveats (NEW)
+### 5. Stage 6 caveats
 
-- **Only configuration A is implemented.** B/C/D/E exist as enum members
-  and `run_config_*` stubs that raise `NotImplementedError`. Adding them
-  is mechanical (config C ≈ existing pipeline minus repair, config E =
-  full pipeline) — see `runner.py` for the slot.
+- **Configurations B, D, E are still stubbed** (raise `NotImplementedError`).
+  D needs BIRD *train* split for fewshot pool; E re-uses the LangGraph
+  default (no `disable_repair`); B (BM25) likely doesn't ship — A→C
+  already showed dense retrieval doesn't move overall EA, so a separate
+  BM25 row is low value unless the B row is needed for the report's
+  completeness.
 - **No diskcache yet.** Each eval call hits Mistral live, so re-running
   the same 50 examples doubles the API spend. `03_eval_methodology.md`
   §6.2 calls for `(provider, model, prompt_hash) → response` cache; add
   before scaling to 250 dev split.
 - **No CI smoke-eval cassettes.** `03_eval_methodology.md` §6.1 wants
   vcr.py-style replay; not wired up. Live runs only for now.
+- **Schema Recall@k = 98% in both A and C** — same 1 question miss from
+  the regex-based `extract_gold_tables` (likely a CTE alias edge). Worth
+  fixing if recall ever becomes the actual bottleneck.
 
 ## Next session — recommended order
 
-### Step A — Configurations C/D/E
+### Step A — Configurations D and E
 
-Implement runner equivalents that build the existing LangGraph pipeline
-with the right `PipelineConfig`. Config C wires retrieval+FK already in
-place; D needs the few-shot pool; E flips repair on. Track each new
-config alongside A in the same HTML report.
+1. **Run config E first.** It's the cheapest delta — `run_config_e` is
+   `run_config_c` minus `disable_repair=True`. Tells us if repair_once
+   moves EA at n=50 with the existing pipeline. If repair gives ≤+1pp,
+   the E row in the methodology report can argue "repair removed as
+   measured-low-value" rather than "we never tried it".
+2. **BIRD train split.** Mini-Dev was the dev part only; train is hosted
+   separately. Download via the same gdown route once the URL is
+   verified. Embed into Chroma `fewshot_qsql` as `BirdExample` records,
+   gated by a `test_no_dev_in_fewshot` CI test that uses
+   `is_in_dev_split` from `eval/dataset.py`.
+3. **`run_config_d`** once fewshot pool exists. Mostly a code clone of
+   `run_config_c` with `fewshot_top_k=3`.
 
-Order of operations:
-1. `eval/runner.run_config_c` — reuses `build_pipeline` with
-   `fewshot_top_k=0`, then strips repair via `repair_attempted=True`
-   in the initial state (the cheapest "no-repair" knob without changing
-   the graph).
-2. BIRD *train* split download → `data/bird_train/` + index into Chroma
-   `fewshot_qsql` (CI test `test_no_dev_in_fewshot` to enforce hygiene).
-3. `run_config_d` once the few-shot pool exists.
-4. `run_config_e` last — uses the full pipeline as-is.
+### Step B — Investigate the challenging-tier regression
+
+A→C lost 14.3pp on challenging questions while gaining on simple/moderate.
+This is the single most actionable signal in the report. Plausible
+hypotheses (in order of cheapness to test):
+- `schema_top_k=5` is too tight on multi-join questions → bump to 8 and
+  re-run config C.
+- `fk_hops=1` cuts off transitive joins → bump to 2 (still bounded by
+  `table_budget`).
+- The retriever scores the question against table cards, not against
+  table+column matches — adding a column-level fallback might help.
+Document whichever lever moves the number.
 
 ### Step B — Hard checkpoint (week 3 of original roadmap)
 
@@ -216,18 +244,20 @@ uv run python scripts/eval_baseline.py --n 5 --db bird_california_schools
 ## Final state for memory
 
 ```
-HEAD:   stage 6 eval harness (see git log)
+HEAD:   stage 6 config C: dense + FK retrieval (see git log)
 Branch: main
-Tests:  169/169 passing
+Tests:  172/172 passing
 Lint:   ruff clean
 Type:   mypy strict clean (49 src files)
 Live:   Mistral OK (codestral + embed + large), Groq OK,
         GitHub Models 401, Ollama not installed
-Data:   Chinook + 11 BIRD DBs downloaded; chroma_data/ has chinook indexed
-Stages: 1, 2, 3, 4, 5, 6 (cfg A only), 9 done. 6 (B–E) next.
+Data:   Chinook + 11 BIRD DBs downloaded; chroma_data/ has all 12 DBs indexed
+        (86 chunks)
+Stages: 1, 2, 3, 4, 5, 6 (configs A + C), 9 done. 6 (D, E, optional B) next.
 Smoke:  schema recall@5 = 5/5 on Chinook
         full pipeline   = 5/5 on Chinook
-Eval:   config A on 50 BIRD = 46.0% EA (above 35% hard checkpoint)
-        — `eval/reports/2026-05-10/A_full_schema.json`
+Eval:   A on 50 BIRD = 46.0% EA, validity 96%, 413s wall
+        C on 50 BIRD = 46.0% EA, validity 100%, 150s wall
+        — `eval/reports/2026-05-10/{A,C}_*.json` + `index.html`
 Budget: $0 hard constraint, all live providers free-tier.
 ```

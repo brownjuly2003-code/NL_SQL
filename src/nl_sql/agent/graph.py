@@ -168,13 +168,21 @@ def run_pipeline(
     question: str,
     db_id: str,
     dialect: Dialect = "sqlite",
+    disable_repair: bool = False,
 ) -> PipelineRunResult:
-    """One-shot helper: invoke the compiled graph and flatten the result."""
+    """One-shot helper: invoke the compiled graph and flatten the result.
+
+    `disable_repair` (default False): when True, sets repair_attempted in
+    initial state, which causes both `_route_after_validate` and
+    `_route_after_execute` to skip the repair branch on the first failure
+    and fall through to deterministic_format. Used by eval configurations
+    A-D where the methodology specifies "no repair" as a measured baseline.
+    """
     initial: PipelineState = {
         "question": question,
         "db_id": db_id,
         "dialect": dialect,
-        "repair_attempted": False,
+        "repair_attempted": disable_repair,
         "trace": [],
     }
     final = cast(PipelineState, pipeline.invoke(initial))
