@@ -2,12 +2,13 @@
 
 Portfolio demo для Senior Data Engineer / Data Analyst. Принимает вопрос на естественном языке (RU/EN), возвращает ответ из реляционной БД в одной из четырёх форм: число, предложение, таблица, график. Всегда показывает использованный SQL и объяснение.
 
-**Статус:** v2 baseline зафиксирован (2026-05-10), bootstrap pending. См. `docs/`.
+**Статус:** stages 1, 2, 5, 9 закрыты (2026-05-10). 75 тестов зелёные, ruff/mypy strict clean. Live API verified: Mistral + Groq. См. [`docs/SESSION_HANDOFF.md`](docs/SESSION_HANDOFF.md) — single source of truth для следующей сессии.
 
 ## Документация
 
 | Файл | Содержание |
 |---|---|
+| [docs/SESSION_HANDOFF.md](docs/SESSION_HANDOFF.md) | **Where we stopped, what to do next** — open this first |
 | [docs/00_task.md](docs/00_task.md) | Постановка задачи (что / почему / scope / DoD) |
 | [docs/01_architecture.md](docs/01_architecture.md) | v1 — superseded, оставлен как исторический |
 | [docs/02_architecture_v2.md](docs/02_architecture_v2.md) | **Active baseline** — lean архитектура после CX+KM review |
