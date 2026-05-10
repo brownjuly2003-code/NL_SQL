@@ -1,0 +1,84 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+dist/
+build/
+*.so
+
+# Virtual envs
+.venv/
+venv/
+env/
+ENV/
+.env
+.env.local
+.env.*.local
+
+# uv / poetry
+.uv-cache/
+poetry.lock.bak
+
+# Testing
+.pytest_cache/
+.tox/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+.hypothesis/
+
+# Type checking
+.mypy_cache/
+.ruff_cache/
+.pyre/
+.pytype/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Project-specific
+data/                  # BIRD dump, StackExchange dump, Chinook DB — не в репо
+chroma_data/           # Chroma vector store — генерируется индексером
+.diskcache/            # LLM API response cache
+.cassettes/            # vcr.py cassettes (committed are in tests/cassettes/)
+eval/reports/*.html    # генерируемые HTML отчёты
+eval/reports/*.json    # raw run data
+.tmp/                  # любые scratch/временные файлы
+*.log
+
+# Reviews scratch (полные обзоры коммитятся, runtime артефакты — нет)
+reviews/*.err
+
+# Secrets — никогда не коммитить
+secrets/
+credentials/
+*.pem
+*.key
+config/local.*
+**/local.yml
+
+# Docker
+.docker-compose.override.yml
+
+# Frontend (если будет Next.js)
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.env.local
+
+# Notebooks
+.ipynb_checkpoints/
+*.nbconvert.ipynb
+
+# OS
+.Trashes
+ehthumbs.db
+Desktop.ini
