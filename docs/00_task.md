@@ -53,12 +53,14 @@
 
 Только Mistral по API. Две модели в роутинге:
 
-- **`codestral-latest`** (Codestral v25.08, актуальный код-специалист — codestral-2501 deprecated с ноября 2025) — генерация SQL и self-correction.
+- **`codestral-latest`** (Codestral v25.08, актуальный код-специалист — codestral-2501 deprecated с ноября 2025) — генерация SQL и self-correction. Mistral La Plateforme free tier.
 - **`mistral-large-latest`** — объяснение результата на естественном языке (intent classification и format selection — детерминированно, без LLM, см. v2 архитектуру).
 
 Embeddings — `mistral-embed`.
 
-> **Provider abstraction обязательна** (LiteLLM или собственный adapter): локальное тестирование без API, замена модели для bakeoff (см. `02_architecture_v2.md`).
+**Bakeoff providers ($0 hard budget):** `codestral-latest` + `gpt-4o-mini` через **GitHub Models** (free) + `qwen2.5-coder:7b` локально (Ollama, 4.7 GB Q4_K_M).
+
+> **Provider abstraction обязательна** (LiteLLM или собственный adapter): локальное тестирование без API, замена модели для bakeoff (см. `02_architecture_v2.md` §6 + §6.6).
 
 ## 5. Базовый сценарий (happy path)
 

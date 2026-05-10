@@ -16,7 +16,8 @@ Portfolio demo для Senior Data Engineer / Data Analyst. Принимает в
 ## Стек (lean)
 
 - **LangGraph** — 6-узловой pipeline (`context_builder → generate_sql → validate/repair_once → execute → deterministic_format → explain_trace`)
-- **Mistral API** (`codestral-latest` для SQL, `mistral-large-latest` для NL caption, `mistral-embed`) + provider abstraction (OpenAI / Ollama)
+- **Mistral API** (`codestral-latest` для SQL, `mistral-large-latest` для NL caption, `mistral-embed`) + provider abstraction (GitHub Models / Ollama)
+- **Hard budget: $0 external cost.** Free tiers only: Mistral La Plateforme + GitHub Models (frontier slot) + Ollama (local). Backup: Gemini 2.0 Flash через AI Studio.
 - **ChromaDB** — 2 коллекции: `schema_chunks` + `fewshot_qsql`
 - **Postgres 16** + **SQLite** — target БД (StackExchange-mini + Chinook + BIRD Mini-Dev)
 - **sqlglot** — AST guard, dialect translation

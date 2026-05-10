@@ -205,23 +205,55 @@ class LLMProvider(Protocol):
 Реализации: `MistralProvider` (default), `OpenAIProvider`, `OllamaProvider`.
 Конфиг — env var `LLM_PROVIDER=mistral|openai|ollama`.
 
-### Bakeoff (артефакт портфолио) — конкретные модели
+### Bakeoff (артефакт портфолио) — конкретные модели, $0 budget
 
 `eval/bakeoff/` содержит 30 курированных вопросов с эталонными SQL,
-прогон через **3 фиксированных провайдера** (зафиксировано 2026-05-10):
+прогон через **3 фиксированных провайдера** (зафиксировано 2026-05-10).
+**Жёсткое ограничение проекта: $0 external cost.** Только бесплатные тиры.
 
 | Слот | Модель | Где | Стоимость 30 вопросов | Примечание |
 |---|---|---|---|---|
-| Code-specialized API | `codestral-latest` (Mistral v25.08) | La Plateforme free tier + диск-кэш | ~$0 при rate-limit-aware + caching | Default provider |
-| Frontier API | `gpt-4o-mini` | OpenAI API | ~$0.50 one-time | Reference frontier; новые аккаунты получают $5 free credit |
+| Code-specialized API | `codestral-latest` (Mistral v25.08) | La Plateforme free tier + диск-кэш | $0 (rate-limit-aware + caching) | Default provider |
+| Frontier API | `gpt-4o-mini` (или `gpt-4.1-mini`) **через GitHub Models** | `models.inference.ai.azure.com` через GitHub Personal Access Token | $0 (free tier для personal GitHub аккаунтов) | См. §6.6 |
 | Local code-specialized | `qwen2.5-coder:7b-instruct` (Ollama, default Q4_K_M ≈ 4.7 GB) | Локально через Ollama | $0 (электричество) | Подходит к 16 GB RAM (комфортный fit с запущенным Postgres+Chroma) |
 
 **Сравнительная таблица в README** — это и есть ответ на «почему не GPT-4». Не идеологический, а измерительный.
+
+**Backup для frontier slot** (если GitHub Models упрётся в daily rate limit или сервис будет недоступен):
+- **Google Gemini 2.0 Flash** через Google AI Studio free tier (~1500 req/day, 15 RPM). Truly free, фронтир-class. Ключ создаётся в `aistudio.google.com`.
+- Включается через тот же provider adapter, env var `LLM_FRONTIER_PROVIDER=gemini`.
 
 **Опциональные расширения** (для опытов, не в default bakeoff):
 - `qwen2.5-coder:14b-instruct` (9.0 GB) — лучше качество, но на 16 GB RAM **тесно**. Включается только при выключенных Postgres/Chroma во время локального прогона. Не годится для combined eval workflow на 16 GB.
 - `qwen2.5-coder:32b-instruct` (20 GB) — **не помещается в 16 GB RAM**, не использовать.
 - `sqlcoder-7b-2` (defog) — SQL-specialized альтернатива qwen2.5-coder; добавляется одной строкой в `config/providers.yml`. Полезно как secondary local point.
+
+### 6.6 Frontier slot через GitHub Models (детали)
+
+**GitHub Models** (`models.inference.ai.azure.com`) — Microsoft-managed бесплатный API-доступ к premium моделям для personal GitHub аккаунтов.
+
+| Параметр | Значение |
+|---|---|
+| Endpoint | `https://models.inference.ai.azure.com/chat/completions` |
+| Auth | GitHub Personal Access Token (без специальных scope, `read:user` достаточно) |
+| Доступные модели (на 2026-05) | `gpt-4o-mini`, `gpt-4o`, `gpt-4.1-mini`, `o1-mini`, `claude-3-5-sonnet`, `meta-llama-3.1-405b-instruct`, и др. |
+| SDK | OpenAI-compatible (`openai-python` с `base_url`), либо Azure AI Inference SDK |
+| Rate limits | Daily quota per token + per-model RPM (точные числа меняются; на момент фиксации хватало для bakeoff с большим запасом) |
+
+**Provider adapter implementation:**
+```python
+class GitHubModelsProvider(LLMProvider):
+    def __init__(self):
+        self.client = OpenAI(
+            base_url="https://models.inference.ai.azure.com",
+            api_key=os.getenv("GITHUB_TOKEN"),  # PAT
+        )
+        self.model = os.getenv("GH_MODELS_FRONTIER_MODEL", "gpt-4o-mini")
+```
+
+**Преимущество для портфолио:** anyone with a GitHub account может воспроизвести bakeoff бесплатно. Это сильнее «GPT-4 за $20» с точки зрения reproducibility.
+
+**Когда переключаться на Gemini backup:** если GitHub Models показывает 429 или сервис недоступен — переключение через env var, без перезапуска кода. См. §11 risks.
 
 ## 6.5. Cost / quota strategy (no account rotation)
 
@@ -270,11 +302,11 @@ Embedding calls (one-time индексация):
 ### Bakeoff cost (one-time)
 
 30 questions × 3 providers × ~3 000 tokens (prompt+completion, average) ≈ 270 K tokens total.
-- Mistral: covered by free tier.
-- OpenAI gpt-4o-mini @ $0.15 per 1M input + $0.60 per 1M output: **≈ $0.50** for full bakeoff run.
-- Local Ollama: $0.
+- Mistral: covered by free tier (La Plateforme).
+- Frontier slot via **GitHub Models** (`gpt-4o-mini`): covered by free tier (personal GitHub PAT).
+- Local Ollama: $0 (электричество).
 
-Итого one-time external cost проекта: **~$0.50-2** за весь жизненный цикл portfolio-демо. Не повод для ToS violation.
+Итого external cost проекта: **$0** за весь жизненный цикл portfolio-демо. Это hard constraint.
 
 ---
 
@@ -402,7 +434,8 @@ LLM генерирует только `intent_hint` (одно слово из en
 | Vega-spec ломается | **N/A в v2** | Удалено |
 | Mistral API rate limits на eval | средняя | diskcache на (prompt_hash → response); throttle до 0.8×free-tier RPS; nightly батчем. **Ротация аккаунтов запрещена** (см. §6.5) |
 | Local model RAM exhaustion (16 GB OS) | средняя | qwen2.5-coder:7b (4.7 GB) как default; 14b опциально только при выключенных Postgres/Chroma; 32b исключён |
-| OpenAI free credit expires до bakeoff | низкая | bakeoff = ~$0.50 one-time; включается в roadmap §11 этап 11 — credit ещё не истёк к этому моменту |
+| GitHub Models rate-limit hit на bakeoff | низкая | 30 вопросов под daily limit с большим запасом; backup — Gemini 2.0 Flash через `LLM_FRONTIER_PROVIDER=gemini` (см. §6.6) |
+| GitHub Models меняет model availability | низкая-средняя | provider adapter изолирует; смена модели — env var; bakeoff фиксирует snapshot в отчёте |
 | Burnout / scope creep | **средняя-высокая** | Hard checkpoint неделя 3; scope-down protocol §12 |
 
 ## 14. Что в этой архитектуре «нагруженного» (vs «фейковая нагрузка»)

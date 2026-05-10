@@ -201,12 +201,12 @@ Business hints:
 
 ## 8. Provider bakeoff
 
-### 8.1 Setup (зафиксированы 2026-05-10)
+### 8.1 Setup (зафиксированы 2026-05-10, $0 budget hard constraint)
 
 - **30 курированных вопросов** (10 BIRD-style + 10 StackExchange + 10 edge cases).
 - **3 провайдера** прогон через идентичный pipeline (E конфигурация):
-  1. **Mistral `codestral-latest`** (v25.08, default) — covered by free tier.
-  2. **OpenAI `gpt-4o-mini`** (frontier reference) — ~$0.50 one-time, новые аккаунты получают $5 free credit.
+  1. **Mistral `codestral-latest`** (v25.08, default) — Mistral La Plateforme free tier.
+  2. **`gpt-4o-mini` через GitHub Models** (frontier reference) — `models.inference.ai.azure.com` с GitHub PAT, free tier для personal аккаунтов. Backup: Gemini 2.0 Flash через AI Studio.
   3. **Ollama `qwen2.5-coder:7b-instruct`** (Q4_K_M ≈ 4.7 GB, default Ollama quant) — fits 16 GB RAM.
 
 **Опциональный 4-й слот** (для отдельных experiments, не в default README таблице):
@@ -221,8 +221,8 @@ Business hints:
 
 | Provider | EA | Validity Rate | Latency P50 | Cost / 30q |
 |---|---|---|---|---|
-| Mistral `codestral-latest` | XX% | XX% | X.Xs | $0 (free tier + диск-кэш) |
-| OpenAI `gpt-4o-mini` | XX% | XX% | X.Xs | ~$0.50 one-time |
+| Mistral `codestral-latest` | XX% | XX% | X.Xs | $0 (Mistral free tier + диск-кэш) |
+| `gpt-4o-mini` (GitHub Models) | XX% | XX% | X.Xs | $0 (GitHub Models free tier) |
 | Ollama `qwen2.5-coder:7b` | XX% | XX% | X.Xs | $0 (электричество) |
 
 Плюс **slicing per question**: какая модель ошиблась где.
