@@ -125,3 +125,4 @@ frontend/.env.local
 .Trashes
 ehthumbs.db
 Desktop.ini
+.deploy_helper.py

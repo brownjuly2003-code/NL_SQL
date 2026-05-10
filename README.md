@@ -4,6 +4,8 @@ Portfolio demo для Senior Data Engineer / Data Analyst. Принимает в
 
 **Статус:** stages 1-6 + 9 + 10 (Streamlit UI) закрыты (2026-05-10 follow-up). 200 тестов зелёные, ruff/mypy strict clean. Live API verified: Mistral + Groq. n=200 ablation: A=47.0% / C+sort+s=3=47.0% / C+sort+s=5=46.0% — at-or-above GPT-4 zero-shot reference (47.8%). См. [`docs/SESSION_HANDOFF.md`](docs/SESSION_HANDOFF.md) — single source of truth для следующей сессии.
 
+**Live demo:** TBD — deploy в Streamlit Cloud остался на 1 OAuth-клике, runbook в [`docs/SESSION_HANDOFF.md` § Deploy](docs/SESSION_HANDOFF.md#deploy--finishing-it-manually-resume-here). Repo + data + deps готовы.
+
 ## Quick start
 
 ```powershell

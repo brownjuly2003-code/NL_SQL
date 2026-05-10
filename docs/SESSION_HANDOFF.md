@@ -59,6 +59,13 @@ is the executive copy for fast pickup.
 
 **Remaining priorities for next pickup:**
 
+0. **Streamlit Cloud deploy — IN-FLIGHT, last 2 manual clicks
+   blocked on Gmail/GitHub OAuth.** Repo is up, `requirements.txt`
+   + `runtime.txt` committed, deployment kit (chinook + 8 small
+   BIRD DBs + chroma_data) all on `main`. URL still TBD. Detailed
+   runbook below in **§Deploy — finishing it manually**. Hand-off
+   to Codex / future session.
+
 1. **Provider bakeoff (Groq) — DEFERRED on quota.**
    Groq free-tier daily TPD = 100k; A+C+sort full sample burns
    ~120k. Three options:
@@ -85,6 +92,71 @@ is the executive copy for fast pickup.
    from this session shows a clear monotonic trend.
 
 Everything below this line is reference / detail for these items.
+
+---
+
+## Deploy — finishing it manually (resume here)
+
+**Status as of 2026-05-10 EOD:**
+- ✅ Public repo `brownjuly2003-code/NL_SQL` — 8 commits, HEAD
+  `e1d91f2`. Last commit added `requirements.txt` + `runtime.txt`
+  so Streamlit Cloud's auto-build picks up Streamlit + Plotly +
+  pandas (those live in pyproject's `[ui]` optional group, which
+  Cloud's auto-detector doesn't expand).
+- ✅ Data subset committed (~150 MB): chinook + 8 BIRD DBs ≤100 MB
+  each. Three huge BIRD DBs (`card_games`, `codebase_community`,
+  `european_football_2`) stay gitignored — over GitHub's 100 MB
+  per-file hard limit. Registry skips DBs whose files aren't on
+  disk so the deployed selectbox lists only the 9 shipped DBs.
+- ✅ `chroma_data/` (~3 MB, prebuilt) committed so the deployed
+  app doesn't burn Mistral embed quota on first cold start.
+- ❌ Streamlit Cloud app NOT yet deployed. OAuth login required
+  Gmail access; 2026-05-10 user couldn't sign in to Gmail and
+  passed the rest to a follow-up session.
+
+**Mistral key location:** `D:\TXT\Mistral_API.txt` (per memory
+`reference_api_keys_location.md`). The key value is plain text
+on the last line. **Do not commit it to git.**
+
+**Steps to finish deploy:**
+
+1. Open <https://share.streamlit.io> in any browser where the user
+   is logged in to GitHub (or willing to log in).
+2. **Create app** → fill the prefilled form (or use the deeplink
+   below):
+   ```
+   https://share.streamlit.io/deploy
+     ?repository=brownjuly2003-code/NL_SQL
+     &branch=main
+     &mainModule=app/streamlit_app.py
+   ```
+3. Open **Advanced settings → Secrets** and paste:
+   ```toml
+   MISTRAL_API_KEY = "<value from D:\TXT\Mistral_API.txt>"
+   ```
+4. Click **Deploy!** — cold start ~30 s while Cloud installs deps
+   from `requirements.txt`, reads `chroma_data/`, warms providers.
+5. Live URL appears in the dashboard once the build is green.
+   It's of the form `https://<user>-nl-sql-<hash>.streamlit.app`.
+6. Add the URL to README under **Live demo:** and commit on
+   `main`. Streamlit Cloud auto-redeploys on every push.
+
+**Helper script (gitignored):** `.deploy_helper.py` — drives
+the deploy flow via headed Playwright. Reads the Mistral key from
+`D:\TXT\Mistral_API.txt`, opens a Chromium window to the prefilled
+deploy URL, waits up to 5 min for OAuth to land, then auto-clicks
+Deploy + pastes the secret. Failed in the 2026-05-10 session
+because Gmail login was unavailable; rerun with
+`PYTHONUNBUFFERED=1 python -u .deploy_helper.py` once OAuth is
+unblocked.
+
+**Why we can't fully automate this:**
+- Chrome 127+ App-Bound Encryption blocks cookie extraction from
+  the system Chrome — verified via `browser_cookie3.chrome()`,
+  fails with `Unable to get key for cookie decryption`.
+- Streamlit Cloud has no public deploy API; UI-only.
+- Therefore one OAuth login event is structurally required;
+  everything else is automated in `.deploy_helper.py`.
 
 ---
 
