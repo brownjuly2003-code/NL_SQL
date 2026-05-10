@@ -1,0 +1,23 @@
+Write ONE short caption (≤2 sentences, plain English, no markdown) that
+summarises the answer to the user's question, given the SQL that was run
+and the resulting data shape. Mention specific values when one or two rows
+contain the punchline; otherwise describe the shape of the answer.
+
+# Question
+{question}
+
+# SQL executed
+{sql}
+
+# Result shape
+- columns: {columns}
+- row count: {row_count}
+- preview (up to 5 rows): {preview}
+
+# Constraints
+- ≤2 sentences.
+- No "based on the data" filler.
+- If the result is empty, say so plainly.
+- Do NOT echo the full SQL.
+
+Output only the caption text, nothing else.

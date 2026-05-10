@@ -21,6 +21,7 @@ dependencies = [
     "requests>=2.32",
     "chromadb>=0.5",
     "gdown>=5.2",
+    "langgraph>=0.2",
 ]
 
 [project.optional-dependencies]
@@ -45,7 +46,12 @@ packages = ["src/nl_sql"]
 testpaths = ["tests"]
 addopts = "-ra --strict-markers --strict-config"
 asyncio_mode = "auto"
-filterwarnings = ["error"]
+filterwarnings = [
+    "error",
+    # langgraph 0.6.x emits this on import via langchain_core.cache.base —
+    # upstream issue, not actionable from our code.
+    "default::langchain_core._api.deprecation.LangChainPendingDeprecationWarning",
+]
 
 [tool.ruff]
 line-length = 100
