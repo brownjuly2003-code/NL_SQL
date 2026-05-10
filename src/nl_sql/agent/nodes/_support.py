@@ -88,7 +88,49 @@ def render_schema_block(
             blocks.extend(hit.text for hit in context.fk_neighbours)
     if not blocks:
         return "(no tables matched)"
+    appendix = _render_extended_samples_appendix(context.extended_samples)
+    if appendix:
+        blocks.append(appendix)
     return "\n\n".join(blocks)
+
+
+def _render_extended_samples_appendix(
+    extended_samples: dict[str, dict[str, tuple[Any, ...]]] | None,
+) -> str:
+    """Format the per-difficulty sample mixture appendix.
+
+    Listed values are the *tail* of top-k samples per column — i.e.
+    samples beyond the primary ones already shown in each table card.
+    Header is explicit so codestral treats this as supplementary
+    filter-value hints, not as part of the schema definition.
+    """
+    if not extended_samples:
+        return ""
+    lines = [
+        "# Additional sample values (extended density, for filter-value discovery)",
+    ]
+    for table in sorted(extended_samples):
+        cols = extended_samples[table]
+        if not cols:
+            continue
+        lines.append(f"Table: {table}")
+        for col in sorted(cols):
+            values = cols[col]
+            if not values:
+                continue
+            rendered = ", ".join(_format_sample(v) for v in values)
+            lines.append(f"  - {col}: {rendered}")
+    if len(lines) == 1:
+        return ""
+    return "\n".join(lines)
+
+
+def _format_sample(value: Any) -> str:
+    if value is None:
+        return "NULL"
+    if isinstance(value, str):
+        return repr(value)
+    return str(value)
 
 
 def render_fewshot_block(context: ContextBundle | None) -> str:

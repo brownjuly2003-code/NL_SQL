@@ -179,6 +179,8 @@ def run_config_c(
     row_cap: int = 10_000,
     max_tokens: int = 1024,
     sort_schema_block: bool = False,
+    primary_sample_size: int = 3,
+    extended_sample_size: int = 0,
     progress: Callable[[int, int, EvalRecord], None] | None = None,
 ) -> EvalRun:
     """Run configuration C (dense schema cards + FK 1-hop, no fewshot, no repair).
@@ -201,6 +203,8 @@ def run_config_c(
             statement_timeout_ms=statement_timeout_ms,
             row_cap=row_cap,
             sort_schema_block=sort_schema_block,
+            primary_sample_size=primary_sample_size,
+            extended_sample_size=extended_sample_size,
         )
     )
     records: list[EvalRecord] = []
@@ -241,6 +245,8 @@ def run_config_e(
     row_cap: int = 10_000,
     max_tokens: int = 1024,
     sort_schema_block: bool = False,
+    primary_sample_size: int = 3,
+    extended_sample_size: int = 0,
     progress: Callable[[int, int, EvalRecord], None] | None = None,
 ) -> EvalRun:
     """Run configuration E (config C + repair_once enabled) — final v2 config.
@@ -262,6 +268,8 @@ def run_config_e(
             statement_timeout_ms=statement_timeout_ms,
             row_cap=row_cap,
             sort_schema_block=sort_schema_block,
+            primary_sample_size=primary_sample_size,
+            extended_sample_size=extended_sample_size,
         )
     )
     records: list[EvalRecord] = []

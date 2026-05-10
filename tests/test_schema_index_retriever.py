@@ -146,3 +146,47 @@ def test_all_tables_preserves_order(populated_index: SchemaIndex) -> None:
     extra = [h.table_name for h in bundle.fk_neighbours]
     assert listed[: len(seed)] == seed
     assert listed[len(seed) :] == extra
+
+
+def test_retrieve_context_skips_extended_samples_without_engine(
+    populated_index: SchemaIndex,
+) -> None:
+    bundle = retrieve_context(
+        populated_index,
+        "music",
+        db_id="d",
+        schema_top_k=2,
+        fk_hops=1,
+        table_budget=8,
+        fewshot_top_k=0,
+        engine=None,
+        extended_sample_size=5,
+    )
+    assert bundle.extended_samples is None
+
+
+def test_retrieve_context_skips_extended_samples_when_size_not_greater(
+    populated_index: SchemaIndex,
+) -> None:
+    import sqlite3
+
+    from sqlalchemy import create_engine
+
+    raw = sqlite3.connect(":memory:")
+    try:
+        eng = create_engine("sqlite://", creator=lambda: raw, future=True)
+        bundle = retrieve_context(
+            populated_index,
+            "music",
+            db_id="d",
+            schema_top_k=2,
+            fk_hops=1,
+            table_budget=8,
+            fewshot_top_k=0,
+            engine=eng,
+            primary_sample_size=5,
+            extended_sample_size=3,
+        )
+        assert bundle.extended_samples is None
+    finally:
+        raw.close()

@@ -174,3 +174,61 @@ def _truncate(value: Any, max_chars: int) -> Any:
     if isinstance(value, str) and len(value) > max_chars:
         return value[: max_chars - 1] + "…"
     return value
+
+
+def fetch_extended_samples(
+    engine: Engine,
+    table_names: list[str],
+    *,
+    primary_size: int,
+    extended_size: int,
+    sample_value_max_chars: int = 80,
+) -> dict[str, dict[str, tuple[Any, ...]]]:
+    """Return the *tail* slice of top-k samples per column, per table.
+
+    For each table in `table_names`, fetches the top-`extended_size` most
+    frequent values per column (same ranking used in `introspect`), then
+    drops the first `primary_size` to return only the delta — values that
+    were NOT already shown in the primary schema cards.
+
+    Empty result for a column means: either the table has fewer than
+    `primary_size` distinct values, or extended_size <= primary_size.
+
+    Used by the per-difficulty sample mixture path: the schema_block keeps
+    its compact `primary_size` cards; this delta is appended in a clearly
+    labelled "additional sample values" section so codestral can use it
+    only when needed (challenging-tier filter-value discovery).
+    """
+    if extended_size <= primary_size:
+        return {}
+    insp = inspect(engine)
+    available = set(insp.get_table_names())
+    metadata = MetaData()
+    out: dict[str, dict[str, tuple[Any, ...]]] = {}
+    with engine.connect() as conn:
+        for tname in table_names:
+            if tname not in available:
+                continue
+            sa_table = Table(tname, metadata, autoload_with=engine)
+            row_count = conn.execute(
+                select(func.count()).select_from(sa_table)
+            ).scalar_one()
+            if not int(row_count or 0):
+                continue
+            per_col: dict[str, tuple[Any, ...]] = {}
+            for col_meta in insp.get_columns(tname):
+                col_name = col_meta["name"]
+                sa_col = sa_table.c[col_name]
+                full = _top_k_samples(
+                    conn,
+                    sa_table,
+                    sa_col,
+                    k=extended_size,
+                    max_chars=sample_value_max_chars,
+                )
+                tail = full[primary_size:]
+                if tail:
+                    per_col[col_name] = tail
+            if per_col:
+                out[tname] = per_col
+    return out

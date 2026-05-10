@@ -123,6 +123,29 @@ def main(argv: list[str] | None = None) -> int:
         ),
     )
     parser.add_argument(
+        "--primary-sample-size",
+        type=int,
+        default=3,
+        help=(
+            "sample density baked into the chunks stored in Chroma "
+            "(must match the --sample-size used at build_index time; "
+            "default: 3)"
+        ),
+    )
+    parser.add_argument(
+        "--extended-sample-size",
+        type=int,
+        default=0,
+        help=(
+            "per-difficulty sample mixture (configs C/E only; default: 0 "
+            "= disabled). When > primary_sample_size, the schema_block "
+            "appendix lists samples primary..extended per column for "
+            "retrieved tables, so the model has both densities in one "
+            "prompt. Re-introspects the live DB at runtime — no chroma "
+            "rebuild needed. Recommended value: 5."
+        ),
+    )
+    parser.add_argument(
         "--provider",
         choices=["mistral", "groq", "github_models", "ollama"],
         default="mistral",
@@ -236,6 +259,8 @@ def main(argv: list[str] | None = None) -> int:
             fk_hops=args.fk_hops,
             table_budget=args.table_budget,
             sort_schema_block=args.sort_schema_block,
+            primary_sample_size=args.primary_sample_size,
+            extended_sample_size=args.extended_sample_size,
             progress=_on_progress,
         )
     elapsed = time.perf_counter() - started

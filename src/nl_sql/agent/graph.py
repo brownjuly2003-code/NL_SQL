@@ -71,11 +71,29 @@ class PipelineConfig:
     table_budget: int = 12
     statement_timeout_ms: int = 30_000
     row_cap: int = 10_000
-    sort_schema_block: bool = False
+    sort_schema_block: bool = True
     """Render schema_block in alphabetical-by-table-name order instead of
-    retrieval-distance + FK BFS order. Empirically helps codestral on
-    moderate-tier BIRD questions where it matches A_full_schema's
-    introspection order. See docs/SESSION_HANDOFF.md."""
+    retrieval-distance + FK BFS order. Empirically the single biggest
+    retrieval-side EA lever on BIRD Mini-Dev under codestral
+    (+3pp moderate, +5.5pp challenging at n=100; +5pp moderate at n=200).
+    Default ON since 2026-05-11 per docs/SESSION_HANDOFF.md item #2.
+    Set to False explicitly to recover the unsorted retrieval-distance
+    baseline for ablation."""
+    primary_sample_size: int = 3
+    """Sample density already baked into the chunks stored in Chroma.
+    Must match the `--sample-size` used by `scripts/build_index.py` when
+    the current `chroma_data/` was built. Used together with
+    `extended_sample_size` to compute the tail for the mixture appendix.
+    """
+    extended_sample_size: int = 0
+    """Per-difficulty sample mixture (off by default). When > 0 and
+    > `primary_sample_size`, the context_builder fetches sample values
+    rows `primary..extended` per column for retrieved tables and
+    `render_schema_block` appends them as an "additional sample values"
+    section. Empirically: s=3 cards favour moderate-tier accuracy, s=5
+    cards favour challenging-tier; the mixture exposes both densities
+    to the model in a single prompt. Requires registry access — see
+    docs/SESSION_HANDOFF.md item #1."""
 
 
 @dataclass(slots=True)
@@ -112,6 +130,9 @@ def build_pipeline(config: PipelineConfig) -> CompiledStateGraph[Any, Any, Any, 
             fewshot_top_k=config.fewshot_top_k,
             fk_hops=config.fk_hops,
             table_budget=config.table_budget,
+            registry=config.registry,
+            primary_sample_size=config.primary_sample_size,
+            extended_sample_size=config.extended_sample_size,
         ),
         "generate_sql": make_generate_sql_node(
             config.sql_provider, sort_schema_block=config.sort_schema_block

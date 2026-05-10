@@ -1,4 +1,4 @@
-# NL_SQL — Session Handoff (2026-05-10 late night, sample_size knob reveals moderate↔challenging trade-off)
+# NL_SQL — Session Handoff (2026-05-10 follow-up, sort default flipped + sample mixture renderer shipped)
 
 > Read this first when picking up. It's the single source of truth for
 > "where we stopped" and "what to do next". When you take action, update
@@ -29,29 +29,25 @@ asking.
 ## Next session — quickstart (priority order)
 
 The detailed reasoning for each item lives in **Step F** below. This
-is the executive copy for fast pickup. Items 1-3 are autonomous-safe
-($0, no external deps); 4-5 require something blocked today.
+is the executive copy for fast pickup.
 
-1. **Per-difficulty sample_size mixture** — defensible architecture
-   move. n=200 showed s=3 wins moderate, s=5 wins challenging.
-   Ship a renderer that picks card density by question hint, or
-   include both densities in the prompt with section headers. ~50
-   new live calls if you re-run C+sort with the mixture renderer.
-   Code touch: `src/nl_sql/agent/nodes/_support.py`,
-   `src/nl_sql/schema_index/chunker.py`.
+**Done in 2026-05-10 follow-up session (autonomous):**
+- ✅ Item #2 (was) — `sort_schema_block=True` is now the default in
+  `PipelineConfig`. Tests still pass with both branches exercised.
+  See `src/nl_sql/agent/graph.py:74`.
+- ✅ Item #1 (was) — sample-mixture renderer shipped. New
+  `extended_sample_size` knob in `PipelineConfig` (default=0,
+  off). When > `primary_sample_size`, `context_builder` opens the
+  db's read-only engine, calls `fetch_extended_samples` for
+  retrieved tables, and `render_schema_block` appends an
+  "Additional sample values" section listing samples
+  primary..extended per column. No chroma rebuild needed.
+  CLI: `--extended-sample-size 5`. See "Sample mixture
+  architecture" below.
 
-2. **Promote `sort_schema_block=True` to default** in
-   `PipelineConfig`. n=200 confirms the order effect is the single
-   biggest win for retrieval-based configs (+3pp moderate, +5.5pp
-   challenging at n=100; +5pp moderate at n=200). Both code paths
-   already tested. Flip default, re-run pytest, update doc.
+**Remaining priorities for next pickup:**
 
-3. **n=300 / n=400 for tighter CI** if needed for paper-grade
-   significance. ~100 new live calls per config (cache covers
-   n=200 prefix). Probably not worth the API spend unless writing
-   up formally — the n=200 picture is already clear.
-
-4. **Provider bakeoff (Groq) — DEFERRED on quota.**
+1. **Provider bakeoff (Groq) — DEFERRED on quota.**
    Groq free-tier daily TPD = 100k; A+C+sort full sample burns
    ~120k. Three options:
      a. Wait for daily reset, run `--n 20` to fit the quota.
@@ -60,21 +56,129 @@ is the executive copy for fast pickup. Items 1-3 are autonomous-safe
    Goal: confirm the order/sample_size effects generalise beyond
    codestral.
 
-5. **Step C — config D (BIRD train fewshot pool) — BLOCKED on
+2. **Step C — config D (BIRD train fewshot pool) — BLOCKED on
    download.** Need either a Google Drive ID for BIRD train or a
    HuggingFace dataset coordinate. Both options written up in the
    "Step C" notes below; user input required.
 
+3. **n=300 / n=400 for tighter CI** if needed for paper-grade
+   significance. ~100 new live calls per config (cache covers
+   n=200 prefix). Probably not worth the API spend unless writing
+   up formally — the n=200 picture is already clear.
+
+4. **(Optional) sweep `extended_sample_size` ∈ {6, 7}** to see
+   whether the mixture appendix has a sweet spot beyond s=5 on
+   challenging tier. Each step is one fresh n=200 codestral run
+   (~200 cache misses) — defer unless the n=50 mixture result
+   from this session shows a clear monotonic trend.
+
 Everything below this line is reference / detail for these items.
+
+---
+
+## Sample mixture architecture (shipped 2026-05-10 follow-up)
+
+**Why:** at n=200 we saw `s=3` win moderate (47.5% vs 42.4%) and
+`s=5` win challenging (29.4% vs 23.5%). Two different
+column-sample densities favour different tier behaviours under
+codestral. The mixture renderer surfaces *both* densities in one
+prompt so the model has the cleanest possible cards plus the
+filter-value hooks that hard questions need.
+
+**Mechanism:**
+1. Chroma chunks remain at the primary density (currently 3 —
+   matches runtime config A and avoids a chroma rebuild).
+2. At pipeline run time, `make_context_builder_node` (with
+   `registry` and `extended_sample_size > primary_sample_size`)
+   opens a fresh read-only engine for the question's `db_id`.
+3. `nl_sql.schema_index.introspector.fetch_extended_samples`
+   re-introspects only the *retrieved* tables (top-k + FK
+   neighbours) and pulls samples `primary..extended` per column
+   via the same top-k frequency query used at index build time.
+4. The result attaches as `ContextBundle.extended_samples`
+   (`dict[table → dict[col → tuple[Any, ...]]]`).
+5. `render_schema_block` appends an "Additional sample values
+   (extended density, for filter-value discovery)" section after
+   the primary cards. Header is explicit so codestral treats it
+   as supplementary, not as an additional schema definition.
+
+**Why per-question DB introspection (not chroma rebuild):**
+- Zero embedding-API cost (Mistral free tier).
+- BIRD Mini-Dev SQLite files are small; introspection on
+  retrieved tables only is well under 100ms per question.
+- Chroma stays at one density; switching the mixture knob is a
+  CLI flag, not a re-index.
+
+**Configurability:**
+- `PipelineConfig.primary_sample_size` (default 3, must match
+  whatever `build_index.py --sample-size` was used for the
+  current `chroma_data/`).
+- `PipelineConfig.extended_sample_size` (default 0 = disabled).
+  When > primary, mixture is on.
+- CLI: `scripts/eval_baseline.py --extended-sample-size 5
+  [--primary-sample-size 3]`.
+
+**Code touched:**
+- `src/nl_sql/schema_index/introspector.py` — `fetch_extended_samples`
+- `src/nl_sql/schema_index/retriever.py` — bundle field + wiring
+- `src/nl_sql/agent/nodes/context_builder.py` — engine open/dispose
+- `src/nl_sql/agent/nodes/_support.py` — appendix renderer
+- `src/nl_sql/agent/graph.py` — PipelineConfig + build_pipeline
+- `src/nl_sql/eval/runner.py` — config C/E pass-through
+- `scripts/eval_baseline.py` — CLI flags
+- 11 new tests across `tests/test_schema_index_introspector.py`,
+  `tests/test_schema_index_retriever.py`, `tests/test_agent_nodes.py`,
+  `tests/test_agent_support.py`. **200/200 green** (was 189).
+
+**Empirical result (n=50, single experiment):**
+
+| Config (n=50 prefix, seed=0) | EA | Simple | Moderate | Challenging | Tok p50 |
+|---|---|---|---|---|---|
+| A (full_schema, s=3 runtime) | 46.0% | 84.6% | 41.7% | 15.4% | 3070 |
+| C+sort+s=3 (chroma) | 46.0% | 84.6% | 41.7% | 15.4% | 3306 |
+| C+sort+s=5 (chroma) | 42.0% | 69.2% | 37.5% | 23.1% | 3997 |
+| **C+sort+mixture s=3..5 (NEW)** | **42.0%** | **69.2%** | **37.5%** | **23.1%** | 4250 |
+
+**Negative result, methodology-grade:** mixture renderer at
+n=50 prefix produces **bit-identical aggregate EA per tier** to
+plain `s=5` chroma cards, even though 22/50 individual SQL
+outputs differ. Net: 28 identical SQL, 20 different SQL that
+still produce same match outcome (both correct OR both wrong),
+1 example mixture-only-correct, 1 example s=5-only-correct.
+
+**Interpretation:** section headers ("primary card" vs
+"additional sample values") do NOT decouple codestral's
+moderate-tier-friendly s=3 behaviour from challenging-tier-friendly
+s=5 behaviour. The model treats sample values uniformly
+regardless of where they appear in the prompt. **Information
+density is the real lever, information organisation is not.**
+
+**Implication for next session:**
+- Mixture renderer ships and is correct, but does NOT beat s=5
+  alone at n=50. The runtime cost (≈+250 P50 tokens) is
+  pure overhead at this sample size.
+- Production candidate stays **C+sort+s=3** (cheapest, matches
+  A on overall + moderate per n=200 authoritative table).
+- The s=3 vs s=5 trade-off is a **chunker-time decision**, not a
+  prompt-formatting decision. If we want challenging-tier
+  performance, ship at s=5 and accept the moderate regression.
+- Worth one more probe at n=200 to confirm the negative result
+  isn't a sample-size artefact (CI ±14pp at n=50 means a +5pp
+  effect could hide). Cost: ~150 fresh codestral calls. **Defer
+  unless someone is writing the result up formally** — n=50
+  showing 0pp delta is already strong evidence that the headers
+  don't decouple anything.
+
+Artefact: `eval/reports/2026-05-10/C_dense_cards-mixture-s3-5-n50.json`.
 
 ---
 
 ## Current state in 30 seconds
 
 - **Repo:** `D:\NL_SQL\` on `main` (committed all session work).
-- **HEAD:** see `git log -1 --oneline` (n=200 ablation + sort_schema_block + sample_size + AST extractor).
-- **Tests:** 189/189 passing, ruff clean, mypy strict clean (50 src files)
-- **Stages closed (autonomous): 1, 2, 3, 4, 5, 6 (configs A + C + E + sort_schema_block knob), 9** + diskcache (§6.5) + stable-prefix sampler + n=200 baseline + order knob + sample_size knob + AST gold-table extractor
+- **HEAD:** see `git log -1 --oneline` (n=200 ablation + sort_schema_block + sample_size + AST extractor + sort default ON + sample mixture renderer).
+- **Tests:** 200/200 passing, ruff clean, mypy strict clean (50 src files)
+- **Stages closed (autonomous): 1, 2, 3, 4, 5, 6 (configs A + C + E + sort_schema_block knob + sample mixture knob), 9** + diskcache (§6.5) + stable-prefix sampler + n=200 baseline + order knob + sample_size knob + AST gold-table extractor + sort=ON default + extended_sample_size mixture renderer
 - **Stages waiting: 6 (config D, optional B)**, then 7+
 - **Hard budget:** still $0. All live providers tested are free-tier.
 
@@ -649,11 +753,14 @@ uv run python scripts/eval_baseline.py --n 5 --db bird_california_schools
 ## Final state for memory
 
 ```
-HEAD:   uncommitted: diskcache + runner bugfix + stable-prefix sampler +
-        CLI knobs + n=100 baselines + sort_schema_block knob
-        (last committed: stage 6 config E)
+HEAD:   uncommitted: sort_schema_block default flipped to True
+        + sample-mixture renderer (extended_sample_size knob)
+        + 11 new tests + n=50 mixture eval result
+        (last committed: bee8d16 stage 6 ablation harness:
+         diskcache + sort_schema_block + sample_size sweep
+         + AST gold extractor)
 Branch: main
-Tests:  189/189 passing
+Tests:  200/200 passing
 Lint:   ruff clean
 Type:   mypy strict clean (50 src files)
 Live:   Mistral OK (codestral + embed + large), Groq OK,
@@ -662,8 +769,9 @@ Data:   Chinook + 11 BIRD DBs downloaded; chroma_data/ has all 12 DBs indexed
         (86 chunks)
 Cache:  .cache/llm/{gen,embed}/ — diskcache, gitignored, default-on
 Stages: 1, 2, 3, 4, 5, 6 (configs A + C + E + Step A diskcache + Step B
-        ablations + Step D n=100 baseline), 9 done. 6 (D, optional B)
-        next; D is BLOCKED on BIRD-train download.
+        ablations + Step D n=100 baseline + sort default ON
+        + sample-mixture renderer w/ n=50 eval), 9 done. 6 (D,
+        optional B) next; D is BLOCKED on BIRD-train download.
 Smoke:  schema recall@5 = 5/5 on Chinook
         full pipeline   = 5/5 on Chinook
 Sampler:shuffle-prefix at seed=0 — n=50 prefix ⊆ n=100 prefix.
@@ -697,6 +805,16 @@ Eval (cached, shuffle-prefix sampler, AUTHORITATIVE):
         Reports: `eval/reports/2026-05-10/{A_full_schema,C_dense_cards,
                   A_full_schema-n50,C_dense_cards-n50,
                   C_dense_cards-topk8,C_dense_cards-fkhops2}.json`
+Eval (mixture renderer, n=50 prefix, AUTONOMOUS 2026-05-10 follow-up):
+        C+sort+mixture s=3..5 (chroma s=3 + appendix s=4..5 at runtime)
+          = 42.0% EA / s 69.2 / m 37.5 / c 23.1 — BIT-IDENTICAL per
+          tier to C+sort+s=5 at the same n=50 prefix, despite 22/50
+          SQL outputs differing. Net: section-headers do NOT decouple
+          codestral's s=3-moderate-strength from s=5-challenging-strength.
+          Information density is the lever, info organisation is not.
+          Mixture appendix adds ~+250 P50 tokens overhead with zero EA gain.
+          Production stays at C+sort+s=3 (cheapest, n=200 ties A).
+          Report: `C_dense_cards-mixture-s3-5-n50.json`.
 Eval (old sampler n=50, retired baseline):
         A=44 / C=50 / C@top_k8=46 / C@fk_hops2=50 — preserved in
         index.html residue and as `*-precache/` snapshot.
@@ -710,29 +828,35 @@ HEADLINE:
             overall, fastest (249s wall, 1.7× vs A)
         Two retrieval levers proved real on this dataset:
           1. schema_block alphabetical order (`sort_schema_block=True`)
+             — flipped to default=True 2026-05-10 follow-up.
           2. column-card sample_size (3 vs 5)
         Levers that did NOT move EA: top_k, fk_hops, table_budget
         (BIRD Mini-Dev DBs are too small to make these matter).
+        Lever that did NOT move EA on n=50 prefix:
+          extended_sample_size=5 mixture appendix (info-density
+          equivalent to s=5 alone; section headers are noise to
+          codestral). Worth one n=200 confirmation if formalising.
         Reference: GPT-4 zero-shot Mini-Dev SQLite = 47.8% — all
         three of our configs are at-or-above frontier baseline.
         Production candidate: C+sort+s=3 (cheapest, matches A on
         overall + moderate; -3pp on challenging which is n=34, noisy).
 Reports:eval/reports/2026-05-10/
-        ├── A_full_schema.json                 (n=200, authoritative)
-        ├── A_full_schema-n50.json             (prefix sanity n=50)
-        ├── C_dense_cards.json                 (n=100 retrieval order)
-        ├── C_dense_cards-n50.json             (prefix sanity n=50)
-        ├── C_dense_cards-sortblock.json       (n=200 alphabetical s=5)
-        ├── C_dense_cards-sortblock-s3.json    (n=200 alphabetical s=3, FINAL)
-        ├── C_dense_cards-topk8.json           (n=50 old null)
-        ├── C_dense_cards-topk8-sort.json      (n=100 null-vs-sort)
-        ├── C_dense_cards-fkhops2.json         (n=50 old null)
+        ├── A_full_schema.json                       (n=200, authoritative)
+        ├── A_full_schema-n50.json                   (prefix sanity n=50)
+        ├── C_dense_cards.json                       (n=100 retrieval order)
+        ├── C_dense_cards-n50.json                   (prefix sanity n=50)
+        ├── C_dense_cards-sortblock.json             (n=200 alphabetical s=5)
+        ├── C_dense_cards-sortblock-s3.json          (n=200 alphabetical s=3, FINAL)
+        ├── C_dense_cards-topk8.json                 (n=50 old null)
+        ├── C_dense_cards-topk8-sort.json            (n=100 null-vs-sort)
+        ├── C_dense_cards-fkhops2.json               (n=50 old null)
+        ├── C_dense_cards-mixture-s3-5-n50.json      (n=50 mixture, ≡s=5)
         └── index.html
 Chroma: chroma_data/        — current, sample_size=3 (matches runtime A)
         chroma_data.s5_backup/ — previous, sample_size=5 (kept for re-runs)
 Budget: $0 hard constraint, all live providers free-tier. Total live
-        calls this session: ~750 generation Mistral (sessions accreted
-        across n=50/100/200 + sort + sample_size sweep + Groq attempt
-        ~30 cached responses). Mistral free-tier comfortable; Groq
-        daily TPD (100k) exhausted, deferred bakeoff.
+        calls this session: ~750 generation Mistral + 50 fresh
+        codestral on the n=50 mixture run (≈800 cumulative).
+        Mistral free-tier comfortable; Groq daily TPD (100k)
+        exhausted, deferred bakeoff.
 ```

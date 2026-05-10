@@ -12,7 +12,7 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 
-from nl_sql.schema_index.introspector import introspect
+from nl_sql.schema_index.introspector import fetch_extended_samples, introspect
 
 
 @pytest.fixture
@@ -114,6 +114,72 @@ def test_introspect_handles_empty_table() -> None:
             assert col.sample_values == ()
             assert col.null_count == 0
             assert col.distinct_count == 0
+    finally:
+        raw.close()
+
+
+def test_fetch_extended_samples_returns_tail_only(
+    chinook_like_engine: Engine,
+) -> None:
+    """primary=2, extended=4 → returns samples 3..4 per column.
+
+    artist has 4 rows: AC/DC x2, Aerosmith x1, Accept x1. Top-4 by frequency
+    yields ['AC/DC', 'Accept', 'Aerosmith', NULL?] but NULLs are excluded.
+    Tail (after dropping the first 2) should have at most 2 elements.
+    """
+    out = fetch_extended_samples(
+        chinook_like_engine,
+        ["artist"],
+        primary_size=2,
+        extended_size=4,
+    )
+    assert "artist" in out
+    artist_cols = out["artist"]
+    assert "name" in artist_cols
+    # The full top-4 has at most 3 distinct non-null names → tail length ≤ 1.
+    assert len(artist_cols["name"]) <= 2
+    # PK column has 4 distinct non-null values → tail = samples 3..4.
+    assert len(artist_cols["artist_id"]) == 2
+
+
+def test_fetch_extended_samples_noop_when_extended_le_primary(
+    chinook_like_engine: Engine,
+) -> None:
+    assert (
+        fetch_extended_samples(
+            chinook_like_engine,
+            ["artist"],
+            primary_size=5,
+            extended_size=5,
+        )
+        == {}
+    )
+
+
+def test_fetch_extended_samples_skips_unknown_tables(
+    chinook_like_engine: Engine,
+) -> None:
+    out = fetch_extended_samples(
+        chinook_like_engine,
+        ["artist", "nonexistent"],
+        primary_size=1,
+        extended_size=3,
+    )
+    assert "artist" in out
+    assert "nonexistent" not in out
+
+
+def test_fetch_extended_samples_handles_empty_table() -> None:
+    raw = sqlite3.connect(":memory:")
+    try:
+        raw.executescript("CREATE TABLE empty_t (id INTEGER PRIMARY KEY, label TEXT);")
+        raw.commit()
+        eng = create_engine("sqlite://", creator=lambda: raw, future=True)
+
+        out = fetch_extended_samples(
+            eng, ["empty_t"], primary_size=2, extended_size=5
+        )
+        assert out == {}
     finally:
         raw.close()
 

@@ -145,6 +145,56 @@ def test_render_fewshot_block_includes_qsql() -> None:
     assert "SQL: SELECT COUNT(*) FROM Album" in text
 
 
+def test_render_schema_block_appends_extended_samples_appendix() -> None:
+    bundle = ContextBundle(
+        db_id="d",
+        question="q",
+        schema_hits=[_hit("races", "races block")],
+        fk_neighbours=[_hit("results", "results block")],
+        fewshots=[],
+        extended_samples={
+            "races": {"date": ("1983-07-16", "1983-07-17")},
+            "results": {"position": (4, 5)},
+        },
+    )
+    text = render_schema_block(bundle, sort_alphabetically=True)
+    assert "races block" in text
+    assert "results block" in text
+    assert "# Additional sample values" in text
+    assert "Table: races" in text
+    assert "'1983-07-16', '1983-07-17'" in text
+    assert "Table: results" in text
+    assert "position: 4, 5" in text
+
+
+def test_render_schema_block_skips_appendix_when_extended_empty() -> None:
+    bundle = ContextBundle(
+        db_id="d",
+        question="q",
+        schema_hits=[_hit("t", "t block")],
+        fk_neighbours=[],
+        fewshots=[],
+        extended_samples={},
+    )
+    text = render_schema_block(bundle)
+    assert "# Additional sample values" not in text
+
+
+def test_render_schema_block_appendix_skips_tables_without_tail_values() -> None:
+    bundle = ContextBundle(
+        db_id="d",
+        question="q",
+        schema_hits=[_hit("t", "t block")],
+        fk_neighbours=[],
+        fewshots=[],
+        extended_samples={"t": {}, "u": {"col": (1,)}},
+    )
+    text = render_schema_block(bundle)
+    assert "Table: t\n" not in text  # empty per-col map skipped
+    assert "Table: u" in text
+    assert "col: 1" in text
+
+
 def _hit(table: str, body: str) -> SchemaQueryHit:
     return SchemaQueryHit(
         chunk_id=f"d::{table}",

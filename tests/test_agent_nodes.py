@@ -162,6 +162,53 @@ def test_context_builder_skips_when_inputs_missing(populated_index: SchemaIndex)
     assert out["context"] is None
 
 
+def test_context_builder_attaches_extended_samples_when_registry_set(
+    populated_index: SchemaIndex,
+    registry_one_db: DatabaseRegistry,
+) -> None:
+    """Sample mixture path: extended_sample_size > primary_sample_size +
+    registry provided → bundle.extended_samples is populated for retrieved
+    tables, and the trace records which tables got the appendix."""
+    node = make_context_builder_node(
+        populated_index,
+        schema_top_k=2,
+        fewshot_top_k=0,
+        fk_hops=1,
+        table_budget=8,
+        registry=registry_one_db,
+        primary_sample_size=2,
+        extended_sample_size=5,
+    )
+    out = node({"question": "list AC/DC albums", "db_id": "chinook_mini"})
+    bundle = out["context"]
+    assert bundle is not None
+    assert bundle.extended_samples is not None
+    # Both retrieved tables should have at least one column with tail samples
+    # (Artist has 3 rows; ArtistId is the PK with 3 distinct values).
+    assert any(cols for cols in bundle.extended_samples.values())
+    trace_entry = next(t for t in out["trace"] if t["node"] == "context_builder")
+    assert "extended_sample_tables" in trace_entry
+
+
+def test_context_builder_no_extended_samples_when_disabled(
+    populated_index: SchemaIndex,
+    registry_one_db: DatabaseRegistry,
+) -> None:
+    """Default path (extended_sample_size=0) → bundle.extended_samples is
+    None, no DB introspection happens."""
+    node = make_context_builder_node(
+        populated_index,
+        schema_top_k=2,
+        fewshot_top_k=0,
+        fk_hops=1,
+        registry=registry_one_db,
+    )
+    out = node({"question": "albums", "db_id": "chinook_mini"})
+    bundle = out["context"]
+    assert bundle is not None
+    assert bundle.extended_samples is None
+
+
 # -------------------------------------------------------------- generate_sql
 
 
