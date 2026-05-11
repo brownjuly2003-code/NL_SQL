@@ -121,3 +121,97 @@ def test_unreachable_url_raises_provider_error() -> None:
     provider = PerplexityProvider(model="claude-sonnet-4-6", base_url="http://127.0.0.1:1")
     with pytest.raises(ProviderError, match="GraceKelly unreachable"):
         provider.generate(GenerateRequest(prompt="x"))
+
+
+def test_unwrap_handles_literal_newlines_in_sql_value() -> None:
+    """qid 260 / qid 1387 shape: JSON envelope where the Perplexity Markdown
+    pipeline left literal newlines inside the SQL string. ``json.loads``
+    rejects that, but the regex fallback extracts the SQL cleanly.
+    """
+    provider = PerplexityProvider(model="claude-sonnet-4-6")
+    multiline_sql = (
+        "SELECT COUNT(DISTINCT a.atom_id)\n"
+        "FROM atom a\n"
+        "JOIN molecule m ON a.molecule_id = m.molecule_id\n"
+        "JOIN bond b ON b.molecule_id = m.molecule_id\n"
+        "WHERE b.bond_type = '#' AND a.element IN ('p', 'br')"
+    )
+    envelope = (
+        '{"sql": "' + multiline_sql + '",\n'
+        '"rationale": "joined three tables on molecule_id"}'
+    )
+    response = _fake_response({"answer": envelope, "model_id": "claude-sonnet-4-6"})
+    with patch("nl_sql.llm.providers.perplexity.urlrequest.urlopen") as mock_urlopen:
+        mock_urlopen.return_value.__enter__.return_value = response
+        result = provider.generate(GenerateRequest(prompt="x"))
+    assert result.text.startswith("SELECT COUNT(DISTINCT a.atom_id)")
+    assert result.text.endswith("IN ('p', 'br')")
+    assert '"rationale"' not in result.text
+
+
+def test_unwrap_decodes_escaped_quotes_inside_sql() -> None:
+    """Escaped double quotes inside the SQL value must decode back to bare
+    quotes — needed for column identifiers like "FRPM Count".
+    """
+    provider = PerplexityProvider(model="claude-sonnet-4-6")
+    envelope = (
+        '{"sql": "SELECT \\"FRPM Count\\" FROM t", "rationale": "quoted col"}'
+    )
+    response = _fake_response({"answer": envelope, "model_id": "claude-sonnet-4-6"})
+    with patch("nl_sql.llm.providers.perplexity.urlrequest.urlopen") as mock_urlopen:
+        mock_urlopen.return_value.__enter__.return_value = response
+        result = provider.generate(GenerateRequest(prompt="x"))
+    assert result.text == 'SELECT "FRPM Count" FROM t'
+
+
+def test_unwrap_does_not_false_positive_on_sql_with_sql_substring() -> None:
+    """Regression guard: bare SQL containing the literal substring ``"sql":``
+    must NOT be processed by the regex fallback. The envelope-shape gate
+    (`_SQL_JSON_HINT`) is anchored to a leading ``{``, so bare SQL passes
+    through untouched even if it embeds JSON-shaped text in a string
+    literal.
+    """
+    provider = PerplexityProvider(model="claude-sonnet-4-6")
+    bare = "SELECT * FROM t WHERE json_col = '{\"sql\": \"hack\"}' ORDER BY id"
+    response = _fake_response({"answer": bare, "model_id": "claude-sonnet-4-6"})
+    with patch("nl_sql.llm.providers.perplexity.urlrequest.urlopen") as mock_urlopen:
+        mock_urlopen.return_value.__enter__.return_value = response
+        result = provider.generate(GenerateRequest(prompt="x"))
+    assert result.text == bare
+
+
+def test_unwrap_preserves_literal_backslash_n_in_sql() -> None:
+    """JSON-encoded ``\\\\n`` (3 source bytes) represents SQL literal ``\\n``
+    (2 chars: backslash + n) — common in regex patterns or Windows paths.
+    Sequential ``.replace()`` decoding would collapse ``\\\\`` → ``\\`` first
+    and then re-decode ``\\n`` → newline, corrupting the SQL. The
+    single-pass decoder must yield ``\\n`` (backslash + n), not a newline.
+    """
+    provider = PerplexityProvider(model="claude-sonnet-4-6")
+    # Force the regex-fallback path: literal newline inside the SQL string
+    # makes strict json.loads fail, so we exercise the new decoder.
+    envelope = (
+        '{"sql": "SELECT regex_match(col, \'\\\\n\')\nFROM t",\n'
+        '"rationale": "match a literal backslash-n"}'
+    )
+    response = _fake_response({"answer": envelope, "model_id": "claude-sonnet-4-6"})
+    with patch("nl_sql.llm.providers.perplexity.urlrequest.urlopen") as mock_urlopen:
+        mock_urlopen.return_value.__enter__.return_value = response
+        result = provider.generate(GenerateRequest(prompt="x"))
+    assert "\\n" in result.text
+    assert "regex_match" in result.text
+
+
+def test_unwrap_empty_sql_returns_original_envelope() -> None:
+    """An envelope with an empty ``sql`` value is downstream's problem to
+    diagnose — we should NOT silently substitute an empty string and mask
+    the model regression. The function returns the original text so the
+    parser sees the full envelope and emits an explicit failure.
+    """
+    provider = PerplexityProvider(model="claude-sonnet-4-6")
+    envelope = '{"sql": "", "rationale": "nothing to do", "confidence": 0.1}'
+    response = _fake_response({"answer": envelope, "model_id": "claude-sonnet-4-6"})
+    with patch("nl_sql.llm.providers.perplexity.urlrequest.urlopen") as mock_urlopen:
+        mock_urlopen.return_value.__enter__.return_value = response
+        result = provider.generate(GenerateRequest(prompt="x"))
+    assert result.text == envelope

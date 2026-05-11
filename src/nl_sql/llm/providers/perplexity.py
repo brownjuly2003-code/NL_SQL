@@ -45,6 +45,50 @@ _ANSI_RE = re.compile(r"\x1b\[[0-9;]*[A-Za-z]|\[[0-9;]+m")
 # invalid SQL. Pre-unwrap the JSON here so the parser sees clean SQL.
 _SQL_JSON_HINT = re.compile(r'^\s*\{.*"sql"\s*:', re.DOTALL)
 
+# Tolerant regex for the `"sql": "..."` key/value pair. Used as a fallback
+# when `_SQL_JSON_HINT` confirms envelope shape but strict `json.loads`
+# fails — typically because the Perplexity Markdown layer leaves literal
+# newlines inside the SQL string (legal SQL, illegal JSON). The
+# `\\.|[^"\\]` alternation captures `\"` / `\\` escape sequences as well
+# as any non-quote / non-backslash byte (newlines included, since they
+# aren't in the negated class). Anchoring to envelope-shaped responses
+# (via the gate above) prevents this from false-positiving on bare SQL
+# that happens to contain `"sql":` as a literal substring.
+_SQL_KV_RE = re.compile(r'"sql"\s*:\s*"((?:\\.|[^"\\])*)"')
+
+# Single-pass decoder for the JSON string escapes we actually see in
+# Perplexity output. Sequential `.replace()` would double-decode — e.g.,
+# `\\n` (three source bytes `\`, `\`, `n`, which JSON parses to `\n`,
+# two chars: backslash + n) would first collapse `\\` → `\`, producing
+# `\n` (two bytes), and a subsequent `\n` → newline pass would corrupt
+# it into a real newline. Regex-substitution processes each escape
+# exactly once.
+_JSON_ESCAPE_RE = re.compile(r"\\(.)")
+_JSON_ESCAPE_TABLE = {
+    '"': '"',
+    "\\": "\\",
+    "/": "/",
+    "b": "\b",
+    "f": "\f",
+    "n": "\n",
+    "r": "\r",
+    "t": "\t",
+}
+
+
+def _decode_json_string_escapes(raw: str) -> str:
+    """Decode JSON string escapes left-to-right in a single pass.
+
+    Unknown escapes (e.g., `\\u` Unicode sequences) pass through unchanged
+    — the real Perplexity payloads don't use them, and handling them
+    properly would require pulling a real JSON parser back in (defeating
+    the point of this tolerant fallback).
+    """
+    return _JSON_ESCAPE_RE.sub(
+        lambda m: _JSON_ESCAPE_TABLE.get(m.group(1), m.group(0)),
+        raw,
+    )
+
 
 def _unwrap_sql_json(text: str) -> str:
     """If `text` is the JSON output-contract envelope, return just the SQL."""
@@ -56,15 +100,25 @@ def _unwrap_sql_json(text: str) -> str:
         # Tolerate trailing prose after the JSON object by snipping at the
         # final balanced brace and retrying.
         last = text.rfind("}")
-        if last == -1:
-            return text
-        try:
-            obj = json.loads(text[: last + 1])
-        except json.JSONDecodeError:
-            return text
-    sql = obj.get("sql") if isinstance(obj, dict) else None
-    if isinstance(sql, str) and sql.strip():
-        return sql.strip()
+        obj = None
+        if last != -1:
+            try:
+                obj = json.loads(text[: last + 1])
+            except json.JSONDecodeError:
+                obj = None
+    if isinstance(obj, dict):
+        sql = obj.get("sql")
+        if isinstance(sql, str) and sql.strip():
+            return sql.strip()
+    # Regex fallback: strict JSON parsing fails when the SQL value contains
+    # literal newlines (which the Perplexity Markdown layer routinely
+    # inserts). Pull the SQL value out by structure. Safe because the
+    # envelope shape is already confirmed by `_SQL_JSON_HINT.match` above.
+    match = _SQL_KV_RE.search(text)
+    if match:
+        sql = _decode_json_string_escapes(match.group(1)).strip()
+        if sql:
+            return sql
     return text
 
 
