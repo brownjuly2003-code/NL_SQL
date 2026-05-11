@@ -191,3 +191,43 @@ def test_empty_index_returns_no_hits(index: SchemaIndex) -> None:
     assert index.query_schema("anything", db_id="x", top_k=5) == []
     assert index.query_fewshots("anything", db_id="x", top_k=5) == []
     assert index.fk_graph("x") == {}
+
+
+def test_query_fewshots_cross_db_pulls_from_any_database(index: SchemaIndex) -> None:
+    """BIRD train and dev partition by db_id. Cross-db retrieval must skip
+    the where filter so a dev question can still find the most similar
+    train Q→SQL pair (different db_id).
+    """
+    index.index_fewshots(
+        [
+            FewShotExample(
+                example_id="train_1",
+                db_id="video_games",
+                question="how many publishers shipped 5 games or fewer",
+                sql="SELECT 1",
+                intent="agg",
+            ),
+            FewShotExample(
+                example_id="train_2",
+                db_id="retail",
+                question="weather in tokyo",
+                sql="SELECT 2",
+                intent="other",
+            ),
+        ]
+    )
+    same_db = index.query_fewshots(
+        "how many publishers shipped few games",
+        db_id="california_schools",
+        top_k=2,
+    )
+    assert same_db == []  # no fewshot exists for california_schools
+
+    cross = index.query_fewshots(
+        "how many publishers shipped few games",
+        db_id="california_schools",
+        top_k=2,
+        cross_db=True,
+    )
+    assert len(cross) >= 1
+    assert {h.example_id for h in cross} <= {"train_1", "train_2"}

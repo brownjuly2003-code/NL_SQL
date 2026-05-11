@@ -59,6 +59,7 @@ class Configuration(StrEnum):
     D_FEWSHOT = "D_dense_fewshot"
     E_FINAL = "E_dense_fewshot_repair"
     F_SELF_CONSISTENCY = "F_self_consistency"
+    G_VERIFY_RETRY = "G_dense_fewshot_verify_retry"
 
 
 @dataclass(frozen=True, slots=True)
@@ -229,8 +230,70 @@ def run_config_c(
     )
 
 
-def run_config_d(*_: Any, **__: Any) -> EvalRun:
-    raise NotImplementedError("Configuration D (+ fewshot) ships in stage 6.d")
+def run_config_d(
+    examples: Sequence[BirdExample],
+    *,
+    sql_provider: LLMProvider,
+    explain_provider: LLMProvider,
+    schema_index: SchemaIndex,
+    registry: DatabaseRegistry,
+    schema_top_k: int = 5,
+    fewshot_top_k: int = 3,
+    fk_hops: int = 1,
+    table_budget: int = 12,
+    statement_timeout_ms: int = 60_000,
+    row_cap: int = 10_000,
+    max_tokens: int = 1024,
+    sort_schema_block: bool = True,
+    primary_sample_size: int = 3,
+    extended_sample_size: int = 0,
+    cross_db_fewshot: bool = True,
+    progress: Callable[[int, int, EvalRecord], None] | None = None,
+) -> EvalRun:
+    """Run configuration D (config C + cross-db fewshot, no repair).
+
+    Fewshot pool is built from BIRD *train* (~9.4k Q→SQL pairs over 69 dbs;
+    see `scripts/build_fewshot_index.py`). Dev questions reach for the
+    most semantically similar train question regardless of db_id since
+    train and dev share zero databases — see the `cross_db_fewshot` flag
+    on `PipelineConfig` for the leakage-prevention reasoning.
+    """
+    pipeline = build_pipeline(
+        PipelineConfig(
+            sql_provider=sql_provider,
+            explain_provider=explain_provider,
+            schema_index=schema_index,
+            registry=registry,
+            schema_top_k=schema_top_k,
+            fewshot_top_k=fewshot_top_k,
+            fk_hops=fk_hops,
+            table_budget=table_budget,
+            statement_timeout_ms=statement_timeout_ms,
+            row_cap=row_cap,
+            sort_schema_block=sort_schema_block,
+            primary_sample_size=primary_sample_size,
+            extended_sample_size=extended_sample_size,
+            cross_db_fewshot=cross_db_fewshot,
+        )
+    )
+    records: list[EvalRecord] = []
+    for idx, example in enumerate(examples, start=1):
+        record = _run_one_via_pipeline(
+            example,
+            pipeline=pipeline,
+            registry=registry,
+            statement_timeout_ms=statement_timeout_ms,
+            row_cap=row_cap,
+            disable_repair=True,
+        )
+        records.append(record)
+        if progress is not None:
+            progress(idx, len(examples), record)
+    return _summarise(
+        configuration=Configuration.D_FEWSHOT,
+        sql_model=getattr(sql_provider, "model", "unknown"),
+        records=records,
+    )
 
 
 def run_config_e(
@@ -365,6 +428,79 @@ def run_config_f(
     )
 
 
+def run_config_g(
+    examples: Sequence[BirdExample],
+    *,
+    sql_provider: LLMProvider,
+    explain_provider: LLMProvider,
+    schema_index: SchemaIndex,
+    registry: DatabaseRegistry,
+    schema_top_k: int = 5,
+    fewshot_top_k: int = 3,
+    fk_hops: int = 1,
+    table_budget: int = 12,
+    statement_timeout_ms: int = 60_000,
+    row_cap: int = 10_000,
+    max_tokens: int = 1024,
+    sort_schema_block: bool = True,
+    primary_sample_size: int = 3,
+    extended_sample_size: int = 0,
+    cross_db_fewshot: bool = True,
+    progress: Callable[[int, int, EvalRecord], None] | None = None,
+) -> EvalRun:
+    """Run configuration G (config D + verify-retry on empty/error).
+
+    Layers a one-shot retry on top of D for outcomes that execute but
+    return zero rows OR fail at runtime. Empty-result is treated as a
+    soft-fail because it usually means the model picked a wrong filter
+    value (case mismatch, missing LIKE pattern, NULL handling); the
+    repair_once node sees a custom hint (set by execute_node when
+    `verify_retry_on_empty` is on) and gets one more try.
+
+    Invalid-SQL repair still happens — same as E — so the validity floor
+    only goes up. Repair_attempted guard caps total LLM calls per
+    question at most one above config D.
+    """
+    pipeline = build_pipeline(
+        PipelineConfig(
+            sql_provider=sql_provider,
+            explain_provider=explain_provider,
+            schema_index=schema_index,
+            registry=registry,
+            schema_top_k=schema_top_k,
+            fewshot_top_k=fewshot_top_k,
+            fk_hops=fk_hops,
+            table_budget=table_budget,
+            statement_timeout_ms=statement_timeout_ms,
+            row_cap=row_cap,
+            sort_schema_block=sort_schema_block,
+            primary_sample_size=primary_sample_size,
+            extended_sample_size=extended_sample_size,
+            cross_db_fewshot=cross_db_fewshot,
+            verify_retry_on_empty=True,
+        )
+    )
+    records: list[EvalRecord] = []
+    for idx, example in enumerate(examples, start=1):
+        record = _run_one_via_pipeline(
+            example,
+            pipeline=pipeline,
+            registry=registry,
+            statement_timeout_ms=statement_timeout_ms,
+            row_cap=row_cap,
+            disable_repair=False,
+            verify_retry_on_empty=True,
+        )
+        records.append(record)
+        if progress is not None:
+            progress(idx, len(examples), record)
+    return _summarise(
+        configuration=Configuration.G_VERIFY_RETRY,
+        sql_model=getattr(sql_provider, "model", "unknown"),
+        records=records,
+    )
+
+
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
@@ -456,6 +592,7 @@ def _run_one_via_pipeline(
     statement_timeout_ms: int,
     row_cap: int,
     disable_repair: bool,
+    verify_retry_on_empty: bool = False,
 ) -> EvalRecord:
     """Drive one example through the compiled LangGraph pipeline.
 
@@ -474,6 +611,7 @@ def _run_one_via_pipeline(
                 db_id=example.registry_db_id,
                 dialect=_to_dialect(example.dialect),
                 disable_repair=disable_repair,
+                verify_retry_on_empty=verify_retry_on_empty,
             )
         except Exception as exc:
             elapsed_ms = (time.perf_counter() - started) * 1000.0

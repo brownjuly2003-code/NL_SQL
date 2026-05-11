@@ -60,6 +60,7 @@ def retrieve_context(
     engine: Engine | None = None,
     primary_sample_size: int = 3,
     extended_sample_size: int = 0,
+    cross_db_fewshot: bool = False,
 ) -> ContextBundle:
     """One call → schema cards + FK neighbours + fewshots, db_id-scoped.
 
@@ -78,7 +79,12 @@ def retrieve_context(
         index.query_schema(question, db_id=db_id, top_k=schema_top_k) if schema_top_k > 0 else []
     )
     fewshots = (
-        index.query_fewshots(question, db_id=db_id, top_k=fewshot_top_k)
+        index.query_fewshots(
+            question,
+            db_id=db_id,
+            top_k=fewshot_top_k,
+            cross_db=cross_db_fewshot,
+        )
         if fewshot_top_k > 0
         else []
     )

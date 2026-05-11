@@ -59,6 +59,13 @@ class PipelineState(TypedDict, total=False):
     # --- repair bookkeeping --------------------------------------------
     repair_attempted: bool
     last_error: str  # error context fed into the repair prompt
+    verify_retry_on_empty: bool
+    """When True, the empty-result branch in `_route_after_execute` flows
+    to `repair_once` (subject to the repair_attempted guard) instead of
+    short-circuiting to deterministic_format. Empty rows are often a
+    silent miss (wrong filter value, case mismatch, NULL handling), so a
+    second LLM pass with the empty-result signal can recover them. Set
+    by `run_config_g`; off everywhere else."""
 
     # --- after deterministic_format ------------------------------------
     output_format: OutputFormat | None

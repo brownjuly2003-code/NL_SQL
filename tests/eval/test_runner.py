@@ -29,7 +29,6 @@ from nl_sql.eval.runner import (
     run_config_a,
     run_config_b,
     run_config_c,
-    run_config_d,
     run_config_e,
     run_config_f,
 )
@@ -210,10 +209,9 @@ def test_progress_callback_invoked(chinook_registry: DatabaseRegistry) -> None:
 
 
 def test_other_configs_not_implemented_yet() -> None:
-    # run_config_c and run_config_e now live — only B/D remain stubbed.
-    for fn in (run_config_b, run_config_d):
-        with pytest.raises(NotImplementedError):
-            fn()
+    # Configs A/C/D/E/F all ship; only B (BM25 schema retrieval) remains a stub.
+    with pytest.raises(NotImplementedError):
+        run_config_b()
 
 
 # ---------------------------------------------------------------------------

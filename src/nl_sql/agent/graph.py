@@ -100,6 +100,19 @@ class PipelineConfig:
     needed by config F (self-consistency execution-based voting), where
     each candidate runs at a different temperature so the cache stores
     them as distinct entries."""
+    cross_db_fewshot: bool = False
+    """When True, few-shot retrieval skips the `db_id` filter and pulls
+    Q→SQL hits from any database in the `fewshot_qsql` collection. Needed
+    for BIRD, whose train and dev splits are partitioned by db_id (zero
+    overlap) — same-db retrieval would return zero hits. Set ON by
+    `run_config_d`; off everywhere else."""
+    verify_retry_on_empty: bool = False
+    """When True, route an EMPTY_RESULT outcome to `repair_once` instead
+    of short-circuiting to deterministic_format. Empty rows often mean
+    the model got the filter value wrong (case mismatch, LIKE pattern
+    missing, NULL handling); a second pass with the empty-result hint
+    can recover them. Subject to the standard `repair_attempted` guard —
+    one extra LLM call per question, capped. Set ON by `run_config_g`."""
 
 
 @dataclass(slots=True)
@@ -137,6 +150,7 @@ def build_pipeline(config: PipelineConfig) -> CompiledStateGraph[Any, Any, Any, 
             registry=config.registry,
             primary_sample_size=config.primary_sample_size,
             extended_sample_size=config.extended_sample_size,
+            cross_db_fewshot=config.cross_db_fewshot,
         ),
         "generate_sql": make_generate_sql_node(
             config.sql_provider,
@@ -190,9 +204,13 @@ def _route_after_execute(state: PipelineState) -> _AfterExecute:
         return "deterministic_format"
     if outcome.ok:
         return "deterministic_format"
-    # EMPTY_RESULT is a *valid* outcome per arch §3 retry policy — treat as
-    # success-with-zero-rows; render handles the empty-set messaging.
+    # EMPTY_RESULT is normally a valid outcome (zero rows is a legitimate
+    # answer) → render handles the empty-set messaging. Config G flips this
+    # to retry the empty case once, on the assumption that the model
+    # confused a filter value (case mismatch, LIKE pattern, NULL handling).
     if outcome.error_kind == ExecutionErrorKind.EMPTY_RESULT:
+        if state.get("verify_retry_on_empty") and not state.get("repair_attempted"):
+            return "repair_once"
         return "deterministic_format"
     if not state.get("repair_attempted"):
         return "repair_once"
@@ -206,6 +224,7 @@ def run_pipeline(
     db_id: str,
     dialect: Dialect = "sqlite",
     disable_repair: bool = False,
+    verify_retry_on_empty: bool = False,
 ) -> PipelineRunResult:
     """One-shot helper: invoke the compiled graph and flatten the result.
 
@@ -214,12 +233,19 @@ def run_pipeline(
     `_route_after_execute` to skip the repair branch on the first failure
     and fall through to deterministic_format. Used by eval configurations
     A-D where the methodology specifies "no repair" as a measured baseline.
+
+    `verify_retry_on_empty` (default False): when True, an EMPTY_RESULT
+    outcome routes to repair_once (subject to the repair_attempted guard)
+    so the model can take a second swing at the filter values. Used by
+    config G; the corresponding `last_error` payload comes from the
+    execute node and includes the empty-result hint.
     """
     initial: PipelineState = {
         "question": question,
         "db_id": db_id,
         "dialect": dialect,
         "repair_attempted": disable_repair,
+        "verify_retry_on_empty": verify_retry_on_empty,
         "trace": [],
     }
     final = cast(PipelineState, pipeline.invoke(initial))

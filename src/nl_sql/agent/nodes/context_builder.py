@@ -28,6 +28,7 @@ def make_context_builder_node(
     registry: DatabaseRegistry | None = None,
     primary_sample_size: int = 3,
     extended_sample_size: int = 0,
+    cross_db_fewshot: bool = False,
 ) -> Callable[[PipelineState], PipelineState]:
     """Construct the context-builder node.
 
@@ -65,6 +66,7 @@ def make_context_builder_node(
                 engine=engine,
                 primary_sample_size=primary_sample_size,
                 extended_sample_size=extended_sample_size,
+                cross_db_fewshot=cross_db_fewshot,
             )
         finally:
             if engine is not None:

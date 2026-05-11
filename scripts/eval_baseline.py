@@ -30,8 +30,10 @@ from nl_sql.eval import (
     load_run_from_json,
     run_config_a,
     run_config_c,
+    run_config_d,
     run_config_e,
     run_config_f,
+    run_config_g,
     write_html_report,
     write_json_report,
 )
@@ -65,7 +67,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--reports", default="eval/reports", help="output root")
     parser.add_argument(
         "--config",
-        choices=["A", "C", "E", "F"],
+        choices=["A", "C", "D", "E", "F", "G"],
         default="A",
         help=(
             "ablation configuration "
@@ -277,6 +279,36 @@ def main(argv: list[str] | None = None) -> int:
                 primary_sample_size=args.primary_sample_size,
                 extended_sample_size=args.extended_sample_size,
                 sql_candidate_temperatures=temps,
+                progress=_on_progress,
+            )
+        elif args.config == "D":
+            run = run_config_d(
+                sample,
+                sql_provider=sql_provider,
+                explain_provider=explain_provider,
+                schema_index=index,
+                registry=registry,
+                schema_top_k=args.schema_top_k,
+                fk_hops=args.fk_hops,
+                table_budget=args.table_budget,
+                sort_schema_block=args.sort_schema_block,
+                primary_sample_size=args.primary_sample_size,
+                extended_sample_size=args.extended_sample_size,
+                progress=_on_progress,
+            )
+        elif args.config == "G":
+            run = run_config_g(
+                sample,
+                sql_provider=sql_provider,
+                explain_provider=explain_provider,
+                schema_index=index,
+                registry=registry,
+                schema_top_k=args.schema_top_k,
+                fk_hops=args.fk_hops,
+                table_budget=args.table_budget,
+                sort_schema_block=args.sort_schema_block,
+                primary_sample_size=args.primary_sample_size,
+                extended_sample_size=args.extended_sample_size,
                 progress=_on_progress,
             )
         else:

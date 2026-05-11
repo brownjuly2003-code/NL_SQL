@@ -155,13 +155,25 @@ class SchemaIndex:
         *,
         db_id: str,
         top_k: int = 3,
+        cross_db: bool = False,
     ) -> list[FewShotHit]:
+        """Dense top-k over `fewshot_qsql`.
+
+        Default (`cross_db=False`) restricts retrieval to the same `db_id`.
+        That works when fewshot pool and test pool share schemas. BIRD's
+        train and dev splits, however, partition by db_id (zero overlap) —
+        same-db retrieval would return zero hits. `cross_db=True` drops the
+        filter so the LLM sees Q→SQL patterns from any train db, which is
+        the standard cross-domain fewshot setup in NL-SQL literature.
+        """
         qvec = self._embed_one(question)
-        result = self._fewshot.query(
-            query_embeddings=cast(Any, [qvec]),
-            n_results=top_k,
-            where={"db_id": db_id},
-        )
+        query_kwargs: dict[str, Any] = {
+            "query_embeddings": cast(Any, [qvec]),
+            "n_results": top_k,
+        }
+        if not cross_db:
+            query_kwargs["where"] = {"db_id": db_id}
+        result = self._fewshot.query(**query_kwargs)
         return cast(
             list[FewShotHit],
             _hits_from_query(cast(Mapping[str, Any], result), hit_cls=FewShotHit),

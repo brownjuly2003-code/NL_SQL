@@ -76,9 +76,28 @@ def make_execute_node(
                 "message": outcome.error_message,
             }
         )
+        last_error = outcome.error_message
+        if (
+            outcome.error_kind is not None
+            and outcome.error_kind.value == "empty_result"
+            and state.get("verify_retry_on_empty")
+        ):
+            # Concrete hints for the repair_once prompt — empty rows almost
+            # always come from a filter-value miss, not a structural error.
+            last_error = (
+                "Your SQL ran successfully but returned 0 rows. The schema "
+                "and joins look fine; the most likely cause is a wrong "
+                "filter value. Re-examine the WHERE clause: check exact "
+                "case and spelling of string literals (compare against the "
+                "sample values in the schema cards), consider whether the "
+                "match needs LIKE '%value%' instead of `= 'value'`, and "
+                "verify NULL handling (`IS NULL` vs `= NULL`). If the "
+                "question is open-ended, try widening the filter; do not "
+                "narrow it further."
+            )
         return {
             "outcome": outcome,
-            "last_error": outcome.error_message,
+            "last_error": last_error,
             "error_kind": outcome.error_kind,
             "error_message": outcome.error_message,
             "trace": trace,
