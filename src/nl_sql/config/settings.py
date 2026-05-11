@@ -37,6 +37,13 @@ class Settings(BaseSettings):
     ollama_gen_model: str = "qwen2.5-coder:7b-instruct"
     ollama_base_url: str = "http://localhost:11434/v1"
 
+    # Perplexity browser path via local GraceKelly (D:\GraceKells). Free
+    # because it rides the user's Perplexity Pro subscription via Playwright.
+    # `claude-sonnet-4-6` here is the Perplexity menu label, not the
+    # Anthropic API model id — GraceKelly resolves it to the browser path.
+    perplexity_browser_model: str = "claude-sonnet-4-6"
+    perplexity_base_url: str = "http://127.0.0.1:8011"
+
     mistral_api_key: str = Field(default="", validation_alias="MISTRAL_API_KEY")
     github_token: str = Field(default="", validation_alias="GITHUB_TOKEN")
     groq_api_key: str = Field(default="", validation_alias="GROQ_API_KEY")
