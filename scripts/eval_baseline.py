@@ -31,6 +31,7 @@ from nl_sql.eval import (
     run_config_a,
     run_config_c,
     run_config_e,
+    run_config_f,
     write_html_report,
     write_json_report,
 )
@@ -64,11 +65,21 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--reports", default="eval/reports", help="output root")
     parser.add_argument(
         "--config",
-        choices=["A", "C", "E"],
+        choices=["A", "C", "E", "F"],
         default="A",
         help=(
             "ablation configuration "
-            "(A=full_schema, C=dense+FK no repair, E=dense+FK+repair_once)"
+            "(A=full_schema, C=dense+FK no repair, "
+            "E=dense+FK+repair_once, F=dense+FK+self-consistency)"
+        ),
+    )
+    parser.add_argument(
+        "--sql-candidate-temperatures",
+        default="0.2,0.4,0.6,0.8",
+        help=(
+            "comma-separated sampling temperatures for config F "
+            "(self-consistency). One pipeline pass per temperature; "
+            "default 4 candidates at 0.2/0.4/0.6/0.8."
         ),
     )
     parser.add_argument(
@@ -147,7 +158,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument(
         "--provider",
-        choices=["mistral", "groq", "github_models", "ollama"],
+        choices=["mistral", "groq", "github_models", "ollama", "perplexity"],
         default="mistral",
         help=(
             "LLM provider for generation (embedding stays mistral — only "
@@ -218,7 +229,7 @@ def main(argv: list[str] | None = None) -> int:
             registry=registry,
             progress=_on_progress,
         )
-    else:  # "C" or "E" — both need the Chroma index
+    else:  # "C", "E", or "F" — all need the Chroma index
         persist_dir = Path(args.persist)
         if not persist_dir.is_dir():
             print(
@@ -248,21 +259,42 @@ def main(argv: list[str] | None = None) -> int:
             persist_dir=persist_dir, embedder=embedder, client=chroma_client
         )
         explain_provider = sql_provider  # codestral works for caption too in eval
-        runner = run_config_c if args.config == "C" else run_config_e
-        run = runner(
-            sample,
-            sql_provider=sql_provider,
-            explain_provider=explain_provider,
-            schema_index=index,
-            registry=registry,
-            schema_top_k=args.schema_top_k,
-            fk_hops=args.fk_hops,
-            table_budget=args.table_budget,
-            sort_schema_block=args.sort_schema_block,
-            primary_sample_size=args.primary_sample_size,
-            extended_sample_size=args.extended_sample_size,
-            progress=_on_progress,
-        )
+        if args.config == "F":
+            temps = tuple(
+                float(x) for x in args.sql_candidate_temperatures.split(",") if x.strip()
+            )
+            print(f"[info] self-consistency: {len(temps)} candidates @ {temps}")
+            run = run_config_f(
+                sample,
+                sql_provider=sql_provider,
+                explain_provider=explain_provider,
+                schema_index=index,
+                registry=registry,
+                schema_top_k=args.schema_top_k,
+                fk_hops=args.fk_hops,
+                table_budget=args.table_budget,
+                sort_schema_block=args.sort_schema_block,
+                primary_sample_size=args.primary_sample_size,
+                extended_sample_size=args.extended_sample_size,
+                sql_candidate_temperatures=temps,
+                progress=_on_progress,
+            )
+        else:
+            runner = run_config_c if args.config == "C" else run_config_e
+            run = runner(
+                sample,
+                sql_provider=sql_provider,
+                explain_provider=explain_provider,
+                schema_index=index,
+                registry=registry,
+                schema_top_k=args.schema_top_k,
+                fk_hops=args.fk_hops,
+                table_budget=args.table_budget,
+                sort_schema_block=args.sort_schema_block,
+                primary_sample_size=args.primary_sample_size,
+                extended_sample_size=args.extended_sample_size,
+                progress=_on_progress,
+            )
     elapsed = time.perf_counter() - started
 
     print()

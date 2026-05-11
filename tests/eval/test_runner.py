@@ -31,6 +31,7 @@ from nl_sql.eval.runner import (
     run_config_c,
     run_config_d,
     run_config_e,
+    run_config_f,
 )
 from nl_sql.execution.errors import ExecutionErrorKind
 from nl_sql.llm.providers.base import (
@@ -404,6 +405,60 @@ def test_run_config_c_progress_callback(
         progress=lambda i, total, _r: seen.append((i, total)),
     )
     assert seen == [(1, 2), (2, 2)]
+
+
+def test_run_config_f_self_consistency_picks_majority(
+    chinook_with_index: tuple[DatabaseRegistry, SchemaIndex],
+) -> None:
+    """Three of four candidates agree; the lone outlier should lose the vote."""
+    registry, index = chinook_with_index
+    correct = json.dumps({"sql": "SELECT COUNT(*) FROM Album", "confidence": 0.6})
+    wrong = json.dumps({"sql": "SELECT COUNT(*) FROM Artist", "confidence": 0.9})
+    # Order matches the temperature list — one ScriptedLLM serves all 4 passes.
+    sql_llm = ScriptedLLM([correct, correct, wrong, correct])
+    explain_llm = ScriptedLLM(["a", "b", "c", "d"])
+    examples = [_example(1, "how many albums?", "SELECT COUNT(*) FROM Album")]
+    run = run_config_f(
+        examples,
+        sql_provider=sql_llm,
+        explain_provider=explain_llm,
+        schema_index=index,
+        registry=registry,
+        schema_top_k=2,
+        fk_hops=0,
+        sql_candidate_temperatures=(0.2, 0.4, 0.6, 0.8),
+    )
+
+    assert run.configuration == Configuration.F_SELF_CONSISTENCY
+    assert run.overall.n == 1
+    rec = run.records[0]
+    assert rec.match is True  # majority cluster (3 correct) wins despite outlier confidence
+    assert sql_llm.call_count == 4  # one generate per temperature
+
+
+def test_run_config_f_falls_back_to_confidence_when_no_majority(
+    chinook_with_index: tuple[DatabaseRegistry, SchemaIndex],
+) -> None:
+    """Two singleton clusters with different confidences — proudest wins."""
+    registry, index = chinook_with_index
+    wrong_low = json.dumps({"sql": "SELECT COUNT(*) FROM Artist", "confidence": 0.2})
+    correct_high = json.dumps({"sql": "SELECT COUNT(*) FROM Album", "confidence": 0.95})
+    sql_llm = ScriptedLLM([wrong_low, correct_high])
+    explain_llm = ScriptedLLM(["a", "b"])
+    examples = [_example(1, "albums?", "SELECT COUNT(*) FROM Album")]
+    run = run_config_f(
+        examples,
+        sql_provider=sql_llm,
+        explain_provider=explain_llm,
+        schema_index=index,
+        registry=registry,
+        schema_top_k=2,
+        fk_hops=0,
+        sql_candidate_temperatures=(0.2, 0.6),
+    )
+
+    rec = run.records[0]
+    assert rec.match is True
 
 
 def test_report_writers_round_trip(chinook_registry: DatabaseRegistry, tmp_path: Path) -> None:

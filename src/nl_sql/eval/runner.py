@@ -40,6 +40,7 @@ from nl_sql.eval.metrics.execution_accuracy import (
     execution_accuracy,
 )
 from nl_sql.eval.metrics.schema_recall import schema_recall_at_k
+from nl_sql.eval.self_consistency import Candidate, vote
 from nl_sql.execution.errors import ExecutionErrorKind
 from nl_sql.execution.runner import ExecutionOutcome, execute_validated
 from nl_sql.llm.providers.base import GenerateRequest, LLMProvider
@@ -57,6 +58,7 @@ class Configuration(StrEnum):
     C_DENSE = "C_dense_cards"
     D_FEWSHOT = "D_dense_fewshot"
     E_FINAL = "E_dense_fewshot_repair"
+    F_SELF_CONSISTENCY = "F_self_consistency"
 
 
 @dataclass(frozen=True, slots=True)
@@ -292,6 +294,77 @@ def run_config_e(
     )
 
 
+def run_config_f(
+    examples: Sequence[BirdExample],
+    *,
+    sql_provider: LLMProvider,
+    explain_provider: LLMProvider,
+    schema_index: SchemaIndex,
+    registry: DatabaseRegistry,
+    sql_candidate_temperatures: Sequence[float] = (0.2, 0.4, 0.6, 0.8),
+    schema_top_k: int = 5,
+    fk_hops: int = 1,
+    table_budget: int = 12,
+    statement_timeout_ms: int = 60_000,
+    row_cap: int = 10_000,
+    max_tokens: int = 1024,
+    sort_schema_block: bool = True,
+    primary_sample_size: int = 3,
+    extended_sample_size: int = 0,
+    progress: Callable[[int, int, EvalRecord], None] | None = None,
+) -> EvalRun:
+    """Run configuration F (self-consistency execution-based voting).
+
+    For each example, runs the pipeline N times at the supplied
+    temperatures, executes every candidate against the live engine, and
+    picks the winner via `eval.self_consistency.vote` (largest
+    execution-result cluster, ties broken by max LLM confidence, then
+    lowest temperature). Repair is disabled per-candidate — voting is the
+    error-correction mechanism for this configuration.
+    """
+    if not sql_candidate_temperatures:
+        raise ValueError("sql_candidate_temperatures must be non-empty")
+    pipelines = [
+        build_pipeline(
+            PipelineConfig(
+                sql_provider=sql_provider,
+                explain_provider=explain_provider,
+                schema_index=schema_index,
+                registry=registry,
+                schema_top_k=schema_top_k,
+                fewshot_top_k=0,
+                fk_hops=fk_hops,
+                table_budget=table_budget,
+                statement_timeout_ms=statement_timeout_ms,
+                row_cap=row_cap,
+                sort_schema_block=sort_schema_block,
+                primary_sample_size=primary_sample_size,
+                extended_sample_size=extended_sample_size,
+                sql_temperature=t,
+            )
+        )
+        for t in sql_candidate_temperatures
+    ]
+    records: list[EvalRecord] = []
+    for idx, example in enumerate(examples, start=1):
+        record = _run_one_self_consistency(
+            example,
+            pipelines=pipelines,
+            temperatures=tuple(sql_candidate_temperatures),
+            registry=registry,
+            statement_timeout_ms=statement_timeout_ms,
+            row_cap=row_cap,
+        )
+        records.append(record)
+        if progress is not None:
+            progress(idx, len(examples), record)
+    return _summarise(
+        configuration=Configuration.F_SELF_CONSISTENCY,
+        sql_model=getattr(sql_provider, "model", "unknown"),
+        records=records,
+    )
+
+
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
@@ -479,6 +552,120 @@ def _run_one_via_pipeline(
             first_pass_match=(
                 False if _repair_actually_fired(result, disable_repair) else comparison.match
             ),
+            latency_ms=elapsed_ms,
+            input_tokens=in_tok,
+            output_tokens=out_tok,
+            gold_tables=gold_tables,
+            retrieved_tables=tuple(retrieved),
+            pred_row_count=comparison.pred_rows,
+            gold_row_count=comparison.gold_rows,
+            comparison_reason=comparison.reason,
+        )
+    finally:
+        gold_engine.dispose()
+
+
+def _run_one_self_consistency(
+    example: BirdExample,
+    *,
+    pipelines: Sequence[Any],
+    temperatures: tuple[float, ...],
+    registry: DatabaseRegistry,
+    statement_timeout_ms: int,
+    row_cap: int,
+) -> EvalRecord:
+    """Run N pipelines (one per temperature), vote on the result, score the winner."""
+    started = time.perf_counter()
+    spec = registry.get(example.registry_db_id)
+    gold_engine = spec.make_engine()
+    try:
+        candidates: list[Candidate] = []
+        for pipe, temp in zip(pipelines, temperatures, strict=True):
+            try:
+                run_result = run_pipeline(
+                    pipe,
+                    question=_compose_question(example),
+                    db_id=example.registry_db_id,
+                    dialect=_to_dialect(example.dialect),
+                    disable_repair=True,
+                )
+                candidates.append(Candidate(result=run_result, temperature=temp))
+            except Exception:
+                # A single crashed candidate is not fatal — voting handles partials.
+                continue
+
+        if not candidates:
+            elapsed_ms = (time.perf_counter() - started) * 1000.0
+            return EvalRecord(
+                question_id=example.question_id,
+                db_id=example.db_id,
+                difficulty=example.difficulty,
+                dialect=example.dialect,
+                question=example.question,
+                gold_sql=example.sql,
+                pred_sql="",
+                match=False,
+                schema_recall=False,
+                error_kind="pipeline_exception",
+                error_message="all candidates raised",
+                repair_attempted=False,
+                first_pass_match=False,
+                latency_ms=elapsed_ms,
+                input_tokens=0,
+                output_tokens=0,
+                gold_tables=tuple(extract_gold_tables(example.sql)),
+                retrieved_tables=(),
+                pred_row_count=0,
+                gold_row_count=0,
+                comparison_reason="all candidates raised",
+            )
+
+        winner = vote(candidates)
+        result = winner.result
+        gold_rows, _ = _execute_gold(
+            gold_engine,
+            example.sql,
+            statement_timeout_ms=statement_timeout_ms,
+            row_cap=row_cap,
+        )
+        if result.outcome is not None and result.outcome.result is not None:
+            comparison = compare_results(
+                gold_rows, result.outcome.result.rows, gold_sql=example.sql
+            )
+        else:
+            comparison = ResultComparison(
+                match=False,
+                reason=(
+                    f"pred failed: {result.error_kind.value if result.error_kind else 'unknown'}"
+                ),
+                gold_rows=len(gold_rows),
+                pred_rows=0,
+            )
+        gold_tables = tuple(extract_gold_tables(example.sql))
+        retrieved = _retrieved_from_trace(result.trace)
+        recall = schema_recall_at_k(gold_tables, retrieved)
+        # Token cost = sum across all candidates (the real serving cost of voting).
+        in_tok = 0
+        out_tok = 0
+        for c in candidates:
+            ci, co = _tokens_from_trace(c.result.trace)
+            in_tok += ci
+            out_tok += co
+        elapsed_ms = (time.perf_counter() - started) * 1000.0
+        return EvalRecord(
+            question_id=example.question_id,
+            db_id=example.db_id,
+            difficulty=example.difficulty,
+            dialect=example.dialect,
+            question=example.question,
+            gold_sql=example.sql,
+            pred_sql=result.sql,
+            match=comparison.match,
+            schema_recall=recall,
+            error_kind=result.error_kind.value if result.error_kind else None,
+            error_message=result.error_message,
+            repair_attempted=False,
+            first_pass_match=comparison.match,
             latency_ms=elapsed_ms,
             input_tokens=in_tok,
             output_tokens=out_tok,

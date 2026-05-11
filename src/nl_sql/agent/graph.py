@@ -94,6 +94,12 @@ class PipelineConfig:
     cards favour challenging-tier; the mixture exposes both densities
     to the model in a single prompt. Requires registry access — see
     docs/SESSION_HANDOFF.md item #1."""
+    sql_temperature: float = 0.0
+    """Sampling temperature for the generate_sql / repair_once LLM calls.
+    Default 0.0 = greedy / deterministic. Higher values inject diversity
+    needed by config F (self-consistency execution-based voting), where
+    each candidate runs at a different temperature so the cache stores
+    them as distinct entries."""
 
 
 @dataclass(slots=True)
@@ -133,11 +139,14 @@ def build_pipeline(config: PipelineConfig) -> CompiledStateGraph[Any, Any, Any, 
             extended_sample_size=config.extended_sample_size,
         ),
         "generate_sql": make_generate_sql_node(
-            config.sql_provider, sort_schema_block=config.sort_schema_block
+            config.sql_provider,
+            sort_schema_block=config.sort_schema_block,
+            temperature=config.sql_temperature,
         ),
         "validate": make_validate_node(),
         "repair_once": make_repair_once_node(
-            config.sql_provider, sort_schema_block=config.sort_schema_block
+            config.sql_provider,
+            sort_schema_block=config.sort_schema_block,
         ),
         "execute": make_execute_node(
             registry=config.registry,
