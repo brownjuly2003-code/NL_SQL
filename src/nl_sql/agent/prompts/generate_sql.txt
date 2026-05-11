@@ -20,8 +20,69 @@ PRAGMA, or multiple statements.
 }}
 
 Rules:
-- Quote identifiers exactly as in the schema (case-sensitive).
+- Quote identifiers exactly as in the schema (case-sensitive). When an
+  identifier contains spaces or punctuation, wrap it in the dialect's
+  quoting style (backticks for sqlite/mysql, double-quotes elsewhere).
 - Use {dialect}-specific functions only where required; prefer ANSI-SQL otherwise.
+- **Projection discipline — the most important rule.** SELECT ONLY the
+  columns the user named in the question. No id columns, no extra
+  context columns, no aggregates used purely for sorting. Examples:
+    "List customers from Germany" → `SELECT FirstName, LastName ...`
+    (NOT `SELECT CustomerId, FirstName, LastName ...`)
+    "What are the 5 longest tracks?" → `SELECT Name ... ORDER BY Milliseconds DESC LIMIT 5`
+    (NOT `SELECT Name, Milliseconds ...`)
+    "Which artist has the most albums?" → `SELECT Artist.Name ... ORDER BY COUNT(*) DESC LIMIT 1`
+    (NOT `SELECT Artist.Name, COUNT(*) ...`)
+    "Top 5 cities by total revenue" → `SELECT BillingCity ... GROUP BY BillingCity ORDER BY SUM(Total) DESC LIMIT 5`
+    (NOT `SELECT BillingCity, SUM(Total) ...`)
+    "Top 5 customers by spending" → `SELECT FirstName, LastName, SUM(Total) AS total ...`
+    (the spending IS asked for here — return it; but never the CustomerId)
+- The "by X" phrasing in a ranking question ("top 5 cities **by** revenue",
+  "tracks **by** length") tells you what to sort on — it does NOT add a
+  column to the projection. Move `X` to the ORDER BY clause.
+- THIS IS THE MOST COMMON ERROR. When in doubt, prefer fewer columns.
+  If the question says "top 5 X by Y", the answer schema is exactly
+  one column (X) — never two. Re-read your SELECT clause before
+  emitting and delete any column the user did not name.
+- For "which/who is X-est" questions, return only the entity name(s).
+  The ranking aggregate belongs in ORDER BY, not SELECT, unless the user
+  literally asks "how much" or "how many" alongside the name.
+- Use `SELECT DISTINCT` in exactly these situations:
+  (a) the question literally says "distinct", "unique", "different";
+  (b) the answer is a small category-set ("what genres", "which
+      media types", "which countries do we ship to");
+  (c) the SELECT crosses a many-to-many bridge table whose presence
+      mechanically duplicates the projected entity — concretely:
+      PlaylistTrack and InvoiceLine in Chinook. Example:
+        "Which playlists contain track 'X'?" →
+        `SELECT DISTINCT Playlist.Name FROM Playlist JOIN PlaylistTrack JOIN Track …`
+  Do NOT use DISTINCT when:
+  - the relationship is a direct single-FK join (Track→Genre,
+    Album→Artist, Customer→Employee) — natural same-name duplicates
+    in the data are legitimate rows of the answer. Example:
+      "Which tracks belong to the Rock genre?" →
+      `SELECT Track.Name FROM Track JOIN Genre …` (NO DISTINCT — two
+      tracks that happen to share a name are still two separate
+      tracks and both belong in the answer);
+  - the question simply says "list X" without any uniqueness cue.
+- For comma-separated free-text fields (composer credits, tags,
+  categories), filter with `LIKE '%name%'` instead of `= 'name'` so
+  rows like "Angus Young, Malcolm Young, Brian Johnson" match a query
+  for `Angus Young`. The schema sample values reveal when a column
+  carries multiple values per cell.
+- Question intent — "how many" vs "which":
+  - "How many X …" / "Count of X …" / "Number of X …" →
+    `SELECT COUNT(*)` or `SELECT COUNT(DISTINCT col)`. Return a
+    single number, not a list of values.
+  - "Which X …" / "List X …" / "What X …" → `SELECT <columns>`,
+    return rows. NEVER return a list when the user asked "how many".
+- Do NOT concatenate name parts (`first || ' ' || last`) unless the user
+  literally asks for "full name" — gold answers usually return separate
+  columns, and string concatenation breaks the set match.
+- For string filter values (playlist names, country names, etc.),
+  reproduce the literal exactly as shown in the schema sample values.
+  Watch out for Unicode punctuation (`'`, `'`, `"`) — copy the byte from
+  the schema card, do not normalise it.
 - If the question is ambiguous, pick the most defensible interpretation and lower
   `confidence` accordingly. Do NOT ask for clarification.
 - If the schema lacks the data, return SQL that selects an empty result and set
