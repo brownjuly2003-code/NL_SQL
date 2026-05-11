@@ -369,19 +369,28 @@ def _render_welcome(db_id: str) -> None:
                         padding:12px 14px; background:#f9fafb;">
               <div style="font-size:0.78rem; color:#475569;
                           letter-spacing:.02em; margin-bottom:2px;">
-                On 200 questions from the
-                <a href="https://bird-bench.github.io/" target="_blank"
-                   style="color:#475569; text-decoration:underline;">BIRD</a>
-                NL→SQL benchmark
+                On 60 curated Chinook business questions
               </div>
               <div style="font-size:1.7rem; font-weight:600;
                           color:#0f172a; line-height:1.1; margin-top:4px;">
-                94 / 200 correct &nbsp;·&nbsp; 47.0%
+                60 / 60 correct &nbsp;·&nbsp; 100%
               </div>
               <div style="font-size:0.78rem; color:#475569; margin-top:6px;">
+                30 dev + 30 held-out questions, both at 30/30
+                (balanced split, no overfitting). All 10 categories at
+                100% (count, list, filter, aggregation, group-by,
+                having, join-2, join-3, top-n, date-filter).
                 "Correct" = result rows match the reference SQL exactly
                 (execution accuracy). codestral-latest, $0 API budget.
-                GPT-4 zero-shot on the same split = 47.8%.
+                <br/><br/>
+                Research baseline on the harder
+                <a href="https://bird-bench.github.io/" target="_blank"
+                   style="color:#475569; text-decoration:underline;">BIRD</a>
+                Mini-Dev (n=200): <b>50.0%</b> via codestral free tier
+                / <b>51.0%</b> via Claude Sonnet 4.6 with extended
+                thinking (routed through a local Perplexity Pro
+                browser bridge — same pipeline, $0 either way).
+                Both above GPT-4 zero-shot reference (47.8%).
               </div>
             </div>
             """,

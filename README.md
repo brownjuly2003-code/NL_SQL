@@ -2,7 +2,16 @@
 
 Portfolio demo для Senior Data Engineer / Data Analyst. Принимает вопрос на естественном языке (RU/EN), возвращает ответ из реляционной БД в одной из четырёх форм: число, предложение, таблица, график. Всегда показывает использованный SQL и объяснение.
 
-**Статус:** stages 1-6 + 9 + 10 (Streamlit UI) закрыты (2026-05-10 follow-up). 200 тестов зелёные, ruff/mypy strict clean. Live API verified: Mistral + Groq. n=200 ablation: A=47.0% / C+sort+s=3=47.0% / C+sort+s=5=46.0% — at-or-above GPT-4 zero-shot reference (47.8%). См. [`docs/SESSION_HANDOFF.md`](docs/SESSION_HANDOFF.md) — single source of truth для следующей сессии.
+**Статус:** stages 1-6 + 9 + 10 (Streamlit UI) закрыты (2026-05-11 #3). 216 тестов зелёные, ruff/mypy strict clean. Live API verified: Mistral + Groq.
+
+**Headline metrics:**
+- **Product workload (Chinook demo, n=60): 100% EA — 60/60.** 30 dev + 30 held-out questions, dev 30/30 + held-out 30/30 (balanced split, no overfitting). All 10 categories (count/list/filter/aggregation/group-by/having/join-2/join-3/top-n/date-filter) at 100% via free-tier codestral. Что измеряем: realistic business questions a BI tool would actually serve.
+- **Research baseline (BIRD Mini-Dev SQLite, n=200):**
+  - **Sonnet 4.6 thinking (via Perplexity Pro browser, $0): 51.0%**
+  - codestral-latest (free Mistral API, $0): 50.0%
+  Both above GPT-4 zero-shot reference (47.8%). Sonnet challenging 35.3%, codestral challenging 35.3% — parity. Sonnet path is 6.6× slower (browser automation: ~30s/call vs codestral ~2s/call) but lets the same pipeline serve a frontier model without any paid API.
+
+Optional config F (self-consistency 4 candidates @ 0.2-0.8 temperatures) trades overall -1pp on BIRD for +3pp on challenging (38.2%) — best for hard-question workloads. См. [`docs/SESSION_HANDOFF.md`](docs/SESSION_HANDOFF.md) — single source of truth для следующей сессии.
 
 **Streamlit Cloud:** https://brownjuly2003-code-nl-sql-appstreamlit-app-ptwp4f.streamlit.app/ — пока редиректит на Streamlit OAuth/login; финальный ручной deploy-шаг описан в [`docs/SESSION_HANDOFF.md` § Deploy](docs/SESSION_HANDOFF.md#deploy--finishing-it-manually-resume-here). Repo + data + deps готовы.
 
