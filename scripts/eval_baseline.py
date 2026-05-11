@@ -60,6 +60,17 @@ def main(argv: list[str] | None = None) -> int:
         ),
     )
     parser.add_argument(
+        "--difficulty",
+        choices=["simple", "moderate", "challenging"],
+        default=None,
+        help=(
+            "optional difficulty filter; useful for tier-specific runs "
+            "(e.g. --difficulty challenging to run config F only on the "
+            "hard tier and merge with G for the rest — see "
+            "docs/SESSION_HANDOFF.md for the hybrid recipe)."
+        ),
+    )
+    parser.add_argument(
         "--bird-root",
         default=str(DEFAULT_BIRD_ROOT),
         help=f"path to MINIDEV/ root (default: {DEFAULT_BIRD_ROOT})",
@@ -146,6 +157,27 @@ def main(argv: list[str] | None = None) -> int:
         ),
     )
     parser.add_argument(
+        "--fewshot-top-k",
+        type=int,
+        default=3,
+        help=(
+            "number of fewshot Q→SQL pairs to retrieve from the "
+            "fewshot_qsql collection (configs D/G/F-with-fewshot; "
+            "default: 3). Higher values give the LLM more templates "
+            "but inflate prompt token count and risk distracting the "
+            "generator with off-topic examples."
+        ),
+    )
+    parser.add_argument(
+        "--with-fewshot",
+        action="store_true",
+        help=(
+            "enable cross-db fewshot retrieval for config F "
+            "(self-consistency). D and G have fewshot ON by default; "
+            "for F it's opt-in so old F runs stay comparable."
+        ),
+    )
+    parser.add_argument(
         "--extended-sample-size",
         type=int,
         default=0,
@@ -184,6 +216,18 @@ def main(argv: list[str] | None = None) -> int:
             return 3
 
     sample = dev_split(examples, n=args.n, seed=args.seed)
+    if args.difficulty:
+        # Apply AFTER dev_split so the same shuffle-prefix examples appear
+        # as in unfiltered runs — needed for hybrid merging (e.g., F on
+        # challenging tier blended with G on the rest).
+        sample = [e for e in sample if e.difficulty == args.difficulty]
+        if not sample:
+            print(
+                f"[error] no examples for difficulty {args.difficulty!r} "
+                f"within the n={args.n} prefix",
+                file=sys.stderr,
+            )
+            return 3
     print(
         f"[info] loaded {len(examples)} examples → "
         f"sampled {len(sample)} (seed={args.seed})"
@@ -273,12 +317,14 @@ def main(argv: list[str] | None = None) -> int:
                 schema_index=index,
                 registry=registry,
                 schema_top_k=args.schema_top_k,
+                fewshot_top_k=args.fewshot_top_k if args.with_fewshot else 0,
                 fk_hops=args.fk_hops,
                 table_budget=args.table_budget,
                 sort_schema_block=args.sort_schema_block,
                 primary_sample_size=args.primary_sample_size,
                 extended_sample_size=args.extended_sample_size,
                 sql_candidate_temperatures=temps,
+                cross_db_fewshot=args.with_fewshot,
                 progress=_on_progress,
             )
         elif args.config == "D":
@@ -289,6 +335,7 @@ def main(argv: list[str] | None = None) -> int:
                 schema_index=index,
                 registry=registry,
                 schema_top_k=args.schema_top_k,
+                fewshot_top_k=args.fewshot_top_k,
                 fk_hops=args.fk_hops,
                 table_budget=args.table_budget,
                 sort_schema_block=args.sort_schema_block,
@@ -304,6 +351,7 @@ def main(argv: list[str] | None = None) -> int:
                 schema_index=index,
                 registry=registry,
                 schema_top_k=args.schema_top_k,
+                fewshot_top_k=args.fewshot_top_k,
                 fk_hops=args.fk_hops,
                 table_budget=args.table_budget,
                 sort_schema_block=args.sort_schema_block,

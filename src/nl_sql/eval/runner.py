@@ -366,6 +366,7 @@ def run_config_f(
     registry: DatabaseRegistry,
     sql_candidate_temperatures: Sequence[float] = (0.2, 0.4, 0.6, 0.8),
     schema_top_k: int = 5,
+    fewshot_top_k: int = 0,
     fk_hops: int = 1,
     table_budget: int = 12,
     statement_timeout_ms: int = 60_000,
@@ -374,6 +375,7 @@ def run_config_f(
     sort_schema_block: bool = True,
     primary_sample_size: int = 3,
     extended_sample_size: int = 0,
+    cross_db_fewshot: bool = False,
     progress: Callable[[int, int, EvalRecord], None] | None = None,
 ) -> EvalRun:
     """Run configuration F (self-consistency execution-based voting).
@@ -384,6 +386,12 @@ def run_config_f(
     execution-result cluster, ties broken by max LLM confidence, then
     lowest temperature). Repair is disabled per-candidate — voting is the
     error-correction mechanism for this configuration.
+
+    Fewshot support: pass `fewshot_top_k > 0` (and `cross_db_fewshot=True`
+    for BIRD) to enable the cross-domain fewshot block on top of voting.
+    Stacking is roughly additive on challenging tier: F lifts challenging
+    via vote, fewshot lifts it via better first-pass; combining gets the
+    best-of-both.
     """
     if not sql_candidate_temperatures:
         raise ValueError("sql_candidate_temperatures must be non-empty")
@@ -395,7 +403,7 @@ def run_config_f(
                 schema_index=schema_index,
                 registry=registry,
                 schema_top_k=schema_top_k,
-                fewshot_top_k=0,
+                fewshot_top_k=fewshot_top_k,
                 fk_hops=fk_hops,
                 table_budget=table_budget,
                 statement_timeout_ms=statement_timeout_ms,
@@ -404,6 +412,7 @@ def run_config_f(
                 primary_sample_size=primary_sample_size,
                 extended_sample_size=extended_sample_size,
                 sql_temperature=t,
+                cross_db_fewshot=cross_db_fewshot,
             )
         )
         for t in sql_candidate_temperatures
