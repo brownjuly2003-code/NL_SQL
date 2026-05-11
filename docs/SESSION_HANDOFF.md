@@ -1,8 +1,39 @@
-# NL_SQL — Session Handoff (2026-05-11 #3, Chinook demo benchmark 100% (60/60) — product-grade headline)
+# NL_SQL — Session Handoff (2026-05-11 #5, BIRD 56.5% via fewshot+verify-retry — new research headline)
 
 > Read this first when picking up. It's the single source of truth for
 > "where we stopped" and "what to do next". When you take action, update
 > this file before you stop again.
+
+---
+
+## Headline (2026-05-11 #5, post fewshot+verify-retry session)
+
+**BIRD Mini-Dev SQLite (n=200, codestral-latest):**
+
+| Config | EA | Simple | Moderate | Challenging | Wall | P50 tokens |
+|--------|------|------|------|------|------|------|
+| C+sort+s=3 + tight prompt (prev prod) | 50.0% | 62.7% | 46.5% | 35.3% | 466s | 3673 |
+| D (BIRD train cross-db fewshot, top_k=3) | 55.5% | 71.6% | 51.5% | 35.3% | 649s | 4826 |
+| **G (D + verify-retry on empty/error)** | **56.5%** | **71.6%** | **53.5%** | **35.3%** | 288s* | 4826 |
+
+\*G wall is cache-warm; first-pass under fresh cache is ~D+10%.
+
+- **Chinook product workload: 100% (60/60)** — unchanged.
+- **BIRD research: 56.5%** — was 50.0% (codestral) / 51.0% (Sonnet via
+  Perplexity). +6.5pp from two stacked layers (fewshot + verify-retry).
+  Above GPT-4 zero-shot baseline (47.8%) by 8.7pp.
+- All at **$0 budget** (Mistral free tier + cached embeddings).
+
+**Cumulative gains for portfolio narrative:**
+1. diskcache → methodology unlock (deterministic ablations).
+2. `sort_schema_block=True` → +3pp.
+3. Tight projection-discipline prompt → +3pp.
+4. **BIRD train fewshot (cross-db retrieval over 9 428 Q→SQL pairs)** → +5.5pp.
+5. **verify-retry on empty/runtime-error outcomes** → +1pp.
+
+What didn't move: schema_top_k=5↔8, fk_hops=1↔2 (table_budget saturates
+the block; recall@k is already 100%); CoT decomposition (-6.5pp,
+reasoning steals attention); sample-mixture renderer (0pp at n=50).
 
 ---
 
