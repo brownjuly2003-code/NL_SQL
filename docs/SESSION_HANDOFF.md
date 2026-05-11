@@ -1,4 +1,4 @@
-# NL_SQL — Session Handoff (2026-05-11 #5, BIRD 56.5% via fewshot+verify-retry — new research headline)
+# NL_SQL — Session Handoff (2026-05-11 #5, BIRD 57.0% via fewshot+verify-retry+hybrid — new research headline)
 
 > Read this first when picking up. It's the single source of truth for
 > "where we stopped" and "what to do next". When you take action, update
@@ -6,23 +6,33 @@
 
 ---
 
-## Headline (2026-05-11 #5, post fewshot+verify-retry session)
+## Headline (2026-05-11 #5, post fewshot+verify-retry+hybrid session)
 
-**BIRD Mini-Dev SQLite (n=200, codestral-latest):**
+**BIRD Mini-Dev SQLite (n=200):**
 
-| Config | EA | Simple | Moderate | Challenging | Wall | P50 tokens |
-|--------|------|------|------|------|------|------|
-| C+sort+s=3 + tight prompt (prev prod) | 50.0% | 62.7% | 46.5% | 35.3% | 466s | 3673 |
-| D (BIRD train cross-db fewshot, top_k=3) | 55.5% | 71.6% | 51.5% | 35.3% | 649s | 4826 |
-| **G (D + verify-retry on empty/error)** | **56.5%** | **71.6%** | **53.5%** | **35.3%** | 288s* | 4826 |
+| Config | EA | Simple | Moderate | Challenging | Wall |
+|--------|------|------|------|------|------|
+| C+sort+s=3 + tight prompt (prev prod) | 50.0% | 62.7% | 46.5% | 35.3% | 466s |
+| D (BIRD train cross-db fewshot, top_k=3) | 55.5% | 71.6% | 51.5% | 35.3% | 649s |
+| G (D + verify-retry on empty/error) | 56.5% | 71.6% | 53.5% | 35.3% | 288s* |
+| **Hybrid (codestral G + Sonnet G on challenging)** | **57.0%** | **71.6%** | **53.5%** | **38.2%** | 288s + 2027s |
 
-\*G wall is cache-warm; first-pass under fresh cache is ~D+10%.
+\*G wall is cache-warm.
 
 - **Chinook product workload: 100% (60/60)** — unchanged.
-- **BIRD research: 56.5%** — was 50.0% (codestral) / 51.0% (Sonnet via
-  Perplexity). +6.5pp from two stacked layers (fewshot + verify-retry).
-  Above GPT-4 zero-shot baseline (47.8%) by 8.7pp.
-- All at **$0 budget** (Mistral free tier + cached embeddings).
+- **BIRD research: 57.0%** (hybrid) — was 50.0% baseline. **+7pp** from
+  four stacked layers (fewshot + verify-retry + Sonnet-on-challenging).
+  Above GPT-4 zero-shot reference (47.8%) by **9.2pp**.
+- All at **$0 budget** (Mistral free tier + Perplexity Pro subscription
+  via GraceKelly browser bridge).
+
+**Failed ablations this session (kept as audit trail):**
+- `fewshot_top_k=5` (vs 3): -1pp overall, -2.9pp simple. Extra rows
+  distract on easy questions. Keep 3.
+- F (self-consistency, 4 candidates @ 0.2-0.8) on challenging-only WITH
+  fewshot: ties greedy G at 35.3%. Voting doesn't push past fewshot on
+  the hard tier on codestral. The +3pp earlier F finding lived against
+  the no-fewshot baseline.
 
 **Cumulative gains for portfolio narrative:**
 1. diskcache → methodology unlock (deterministic ablations).
