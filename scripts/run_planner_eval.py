@@ -24,7 +24,7 @@ from pathlib import Path
 from nl_sql.agent.graph import PipelineConfig, build_pipeline, run_pipeline
 from nl_sql.config import get_settings
 from nl_sql.db.registry import get_default_registry
-from nl_sql.eval.dataset import load_bird_mini_dev, dev_split
+from nl_sql.eval.dataset import dev_split, load_bird_mini_dev
 from nl_sql.eval.metrics.execution_accuracy import compare_results
 from nl_sql.eval.runner import _compose_question, _execute_gold
 from nl_sql.llm.cache import CachingEmbeddingProvider, CachingLLMProvider
@@ -40,8 +40,9 @@ def main() -> int:
     p.add_argument("--seed", type=int, default=0)
     p.add_argument("--out", type=Path, required=True)
     p.add_argument("--log", type=Path, default=None, help="per-example progress log; default <out>.progress.log")
-    p.add_argument("--enable-planner", action="store_true", default=True)
+    p.add_argument("--enable-planner", action="store_true", default=False)
     p.add_argument("--no-planner", dest="enable_planner", action="store_false")
+    p.add_argument("--enable-grounded-critique", action="store_true", default=False)
     p.add_argument("--bird-root", default="data/bird_mini_dev/MINIDEV")
     p.add_argument("--provider", default="mistral")
     p.add_argument("--limit", type=int, default=0, help="cap examples after filtering (0=all)")
@@ -74,6 +75,7 @@ def main() -> int:
         cross_db_fewshot=True,
         verify_retry_on_empty=True,
         enable_planner=args.enable_planner,
+        enable_grounded_critique=args.enable_grounded_critique,
         statement_timeout_ms=30_000,
         row_cap=10_000,
     )

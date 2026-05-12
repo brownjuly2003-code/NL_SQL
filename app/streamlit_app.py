@@ -212,6 +212,9 @@ def _make_pipeline(
     table_budget: int,
     sort_schema_block: bool,
     extended_sample_size: int,
+    fewshot_top_k: int = 3,
+    cross_db_fewshot: bool = True,
+    verify_retry_on_empty: bool = True,
 ) -> Any:
     config = PipelineConfig(
         sql_provider=sql_provider,
@@ -219,12 +222,14 @@ def _make_pipeline(
         schema_index=schema_index,
         registry=registry,
         schema_top_k=schema_top_k,
-        fewshot_top_k=0,  # config D not yet shipped
+        fewshot_top_k=fewshot_top_k,
         fk_hops=fk_hops,
         table_budget=table_budget,
         sort_schema_block=sort_schema_block,
         primary_sample_size=3,
         extended_sample_size=extended_sample_size,
+        cross_db_fewshot=cross_db_fewshot,
+        verify_retry_on_empty=verify_retry_on_empty,
     )
     return build_pipeline(config)
 
@@ -269,29 +274,55 @@ def _render_chart(
     st.plotly_chart(fig, use_container_width=True)
 
 
+def _confidence_label(value: float) -> str:
+    if value >= 0.8:
+        return "High"
+    if value >= 0.5:
+        return "Medium"
+    if value > 0.0:
+        return "Low"
+    return "Unknown"
+
+
 def _render_show_working(result: PipelineRunResult) -> None:
-    with st.expander("Показать работу (schema, SQL, latency, errors)"):
-        col_a, col_b = st.columns(2)
-        latency_ms = 0.0
+    with st.expander("Show working — pipeline trace, SQL, metadata"):
+        trace_rows: list[dict[str, Any]] = []
         for entry in result.trace:
-            value = entry.get("elapsed_ms", 0)
-            if isinstance(value, int | float):
-                latency_ms += float(value)
-        with col_a:
+            trace_rows.append(
+                {
+                    "node": str(entry.get("node", "?")),
+                    "model": str(entry.get("model", "—")),
+                    "tokens_in": entry.get("input_tokens", "—"),
+                    "tokens_out": entry.get("output_tokens", "—"),
+                    "confidence": entry.get("confidence", "—"),
+                }
+            )
+        if trace_rows:
             st.markdown("**Pipeline trace**")
-            for entry in result.trace:
-                node = entry.get("node", "?")
-                rest = {k: v for k, v in entry.items() if k != "node"}
-                st.markdown(f"- `{node}` — {rest}")
-        with col_b:
+            st.dataframe(
+                pd.DataFrame(trace_rows),
+                use_container_width=True,
+                hide_index=True,
+            )
+
+        col_a, col_b = st.columns(2)
+        with col_a:
             st.markdown("**Metadata**")
-            st.markdown(f"- DB: `{result.db_id}`")
-            st.markdown(f"- Confidence: {result.confidence:.2f}")
+            conf_label = _confidence_label(result.confidence)
+            st.markdown(
+                f"- Confidence: **{conf_label}** ({result.confidence:.2f})"
+            )
             st.markdown(f"- Repair attempted: {result.repair_attempted}")
-            if latency_ms:
-                st.markdown(f"- Execution latency: {latency_ms:.0f} ms")
+            st.markdown(f"- DB: `{result.db_id}`")
+        with col_b:
+            st.markdown("**Result shape**")
             if result.outcome and result.outcome.result:
                 st.markdown(f"- Rows returned: {result.outcome.result.row_count}")
+                st.markdown(
+                    f"- Columns: {', '.join(result.outcome.result.columns) or '—'}"
+                )
+            else:
+                st.markdown("- No result rows.")
         if result.rationale:
             st.markdown("**Rationale**")
             st.write(result.rationale)
@@ -386,11 +417,13 @@ def _render_welcome(db_id: str) -> None:
                 Research baseline on the harder
                 <a href="https://bird-bench.github.io/" target="_blank"
                    style="color:#475569; text-decoration:underline;">BIRD</a>
-                Mini-Dev (n=200): <b>50.0%</b> via codestral free tier
-                / <b>51.0%</b> via Claude Sonnet 4.6 with extended
-                thinking (routed through a local Perplexity Pro
-                browser bridge — same pipeline, $0 either way).
-                Both above GPT-4 zero-shot reference (47.8%).
+                Mini-Dev (n=200): <b>57.0%</b> hybrid
+                (codestral free tier + Claude Sonnet 4.6 challenging-tier
+                via Perplexity Pro browser bridge — same pipeline, $0
+                either way). <b>+9.2pp above GPT-4 zero-shot
+                reference (47.8%)</b>. Lift trace: 47% baseline →
+                55.5% with BIRD-train few-shot →
+                56.5% with verify-retry → 57.0% with hybrid escalation.
               </div>
             </div>
             """,
@@ -471,14 +504,36 @@ def main() -> None:
         _render_schema_explorer(db_id)
 
         st.divider()
-        st.subheader("Retrieval knobs")
-        schema_top_k = st.slider("schema_top_k", 1, 10, 5)
-        fk_hops = st.slider("fk_hops", 0, 2, 1)
-        table_budget = st.slider("table_budget", 4, 20, 12)
-        sort_schema_block = st.checkbox("sort_schema_block (alphabetical)", value=True)
-        extended_sample_size = st.slider(
-            "extended_sample_size (0 = mixture off)", 0, 8, 0
+        st.subheader("Mode")
+        mode = st.radio(
+            "Pipeline preset",
+            options=("Accurate", "Fast", "Debug"),
+            index=0,
+            captions=(
+                "fewshot + verify-retry (best EA)",
+                "no fewshot (fastest, slightly lower EA)",
+                "Accurate + raw trace in show-working",
+            ),
+            label_visibility="collapsed",
         )
+        # mode → pipeline knobs
+        if mode == "Fast":
+            fewshot_top_k = 0
+            verify_retry_on_empty = False
+        else:
+            fewshot_top_k = 3
+            verify_retry_on_empty = True
+
+        with st.expander("Advanced retrieval knobs", expanded=False):
+            schema_top_k = st.slider("schema_top_k", 1, 10, 5)
+            fk_hops = st.slider("fk_hops", 0, 2, 1)
+            table_budget = st.slider("table_budget", 4, 20, 12)
+            sort_schema_block = st.checkbox(
+                "sort_schema_block (alphabetical)", value=True
+            )
+            extended_sample_size = st.slider(
+                "extended_sample_size (0 = mixture off)", 0, 8, 0
+            )
 
         st.divider()
         if st.button("Clear chat history"):
@@ -501,7 +556,7 @@ def main() -> None:
                 _replay_assistant_turn(msg)
 
     # --- new question (typed input OR queued sample button click)
-    typed = st.chat_input("Спроси по данным выбранной БД…")
+    typed = st.chat_input("Ask a question about the selected database (EN or RU)…")
     queued = st.session_state.pop("pending_question", None)
     question = queued or typed
     if not question:
@@ -521,6 +576,8 @@ def main() -> None:
         table_budget=table_budget,
         sort_schema_block=sort_schema_block,
         extended_sample_size=extended_sample_size,
+        fewshot_top_k=fewshot_top_k,
+        verify_retry_on_empty=verify_retry_on_empty,
     )
 
     with st.chat_message("assistant"):
@@ -533,6 +590,7 @@ def main() -> None:
                     db_id=db_id,
                     dialect=spec.dialect,
                     disable_repair=False,
+                    verify_retry_on_empty=verify_retry_on_empty,
                 )
             except Exception as exc:
                 st.error(f"Pipeline crashed: {type(exc).__name__}: {exc}")

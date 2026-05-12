@@ -91,15 +91,14 @@ def summarise(report_path: Path) -> dict[str, Any]:
     overall = data.get("overall", {})
     print(f"EA={overall.get('ea', 0):.3f}  first_pass={overall.get('first_pass_ea', 0):.3f}  "
           f"valid={overall.get('validity_rate', 0):.3f}  recall={overall.get('schema_recall_at_k', 0):.3f}")
-    print(f"\n  bucket             n     %   lift_if_solved")
-    print(f"  ----------------- ---  ----  --------------")
-    matches = by_bucket.get("match", 0)
+    print("\n  bucket             n     %   lift_if_solved")
+    print("  ----------------- ---  ----  --------------")
     for bucket, cnt in by_bucket.most_common():
         pct = 100.0 * cnt / n
         lift = 0.0 if bucket == "match" else 100.0 * cnt / n
         print(f"  {bucket:17s} {cnt:3d}  {pct:5.1f}%  +{lift:5.1f}pp")
 
-    print(f"\n  by difficulty:")
+    print("\n  by difficulty:")
     for diff in ("simple", "moderate", "challenging"):
         bd = by_diff_bucket.get(diff)
         if not bd:
@@ -111,7 +110,7 @@ def summarise(report_path: Path) -> dict[str, Any]:
                 f"{k}={v}" for k, v in bd.most_common() if k != "match"
             ))
 
-    print(f"\n  top failure buckets — exemplars:")
+    print("\n  top failure buckets — exemplars:")
     for bucket, _ in [(b, c) for b, c in by_bucket.most_common() if b != "match"][:4]:
         ex = _exemplars(records, bucket, n=2)
         print(f"\n  [{bucket}]")

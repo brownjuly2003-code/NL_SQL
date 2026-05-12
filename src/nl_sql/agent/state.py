@@ -71,6 +71,7 @@ class PipelineState(TypedDict, total=False):
     silent miss (wrong filter value, case mismatch, NULL handling), so a
     second LLM pass with the empty-result signal can recover them. Set
     by `run_config_g`; off everywhere else."""
+    critique_failed: bool
 
     # --- after deterministic_format ------------------------------------
     output_format: OutputFormat | None

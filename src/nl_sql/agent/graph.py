@@ -44,6 +44,7 @@ from nl_sql.agent.nodes import (
     make_explain_trace_node,
     make_format_node,
     make_generate_sql_node,
+    make_grounded_critique_node,
     make_plan_node,
     make_repair_once_node,
     make_validate_node,
@@ -124,6 +125,10 @@ class PipelineConfig:
     where the row-shape commitment delta justifies the extra call.
     Empirically targets the row_count_off + projection_diff failure
     buckets identified by `scripts/error_taxonomy.py`."""
+    enable_grounded_critique: bool = False
+    """When True, run a cheap post-execution row-shape critique before
+    deterministic formatting and route one failed critique to `repair_once`.
+    """
 
 
 @dataclass(slots=True)
@@ -187,6 +192,8 @@ def build_pipeline(config: PipelineConfig) -> CompiledStateGraph[Any, Any, Any, 
             sort_schema_block=config.sort_schema_block,
             temperature=config.sql_temperature,
         )
+    if config.enable_grounded_critique:
+        nodes["grounded_critique"] = make_grounded_critique_node()
     for name, action in nodes.items():
         graph.add_node(name, action)
 
@@ -199,7 +206,11 @@ def build_pipeline(config: PipelineConfig) -> CompiledStateGraph[Any, Any, Any, 
     graph.add_edge("generate_sql", "validate")
     graph.add_conditional_edges("validate", _route_after_validate)
     graph.add_edge("repair_once", "validate")
-    graph.add_conditional_edges("execute", _route_after_execute)
+    if config.enable_grounded_critique:
+        graph.add_conditional_edges("execute", _route_after_execute_with_critique)
+        graph.add_conditional_edges("grounded_critique", _route_after_grounded_critique)
+    else:
+        graph.add_conditional_edges("execute", _route_after_execute)
     graph.add_edge("deterministic_format", "explain_trace")
     graph.add_edge("explain_trace", END)
 
@@ -208,6 +219,8 @@ def build_pipeline(config: PipelineConfig) -> CompiledStateGraph[Any, Any, Any, 
 
 _AfterValidate = Literal["repair_once", "execute", "deterministic_format"]
 _AfterExecute = Literal["repair_once", "deterministic_format"]
+_AfterExecuteWithCritique = Literal["repair_once", "deterministic_format", "grounded_critique"]
+_AfterGroundedCritique = Literal["repair_once", "deterministic_format"]
 
 
 def _route_after_validate(state: PipelineState) -> _AfterValidate:
@@ -234,6 +247,19 @@ def _route_after_execute(state: PipelineState) -> _AfterExecute:
             return "repair_once"
         return "deterministic_format"
     if not state.get("repair_attempted"):
+        return "repair_once"
+    return "deterministic_format"
+
+
+def _route_after_execute_with_critique(state: PipelineState) -> _AfterExecuteWithCritique:
+    outcome = state.get("outcome")
+    if outcome is not None and outcome.ok:
+        return "grounded_critique"
+    return _route_after_execute(state)
+
+
+def _route_after_grounded_critique(state: PipelineState) -> _AfterGroundedCritique:
+    if state.get("critique_failed") and not state.get("repair_attempted"):
         return "repair_once"
     return "deterministic_format"
 

@@ -13,6 +13,7 @@ from nl_sql.agent.nodes.execute import make_execute_node
 from nl_sql.agent.nodes.explain_trace import make_explain_trace_node
 from nl_sql.agent.nodes.format import make_format_node
 from nl_sql.agent.nodes.generate_sql import make_generate_sql_node
+from nl_sql.agent.nodes.grounded_critique import make_grounded_critique_node
 from nl_sql.agent.nodes.plan_query import make_plan_node
 from nl_sql.agent.nodes.repair_once import make_repair_once_node
 from nl_sql.agent.nodes.validate import make_validate_node
@@ -23,6 +24,7 @@ __all__ = [
     "make_explain_trace_node",
     "make_format_node",
     "make_generate_sql_node",
+    "make_grounded_critique_node",
     "make_plan_node",
     "make_repair_once_node",
     "make_validate_node",
