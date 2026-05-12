@@ -1,10 +1,10 @@
 {
   "configuration": "G_hybrid+gpt-oss-vote",
-  "sql_model": "codestral + Sonnet challenging + gpt-oss-120b vote",
+  "sql_model": "codestral + Sonnet challenging + gpt-oss-120b/20b vote",
   "overall": {
-    "ea": 0.62,
+    "ea": 0.645,
     "n": 200,
-    "matched": 124
+    "matched": 129
   },
   "records": [
     {
@@ -105,8 +105,8 @@
       "dialect": "sqlite",
       "question": "Under whose administration is the school with the highest number of students scoring 1500 or more on the SAT? Indicate their full names.",
       "gold_sql": "SELECT T2.AdmFName1, T2.AdmLName1, T2.AdmFName2, T2.AdmLName2, T2.AdmFName3, T2.AdmLName3 FROM satscores AS T1 INNER JOIN schools AS T2 ON T1.cds = T2.CDSCode ORDER BY T1.NumGE1500 DESC LIMIT 1",
-      "pred_sql": "SELECT s.AdmFName1 || ' ' || s.AdmLName1 AS Admin1, s.AdmFName2 || ' ' || s.AdmLName2 AS Admin2, s.AdmFName3 || ' ' || s.AdmLName3 AS Admin3 FROM satscores AS sat INNER JOIN schools AS s ON sat.cds = s.CDSCode WHERE sat.NumGE1500 = (SELECT MAX(NumGE1500) FROM satscores)",
-      "match": false,
+      "pred_sql": "SELECT AdmFName1, AdmLName1, AdmFName2, AdmLName2, AdmFName3, AdmLName3 FROM schools WHERE CDSCode = (SELECT cds FROM satscores ORDER BY NumGE1500 DESC LIMIT 1)",
+      "match": true,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
@@ -126,7 +126,8 @@
       ],
       "pred_row_count": 1,
       "gold_row_count": 1,
-      "comparison_reason": "ordered row 0 mismatch: gold=('Michelle', 'King', None, None, None, None), pred=('Michelle King', None, None)"
+      "comparison_reason": "ordered row 0 mismatch: gold=('Michelle', 'King', None, None, None, None), pred=('Michelle King', None, None)",
+      "voted_by": "gpt-oss-20b"
     },
     {
       "question_id": 37,
@@ -195,8 +196,8 @@
       "dialect": "sqlite",
       "question": "What is the ratio of merged Unified School District schools in Orange County to merged Elementary School District schools?",
       "gold_sql": "SELECT CAST(SUM(CASE WHEN DOC = 54 THEN 1 ELSE 0 END) AS REAL) / SUM(CASE WHEN DOC = 52 THEN 1 ELSE 0 END) FROM schools WHERE StatusType = 'Merged' AND County = 'Orange'",
-      "pred_sql": "SELECT CAST(COUNT(IIF(T1.DOC = '54' AND T1.StatusType = 'Merged', 1, 0)) AS REAL) / NULLIF(COUNT(IIF(T1.DOC = '52' AND T1.StatusType = 'Merged', 1, 0)), 0) FROM schools AS T1 WHERE T1.County = 'Orange'",
-      "match": false,
+      "pred_sql": "SELECT (SELECT COUNT(*) FROM schools WHERE StatusType='Merged' AND County='Orange' AND DOC='54') * 1.0 / (SELECT COUNT(*) FROM schools WHERE StatusType='Merged' AND County='Orange' AND DOC='52') AS ratio",
+      "match": true,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
@@ -215,7 +216,8 @@
       ],
       "pred_row_count": 1,
       "gold_row_count": 1,
-      "comparison_reason": "set mismatch (rows differ ignoring order)"
+      "comparison_reason": "set mismatch (rows differ ignoring order)",
+      "voted_by": "gpt-oss-20b"
     },
     {
       "question_id": 50,
@@ -456,8 +458,8 @@
       "dialect": "sqlite",
       "question": "For loan amount less than USD100,000, what is the percentage of accounts that is still running with no issue.",
       "gold_sql": "SELECT CAST(SUM(status = 'C') AS REAL) * 100 / COUNT(account_id) FROM loan WHERE amount < 100000",
-      "pred_sql": "SELECT CAST(SUM(IIF(amount < 100000 AND status = 'C', 1, 0)) AS REAL) * 100 / COUNT(*) FROM loan",
-      "match": false,
+      "pred_sql": "SELECT CAST(SUM(CASE WHEN status = 'C' THEN 1 ELSE 0 END) AS REAL) * 100 / COUNT(*) FROM loan WHERE amount < 100000",
+      "match": true,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
@@ -480,7 +482,8 @@
       ],
       "pred_row_count": 1,
       "gold_row_count": 1,
-      "comparison_reason": "set mismatch (rows differ ignoring order)"
+      "comparison_reason": "set mismatch (rows differ ignoring order)",
+      "voted_by": "gpt-oss-20b"
     },
     {
       "question_id": 120,
@@ -3335,8 +3338,8 @@
       "dialect": "sqlite",
       "question": "For all the drivers who finished the game in race No. 592, who is the oldest?",
       "gold_sql": "SELECT T1.forename, T1.surname FROM drivers AS T1 INNER JOIN results AS T2 ON T2.driverId = T1.driverId WHERE T2.raceId = 592 AND T2.time IS NOT NULL AND T1.dob IS NOT NULL ORDER BY T1.dob ASC LIMIT 1",
-      "pred_sql": "SELECT forename, surname FROM drivers WHERE driverId IN (SELECT driverId FROM results WHERE raceId = 592 AND time IS NOT NULL) ORDER BY dob DESC LIMIT 1",
-      "match": false,
+      "pred_sql": "SELECT drivers.forename, drivers.surname FROM results JOIN drivers ON results.driverId = drivers.driverId WHERE results.raceId = 592 AND results.time IS NOT NULL ORDER BY drivers.dob ASC LIMIT 1",
+      "match": true,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
@@ -3365,7 +3368,8 @@
       ],
       "pred_row_count": 1,
       "gold_row_count": 1,
-      "comparison_reason": "ordered row 0 mismatch: gold=('Jean-Pierre', 'Beltoise'), pred=('Hans-Joachim', 'Stuck')"
+      "comparison_reason": "ordered row 0 mismatch: gold=('Jean-Pierre', 'Beltoise'), pred=('Hans-Joachim', 'Stuck')",
+      "voted_by": "gpt-oss-20b"
     },
     {
       "question_id": 866,
@@ -3881,8 +3885,8 @@
       "dialect": "sqlite",
       "question": "Which country is the oldest driver from?",
       "gold_sql": "SELECT nationality FROM drivers WHERE dob IS NOT NULL ORDER BY dob ASC LIMIT 1",
-      "pred_sql": "SELECT nationality FROM drivers ORDER BY dob LIMIT 1",
-      "match": false,
+      "pred_sql": "SELECT nationality FROM drivers WHERE dob IS NOT NULL ORDER BY dob ASC LIMIT 1",
+      "match": true,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
@@ -3910,7 +3914,8 @@
       ],
       "pred_row_count": 1,
       "gold_row_count": 1,
-      "comparison_reason": "ordered row 0 mismatch: gold=('French',), pred=('South African',)"
+      "comparison_reason": "ordered row 0 mismatch: gold=('French',), pred=('South African',)",
+      "voted_by": "gpt-oss-20b"
     },
     {
       "question_id": 930,

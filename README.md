@@ -7,9 +7,10 @@ Portfolio demo для Senior Data Engineer / Data Analyst. Принимает в
 **Headline metrics:**
 - **Chinook demo workload (n=60): 100% EA — 60/60.** 30 dev + 30 held-out, balanced split, no overfitting. Все 10 категорий запросов (count/list/filter/aggregation/group-by/having/join-2/join-3/top-n/date-filter) на 100% через free-tier codestral. Это реальный analyst workload, как BI tool в проде.
 - **BIRD Mini-Dev SQLite (n=200, hard research benchmark):**
-  - **Hybrid (codestral free tier + Sonnet 4.6 challenging-tier через Perplexity Pro browser bridge): 57.0% EA.**
-  - Lift trace на n=200: 47% baseline (A_full_schema) → 51% (C_dense_cards) → 55.5% (D_dense_fewshot) → 56.5% (G_verify_retry) → **57.0% hybrid escalation**.
-  - **+9.2pp над GPT-4 zero-shot (47.8%), $0 external cost.**
+  - **Hybrid (codestral + Sonnet challenging + gpt-oss-120b/20b voting on filter_or_value failures): 64.5% EA.**
+  - Lift trace на n=200: 47% baseline (A_full_schema) → 51% (C_dense_cards) → 55.5% (D_dense_fewshot) → 56.5% (G_verify_retry) → 57.0% (Sonnet challenging hybrid) → **64.5% (+ gpt-oss-120b/20b cross-provider voting on filter_or_value failures, 0 regressions)**.
+  - **+16.7pp над GPT-4 zero-shot (47.8%), $0 external cost.**
+  - Per-difficulty: simple 77.6%, moderate 61.6%, challenging 47.1%.
 - **Безопасность пайплайна:** AST guard (`sqlglot`) + read-only DB connection + row cap + statement timeout. DML/DDL/multi-statement/ATTACH/PRAGMA отбрасываются до execution.
 
 **Реалистичный потолок на $0 budget без fine-tuning:** 62–68% на BIRD. Published SOTA (CHESS/Distillery) — 73–76% с GPT-4 API + custom schema linker. Human expert baseline (BIRD paper) — 92.96%. Этот repo живёт в нижней части free-tier sweet spot.
@@ -77,6 +78,7 @@ For the public Streamlit Cloud demo (free, ~5 min setup), see
 | Week 3 hard checkpoint | ≥ 35% | 47% (config A) ✅ |
 | Week 4 baseline | ≥ 35–40% | 51% (config C) ✅ |
 | Week 8+ stretch | ≥ 50% | 57% (hybrid G + Sonnet) ✅ |
+| **Final 2026-05-12 (hybrid + gpt-oss voting)** | — | **64.5%** ✅ |
 | GPT-4 zero-shot reference | — | 47.8% |
 | Published SOTA (paid API + fine-tuning) | — | 73–76% (CHESS) |
 | Human expert baseline (BIRD paper) | — | 92.96% |
