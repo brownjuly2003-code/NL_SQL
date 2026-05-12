@@ -35,14 +35,20 @@ def chat_complete(
         messages.append({"role": "system", "content": req.system})
     messages.append({"role": "user", "content": req.prompt})
 
+    kwargs: dict[str, Any] = {
+        "model": model,
+        "messages": cast("list[Any]", messages),
+        "temperature": req.temperature,
+        "max_tokens": req.max_tokens,
+    }
+    if req.json_mode:
+        # OpenAI-compatible servers (Groq, GitHub Models) accept this; Mistral
+        # ignores or 400s depending on model. Caller controls when to set it.
+        kwargs["response_format"] = {"type": "json_object"}
+
     started = time.perf_counter()
     try:
-        completion = client.chat.completions.create(
-            model=model,
-            messages=cast("list[Any]", messages),
-            temperature=req.temperature,
-            max_tokens=req.max_tokens,
-        )
+        completion = client.chat.completions.create(**kwargs)
     except APIError as exc:
         raise ProviderError(f"chat.completions failed for model={model}: {exc}") from exc
 

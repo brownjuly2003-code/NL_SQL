@@ -18,6 +18,14 @@ class GenerateRequest(BaseModel):
     system: str | None = None
     temperature: float = 0.0
     max_tokens: int = 2048
+    json_mode: bool = False
+    """When True and the provider supports it, ask the API to constrain
+    output to a JSON object (OpenAI/Groq response_format=json_object).
+    Mistral codestral's chat endpoint does NOT support response_format
+    server-side, so we just send the request — the caller still owns
+    parsing. Set ON for Groq/GitHub-Models to dramatically reduce the
+    "model wrapped JSON in prose" failure rate that costs us 60% of
+    valid pred_sql in the n=50 Groq smoke (2026-05-12)."""
 
 
 class GenerateResponse(BaseModel):

@@ -37,4 +37,9 @@ class GroqProvider:
         self._client = OpenAI(api_key=api_key, base_url=base_url)
 
     def generate(self, req: GenerateRequest) -> GenerateResponse:
-        return chat_complete(self._client, self.model, req)
+        # Force json_mode for Groq — the generate_sql / repair_sql / plan
+        # prompts all expect strict JSON output. Without response_format,
+        # Llama 3.3 70B wraps the JSON in prose ~60% of the time on the
+        # full BIRD prompt, defeating the strict parser (2026-05-12 smoke).
+        json_req = req.model_copy(update={"json_mode": True})
+        return chat_complete(self._client, self.model, json_req)
