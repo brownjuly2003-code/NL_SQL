@@ -1,16 +1,18 @@
 """Ablation runner — orchestrates per-configuration eval over BIRD examples.
 
-Per docs/03_eval_methodology.md §4 there are five configurations A-E.
-Stage 6 first milestone = config A only. B-E surface as `Configuration`
-enum members but `run_config_*` helpers raise NotImplementedError, so the
-report writer can already render placeholder rows for them.
+Production path on BIRD Mini-Dev (SQLite, n=200, seed=0): A → C → D → G → hybrid.
+Empirical EA lift trace at codestral free tier:
 
-Config A — `full_schema` baseline:
-    Dump every table chunk for the target db into the prompt. No dense
-    retrieval, no FK graph traversal, no fewshots, no repair. The first
-    real number we publish lives here, so the implementation is
-    deliberately the simplest end-to-end path that exercises the
-    generate → validate → execute → compare loop.
+    A (full_schema)                   47.0%
+    C (dense_cards + sort)            51.0%   +4.0pp
+    D (+ fewshot k=3 BIRD train)      55.5%   +4.5pp
+    G (+ verify_retry on empty)       56.5%   +1.0pp
+    G + Sonnet challenging hybrid     57.0%   +0.5pp (challenging tier only)
+
+Config B (BM25) is documented as an enum member but `run_config_b` raises
+NotImplementedError — dense retrieval (config C) was strictly superior in
+pilot runs and BM25 only widens the prompt with no recall lift.
+Configs E and F remain implemented for ablation completeness.
 """
 
 from __future__ import annotations

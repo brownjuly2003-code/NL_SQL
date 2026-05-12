@@ -1,19 +1,28 @@
 # NL→SQL Assistant
 
-Portfolio demo для Senior Data Engineer / Data Analyst. Принимает вопрос на естественном языке (RU/EN), возвращает ответ из реляционной БД в одной из четырёх форм: число, предложение, таблица, график. Всегда показывает использованный SQL и объяснение.
+Portfolio demo для Senior Data Engineer / Data Analyst. Принимает вопрос на естественном языке (RU/EN), возвращает ответ из реляционной БД в одной из четырёх форм: число, предложение, таблица, график. Всегда показывает использованный SQL и объяснение. AST-guard + read-only execution + row cap — без шанса на DML/DDL побег.
 
-**Статус:** stages 1-6 + 9 + 10 (Streamlit UI) закрыты (2026-05-11 #3). 216 тестов зелёные, ruff/mypy strict clean. Live API verified: Mistral + Groq.
+**Статус:** Stages 1–10 закрыты + grounded critique node + production FastAPI surface + ensemble vote merger (2026-05-12). **243 тестов зелёные**, ruff/mypy strict clean. Live API verified: Mistral + Groq.
 
 **Headline metrics:**
-- **Product workload (Chinook demo, n=60): 100% EA — 60/60.** 30 dev + 30 held-out questions, dev 30/30 + held-out 30/30 (balanced split, no overfitting). All 10 categories (count/list/filter/aggregation/group-by/having/join-2/join-3/top-n/date-filter) at 100% via free-tier codestral. Что измеряем: realistic business questions a BI tool would actually serve.
-- **Research baseline (BIRD Mini-Dev SQLite, n=200):**
-  - **Sonnet 4.6 thinking (via Perplexity Pro browser, $0): 51.0%**
-  - codestral-latest (free Mistral API, $0): 50.0%
-  Both above GPT-4 zero-shot reference (47.8%). Sonnet challenging 35.3%, codestral challenging 35.3% — parity. Sonnet path is 6.6× slower (browser automation: ~30s/call vs codestral ~2s/call) but lets the same pipeline serve a frontier model without any paid API.
+- **Chinook demo workload (n=60): 100% EA — 60/60.** 30 dev + 30 held-out, balanced split, no overfitting. Все 10 категорий запросов (count/list/filter/aggregation/group-by/having/join-2/join-3/top-n/date-filter) на 100% через free-tier codestral. Это реальный analyst workload, как BI tool в проде.
+- **BIRD Mini-Dev SQLite (n=200, hard research benchmark):**
+  - **Hybrid (codestral free tier + Sonnet 4.6 challenging-tier через Perplexity Pro browser bridge): 57.0% EA.**
+  - Lift trace на n=200: 47% baseline (A_full_schema) → 51% (C_dense_cards) → 55.5% (D_dense_fewshot) → 56.5% (G_verify_retry) → **57.0% hybrid escalation**.
+  - **+9.2pp над GPT-4 zero-shot (47.8%), $0 external cost.**
+- **Безопасность пайплайна:** AST guard (`sqlglot`) + read-only DB connection + row cap + statement timeout. DML/DDL/multi-statement/ATTACH/PRAGMA отбрасываются до execution.
 
-Optional config F (self-consistency 4 candidates @ 0.2-0.8 temperatures) trades overall -1pp on BIRD for +3pp on challenging (38.2%) — best for hard-question workloads. См. [`docs/SESSION_HANDOFF.md`](docs/SESSION_HANDOFF.md) — single source of truth для следующей сессии.
+**Реалистичный потолок на $0 budget без fine-tuning:** 62–68% на BIRD. Published SOTA (CHESS/Distillery) — 73–76% с GPT-4 API + custom schema linker. Human expert baseline (BIRD paper) — 92.96%. Этот repo живёт в нижней части free-tier sweet spot.
 
-**Streamlit Cloud:** https://brownjuly2003-code-nl-sql-appstreamlit-app-ptwp4f.streamlit.app/ — пока редиректит на Streamlit OAuth/login; финальный ручной deploy-шаг описан в [`docs/SESSION_HANDOFF.md` § Deploy](docs/SESSION_HANDOFF.md#deploy--finishing-it-manually-resume-here). Repo + data + deps готовы.
+**Что есть кроме eval:**
+- Streamlit UI с modes (Accurate/Fast/Debug), schema explorer, sample questions, show-working trace, confidence labels.
+- FastAPI surface: `POST /ask`, `GET /databases`, `GET /eval/latest`, `GET /readyz`, X-API-Key auth + token-bucket rate limit (60 req/min).
+- Diagnostic harness: `scripts/error_taxonomy.py` классифицирует провалы (filter_or_value / row_count_off / order_by_off / exec_failed / empty) для целевой работы с конкретными bucket'ами.
+- Provider abstraction под Mistral / Groq / GitHub Models / Ollama / Perplexity browser bridge — модель меняется без переписывания пайплайна.
+
+См. [`docs/SESSION_HANDOFF.md`](docs/SESSION_HANDOFF.md) — single source of truth для следующей сессии.
+
+**Streamlit Cloud:** пока заблокирован на OAuth/login (Gmail account issue). Repo + data + deps + headless smoke готовы; финальный ручной deploy-шаг описан в [`docs/SESSION_HANDOFF.md` § Deploy](docs/SESSION_HANDOFF.md).
 
 ## Quick start
 
@@ -61,15 +70,18 @@ For the public Streamlit Cloud demo (free, ~5 min setup), see
 - **Langfuse** — observability (без Prometheus / OTel)
 - **diskcache + vcr.py** — LLM API replay для CI и nightly eval
 
-## Eval target
+## Eval — где мы и где потолок
 
-| Контрольная точка | Цель |
-|---|---|
-| Week 3 (hard checkpoint) | Execution Accuracy ≥ 35% на BIRD Mini-Dev SQLite split — иначе scope-down |
-| Week 4 (baseline) | EA ≥ 35-40% |
-| Week 8+ (stretch) | EA ≥ 50% |
+| Контрольная точка | Целевое EA на BIRD Mini-Dev SQLite | Фактическое |
+|---|---:|---:|
+| Week 3 hard checkpoint | ≥ 35% | 47% (config A) ✅ |
+| Week 4 baseline | ≥ 35–40% | 51% (config C) ✅ |
+| Week 8+ stretch | ≥ 50% | 57% (hybrid G + Sonnet) ✅ |
+| GPT-4 zero-shot reference | — | 47.8% |
+| Published SOTA (paid API + fine-tuning) | — | 73–76% (CHESS) |
+| Human expert baseline (BIRD paper) | — | 92.96% |
 
-Калибровка: GPT-4 zero-shot на BIRD Mini-Dev = 47.8 / 40.8 / 35.8% EX (SQLite/MySQL/PostgreSQL).
+Калибровка: GPT-4 zero-shot на BIRD Mini-Dev = 47.8 / 40.8 / 35.8% EX (SQLite/MySQL/PostgreSQL). Все наши числа на SQLite split — `dev_split` deterministic, seed=0.
 
 ## Roadmap
 

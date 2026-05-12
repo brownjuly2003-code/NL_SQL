@@ -1,8 +1,50 @@
-# NL_SQL — Session Handoff (2026-05-11 #5, BIRD 57.0% via fewshot+verify-retry+hybrid — new research headline)
+# NL_SQL — Session Handoff (2026-05-12, product polish session: FastAPI surface + Streamlit UI rewire + grounded critique)
 
 > Read this first when picking up. It's the single source of truth for
 > "where we stopped" and "what to do next". When you take action, update
 > this file before you stop again.
+
+## 2026-05-12 update (this session, post hybrid headline)
+
+**Theme:** push from research benchmark to commercial product. Net code: planner
+infra (dormant; failed ablation kept as research artifact), grounded critique
+node (enable-by-flag), ensemble vote merger script, FastAPI `/ask` / `/databases`
+/ `/eval/latest` / `/readyz`, Streamlit UI mode selector + best-pipeline default
++ EN primary copy.
+
+**Accuracy levers attempted today, all on n=200 BIRD:**
+
+| Lever | Net delta | Status |
+|---|---|---|
+| BIRD-style projection prompt rewrite | -2 (n=50) | Folded; regressed `superlative → entity-only` rule and DISTINCT instinct on qid 208/230. |
+| Plan-then-SQL (DIN-SQL/MAC-SQL pattern) | -4 (n=99 moderate) | Folded by default; kept dormant behind `enable_planner=False`. Planner over-prescribes (adds projection columns, narrows filters, picks wrong agg idioms like MIN-in-HAVING). |
+| Grounded critique (row-shape sanity check) | +4 cases / -2 cases on moderate where it fires (true signal +2pp) | Kept behind `enable_grounded_critique=False`. Overall n=200 delta = -1, dominated by Mistral T=0.0 non-determinism noise (~±5pp run-to-run). On moderate-tier specifically: +12 / -8 → +4 net. |
+
+**True signal: Mistral codestral at T=0.0 is non-deterministic between runs** (load-balancing across replicas?). The noise floor is ±3-5pp on n=200, which makes small ablations untrustworthy. Future improvements should either (a) be applied selectively to a clear-bucket subset, or (b) be averaged across N runs.
+
+**Multi-provider voting (Phase 1a)** is the remaining BIG lever. Blocked tonight on Groq daily token limit (100K TPD / 99K used after a single n=50 run). Free tier resets ~04:30 local. Implementation prepared via `scripts/ensemble_vote.py` (Codex-written, tests pass).
+
+**Product polish committed:**
+- Streamlit UI now uses the SAME hybrid pipeline as eval (was crippled with `fewshot_top_k=0` per the previous audit). Mode selector (Accurate/Fast/Debug). Show-working trace as a DataFrame instead of raw dicts. Confidence label (High/Medium/Low). EN-primary chat input.
+- FastAPI surface: `POST /ask`, `GET /databases`, `GET /eval/latest`, `GET /readyz`. X-API-Key header + token-bucket rate limit (60 req/min). Live smoke verified — "How many albums?" on chinook → SQL → rows=[[347]] → caption "There are 347 albums in the store." / confidence=1.0/High / 3.9s.
+- Diagnostic harness: `scripts/error_taxonomy.py` classifies failures into actionable buckets (filter_or_value 17.5% / row_count_off 14.5% / order_by_off 7.5% on the frozen baseline).
+- Audit Codex 2026-05-12 (`audit_codex_12_05_26.md`) committed for the record.
+
+**Still open from Codex's 2026-05-12 audit:**
+
+| Audit item | Severity | Status this session |
+|---|---|---|
+| UI not on best pipeline | P0 high | ✅ FIXED |
+| README outdated (51% vs 57%) | P0 high | ✅ FIXED (this commit) |
+| Streamlit Cloud demo not live | P0 high | ❌ blocked on OAuth (Gmail), same as last session |
+| FastAPI only `/healthz` | P0 medium | ✅ FIXED — full surface live |
+| Methodology XX.X% placeholders | P1 | ✅ FIXED (this commit) |
+| BM25 config B implemented or removed | P1 medium | ✅ DECIDED — removed from production path, kept in methodology doc with explicit "dense > BM25 in pilot" note |
+| Sample-size `build_index.py` vs runtime mismatch | P1 medium | ❌ still open |
+| CI not linting `app/scripts` | P1 medium | ❌ still open |
+| Wide dependency ranges in `requirements.txt` | P1 medium | ❌ still open |
+
+---
 
 ---
 

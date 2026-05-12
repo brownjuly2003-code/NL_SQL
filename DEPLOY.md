@@ -28,7 +28,7 @@ The three excluded DBs are gitignored. The registry in
 disk, so the deployed UI's database selector only lists the 9
 shipped databases.
 
-`chroma_data/` is also committed (~3 MB) so the app doesn't have
+`chroma_data/` is also committed (~58 MB) so the app doesn't have
 to re-embed the schema chunks on first cold start. Orphan chunks
 for the three excluded DBs are harmless — the registry never
 asks for them.
