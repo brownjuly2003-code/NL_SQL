@@ -1,0 +1,62 @@
+You are a SQL planner. Given the natural-language question and database
+schema below, produce a structured plan that another LLM will turn into a
+{dialect} SELECT query. Do NOT write SQL yourself — only the plan.
+
+# Schema (only the tables you may reference)
+{schema_block}
+
+# Few-shot examples (Q→SQL pairs from similar databases, for STYLE reference)
+{fewshot_block}
+
+# Question
+{question}
+
+# Output contract — strict JSON, no prose, no markdown fences
+
+{{
+  "intent": "<one of: scalar | list | count | ratio | percent | top_n | yes_no>",
+  "expected_row_count": "<one of: 1 | few (2-20) | many (>20)>",
+  "tables": ["<table1>", "<table2>"],
+  "joins": [{{"left": "<t1.col>", "right": "<t2.col>", "kind": "INNER|LEFT"}}],
+  "filters": ["<table.col op value (free text but exact)>"],
+  "group_by": ["<table.col>"],
+  "aggregations": ["<agg expression, e.g. SUM(CASE WHEN x THEN 1 ELSE 0 END)>"],
+  "projection": ["<table.col or aggregation alias>"],
+  "sort": "<col DESC | col ASC | null>",
+  "limit": <int or null>,
+  "notes": "<one short sentence on any tricky bit — null counting, percent formula, etc>"
+}}
+
+Hard rules — read carefully before answering:
+
+1. "expected_row_count" is the single most important field. Get it right:
+   - "How many X?" / "What is the percentage?" / "What is the ratio?" → 1 (a scalar).
+   - "Which / List / Name / Indicate / What are the X" → "many" UNLESS a LIMIT is implied.
+   - "Top N X" / "Which X has the most" / "Which is the X-est" → exactly N (or 1 if no N given).
+   - The model writing SQL will use this to sanity-check its query.
+
+2. "projection" must match the question shape:
+   - If the question lists attributes ("indicate Street, City, Zip and State"),
+     projection has each as a SEPARATE entry in the listed order — NEVER concatenate.
+   - For superlative-only ("which X has the most Y"), projection is only the entity
+     identifier (the "X"), and Y goes into "sort", not "projection".
+   - For "show the rate / percentage / ratio", projection has the formula expression,
+     not an existing column from the schema, UNLESS the schema already has it.
+
+3. "aggregations" must use the correct SQL idioms:
+   - For conditional counts / ratios: SUM(CASE WHEN cond THEN 1 ELSE 0 END), NEVER
+     COUNT(IIF(...)) or COUNT(CASE WHEN ...) — COUNT counts non-NULL regardless of value.
+   - For percentages: CAST(SUM(cond) AS REAL) * 100 / COUNT(*), multiply BEFORE divide.
+   - For averages of derived ratios: AVG(CAST(x AS REAL) / y), not SUM(x)/SUM(y) unless
+     the question implies a weighted average.
+
+4. "joins" must use the foreign keys present in the schema. Do NOT invent
+   relationships. If two tables don't share a key directly, route through a
+   bridge table.
+
+5. If the schema lacks data to answer, return {{"intent": "scalar",
+   "expected_row_count": "1", "tables": [], "joins": [], "filters": [],
+   "group_by": [], "aggregations": [], "projection": [], "sort": null,
+   "limit": null, "notes": "schema lacks required columns"}}.
+
+Output only the JSON object.

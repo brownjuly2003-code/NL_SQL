@@ -48,6 +48,11 @@ class PipelineState(TypedDict, total=False):
     # --- after context_builder -----------------------------------------
     context: ContextBundle | None
 
+    # --- after plan_query (optional, only when enable_planner=True) ----
+    plan: str
+    """Structured plan (raw JSON text) produced by `plan_query` before
+    SQL generation. Empty when the planner stage is disabled."""
+
     # --- after generate_sql --------------------------------------------
     generated: GenerateSQLOutput | None
 

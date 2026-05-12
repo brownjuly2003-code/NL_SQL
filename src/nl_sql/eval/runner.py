@@ -541,6 +541,7 @@ def _run_one_config_a(
             dialect=example.dialect,
             schema_block=render_schema_block(bundle),
             fewshot_block=render_fewshot_block(bundle),
+            plan_block="(no plan — generate SQL directly from question)",
             question=_compose_question(example),
         )
         response = sql_provider.generate(

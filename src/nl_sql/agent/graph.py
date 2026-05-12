@@ -44,6 +44,7 @@ from nl_sql.agent.nodes import (
     make_explain_trace_node,
     make_format_node,
     make_generate_sql_node,
+    make_plan_node,
     make_repair_once_node,
     make_validate_node,
 )
@@ -113,6 +114,16 @@ class PipelineConfig:
     missing, NULL handling); a second pass with the empty-result hint
     can recover them. Subject to the standard `repair_attempted` guard —
     one extra LLM call per question, capped. Set ON by `run_config_g`."""
+    enable_planner: bool = False
+    """When True, insert a `plan_query` node before `generate_sql`. The
+    planner emits a structured JSON skeleton (intent / expected_row_count
+    / tables / joins / filters / group_by / aggregations / projection /
+    sort / limit) which `generate_sql` and `repair_once` then condition
+    on via the {{plan_block}} prompt slot. Doubles per-question LLM cost
+    on cache miss; intended for moderate/challenging-tier difficulty
+    where the row-shape commitment delta justifies the extra call.
+    Empirically targets the row_count_off + projection_diff failure
+    buckets identified by `scripts/error_taxonomy.py`."""
 
 
 @dataclass(slots=True)
@@ -170,11 +181,21 @@ def build_pipeline(config: PipelineConfig) -> CompiledStateGraph[Any, Any, Any, 
         "deterministic_format": make_format_node(),
         "explain_trace": make_explain_trace_node(config.explain_provider),
     }
+    if config.enable_planner:
+        nodes["plan_query"] = make_plan_node(
+            config.sql_provider,
+            sort_schema_block=config.sort_schema_block,
+            temperature=config.sql_temperature,
+        )
     for name, action in nodes.items():
         graph.add_node(name, action)
 
     graph.add_edge(START, "context_builder")
-    graph.add_edge("context_builder", "generate_sql")
+    if config.enable_planner:
+        graph.add_edge("context_builder", "plan_query")
+        graph.add_edge("plan_query", "generate_sql")
+    else:
+        graph.add_edge("context_builder", "generate_sql")
     graph.add_edge("generate_sql", "validate")
     graph.add_conditional_edges("validate", _route_after_validate)
     graph.add_edge("repair_once", "validate")

@@ -34,6 +34,8 @@ def make_repair_once_node(
         dialect = state.get("dialect", "sqlite")
         context = state.get("context")
 
+        plan_raw = (state.get("plan") or "").strip()
+        plan_block = plan_raw if plan_raw else "(no plan — repair SQL directly)"
         prompt = load_prompt(
             "repair_sql",
             dialect=dialect,
@@ -41,6 +43,7 @@ def make_repair_once_node(
             question=question,
             previous_sql=previous_sql,
             error_context=error_context,
+            plan_block=plan_block,
         )
         response = provider.generate(
             GenerateRequest(prompt=prompt, max_tokens=max_tokens, temperature=temperature)
