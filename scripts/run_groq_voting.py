@@ -46,17 +46,41 @@ _RE_AGG = re.compile(r"\b(sum|avg|count|min|max|cast)\s*\(", re.IGNORECASE)
 
 
 def _is_filter_or_value(r: dict) -> bool:
-    """Classify a baseline record as the 'filter_or_value' bucket.
-
-    Same row count, both ran, no execution error, value mismatch.
-    """
-    if r.get("match"):
-        return False
-    if r.get("error_kind"):
+    """Same row count, both ran, no execution error, value mismatch."""
+    if r.get("match") or r.get("error_kind"):
         return False
     gc = r.get("gold_row_count") or 0
     pc = r.get("pred_row_count") or 0
     return gc == pc and gc > 0
+
+
+def _is_row_count_off(r: dict) -> bool:
+    """Both queries ran, row counts differ — wrong WHERE / GROUP BY / JOIN."""
+    if r.get("match") or r.get("error_kind"):
+        return False
+    gc = r.get("gold_row_count") or 0
+    pc = r.get("pred_row_count") or 0
+    return gc != pc
+
+
+def _is_order_by_off(r: dict) -> bool:
+    """Same row count, but ordered-row mismatch — different sort or top item."""
+    if r.get("match") or r.get("error_kind"):
+        return False
+    gc = r.get("gold_row_count") or 0
+    pc = r.get("pred_row_count") or 0
+    if gc != pc:
+        return False
+    reason = (r.get("comparison_reason") or "").lower()
+    return reason.startswith("ordered row")
+
+
+_BUCKETS = {
+    "filter_or_value": _is_filter_or_value,
+    "row_count_off": _is_row_count_off,
+    "order_by_off": _is_order_by_off,
+    "any_failure": lambda r: not r.get("match"),
+}
 
 
 def main() -> int:
@@ -64,7 +88,9 @@ def main() -> int:
     p.add_argument("--baseline", type=Path, required=True)
     p.add_argument("--provider-model", required=True, help="Groq model id (e.g. qwen/qwen3-32b)")
     p.add_argument("--max-cases", type=int, default=20)
+    p.add_argument("--bucket", default="filter_or_value", choices=list(_BUCKETS.keys()))
     p.add_argument("--difficulty", default=None, choices=["simple", "moderate", "challenging"])
+    p.add_argument("--skip-qids", default="", help="comma-separated qids to skip (already covered by prior runs)")
     p.add_argument("--bird-root", default="data/bird_mini_dev/MINIDEV")
     p.add_argument("--out", type=Path, required=True)
     args = p.parse_args()
@@ -73,12 +99,18 @@ def main() -> int:
     examples = {e.question_id: e for e in load_bird_mini_dev(Path(args.bird_root))}
     baseline = json.loads(args.baseline.read_text(encoding="utf-8"))["records"]
 
-    # Pick failing filter_or_value cases (optionally filter difficulty).
-    candidates = [r for r in baseline if _is_filter_or_value(r)]
+    # Pick failing cases of the requested bucket (optionally filter difficulty).
+    bucket_fn = _BUCKETS[args.bucket]
+    skip = {int(x) for x in args.skip_qids.split(",") if x.strip()}
+    candidates = [r for r in baseline if bucket_fn(r) and r["question_id"] not in skip]
     if args.difficulty:
         candidates = [r for r in candidates if r["difficulty"] == args.difficulty]
     candidates = candidates[: args.max_cases]
-    print(f"[info] picked {len(candidates)} filter_or_value cases", file=sys.stderr)
+    print(
+        f"[info] picked {len(candidates)} {args.bucket} cases "
+        f"(skipped {len(skip)} qids)",
+        file=sys.stderr,
+    )
 
     # Pipeline with the Groq alt model. We override the codestral-cached
     # provider with a fresh Groq client at the chosen model id.

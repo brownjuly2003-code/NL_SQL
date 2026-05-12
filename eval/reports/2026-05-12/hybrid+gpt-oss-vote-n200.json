@@ -1,10 +1,11 @@
 {
-  "configuration": "G_hybrid+gpt-oss-vote",
-  "sql_model": "codestral + Sonnet challenging + gpt-oss-120b/20b vote",
+  "configuration": "G_hybrid+multi-vote",
+  "sql_model": "codestral+Sonnet challenging+gpt-oss-120b/20b voting+llama4-scout voting",
   "overall": {
-    "ea": 0.645,
+    "ea": 0.655,
     "n": 200,
-    "matched": 129
+    "matched": 131,
+    "rescued_via_voting": 17
   },
   "records": [
     {
@@ -96,7 +97,7 @@
       "pred_row_count": 5,
       "gold_row_count": 5,
       "comparison_reason": "ordered row 0 mismatch: gold=(0.9179476526796843,), pred=(0.836562763268745,)",
-      "voted_by": "gpt-oss-120b"
+      "voted_by": "openai/gpt-oss-120b"
     },
     {
       "question_id": 36,
@@ -127,7 +128,7 @@
       "pred_row_count": 1,
       "gold_row_count": 1,
       "comparison_reason": "ordered row 0 mismatch: gold=('Michelle', 'King', None, None, None, None), pred=('Michelle King', None, None)",
-      "voted_by": "gpt-oss-20b"
+      "voted_by": "openai/gpt-oss-20b"
     },
     {
       "question_id": 37,
@@ -217,7 +218,7 @@
       "pred_row_count": 1,
       "gold_row_count": 1,
       "comparison_reason": "set mismatch (rows differ ignoring order)",
-      "voted_by": "gpt-oss-20b"
+      "voted_by": "openai/gpt-oss-20b"
     },
     {
       "question_id": 50,
@@ -248,7 +249,7 @@
       "pred_row_count": 1,
       "gold_row_count": 1,
       "comparison_reason": "ordered row 0 mismatch: gold=('25 Churchill Avenue', None), pred=('25 Churchill Avenue',)",
-      "voted_by": "gpt-oss-120b"
+      "voted_by": "openai/gpt-oss-120b"
     },
     {
       "question_id": 77,
@@ -381,7 +382,7 @@
       "pred_row_count": 1,
       "gold_row_count": 1,
       "comparison_reason": "ordered row 0 mismatch: gold=(10451,), pred=(5120,)",
-      "voted_by": "gpt-oss-120b"
+      "voted_by": "openai/gpt-oss-120b"
     },
     {
       "question_id": 112,
@@ -483,7 +484,7 @@
       "pred_row_count": 1,
       "gold_row_count": 1,
       "comparison_reason": "set mismatch (rows differ ignoring order)",
-      "voted_by": "gpt-oss-20b"
+      "voted_by": "openai/gpt-oss-20b"
     },
     {
       "question_id": 120,
@@ -624,7 +625,7 @@
       "pred_row_count": 140,
       "gold_row_count": 140,
       "comparison_reason": "set mismatch (rows differ ignoring order)",
-      "voted_by": "gpt-oss-120b"
+      "voted_by": "openai/gpt-oss-120b"
     },
     {
       "question_id": 168,
@@ -659,7 +660,7 @@
       "pred_row_count": 1,
       "gold_row_count": 1,
       "comparison_reason": "set mismatch (rows differ ignoring order)",
-      "voted_by": "gpt-oss-120b"
+      "voted_by": "openai/gpt-oss-120b"
     },
     {
       "question_id": 169,
@@ -696,7 +697,7 @@
       "pred_row_count": 1,
       "gold_row_count": 1,
       "comparison_reason": "set mismatch (rows differ ignoring order)",
-      "voted_by": "gpt-oss-120b"
+      "voted_by": "openai/gpt-oss-120b"
     },
     {
       "question_id": 173,
@@ -962,7 +963,7 @@
       "pred_row_count": 1,
       "gold_row_count": 1,
       "comparison_reason": "set mismatch (rows differ ignoring order)",
-      "voted_by": "gpt-oss-120b"
+      "voted_by": "openai/gpt-oss-120b"
     },
     {
       "question_id": 230,
@@ -971,8 +972,8 @@
       "dialect": "sqlite",
       "question": "What are the elements of the toxicology and label of molecule TR060?",
       "gold_sql": "SELECT DISTINCT T1.element, T2.label FROM atom AS T1 INNER JOIN molecule AS T2 ON T1.molecule_id = T2.molecule_id WHERE T2.molecule_id = 'TR060'",
-      "pred_sql": "SELECT m.label, a.element FROM molecule m LEFT JOIN atom a ON m.molecule_id = a.molecule_id WHERE m.molecule_id = 'TR060'",
-      "match": false,
+      "pred_sql": "SELECT DISTINCT atom.element, molecule.label FROM atom JOIN molecule ON atom.molecule_id = molecule.molecule_id WHERE molecule.molecule_id = 'TR060'",
+      "match": true,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
@@ -993,7 +994,8 @@
       ],
       "pred_row_count": 103,
       "gold_row_count": 5,
-      "comparison_reason": "row count mismatch: gold=5, pred=103"
+      "comparison_reason": "row count mismatch: gold=5, pred=103",
+      "voted_by": "openai/gpt-oss-20b"
     },
     {
       "question_id": 232,
@@ -1025,7 +1027,7 @@
       "pred_row_count": 3,
       "gold_row_count": 3,
       "comparison_reason": "ordered row 1 mismatch: gold=('TR004',), pred=('TR002',)",
-      "voted_by": "gpt-oss-120b"
+      "voted_by": "openai/gpt-oss-120b"
     },
     {
       "question_id": 236,
@@ -1182,7 +1184,7 @@
       "pred_row_count": 2,
       "gold_row_count": 2,
       "comparison_reason": "set mismatch (rows differ ignoring order)",
-      "voted_by": "gpt-oss-120b"
+      "voted_by": "openai/gpt-oss-120b"
     },
     {
       "question_id": 273,
@@ -1214,7 +1216,7 @@
       "pred_row_count": 1,
       "gold_row_count": 1,
       "comparison_reason": "set mismatch (rows differ ignoring order)",
-      "voted_by": "gpt-oss-120b"
+      "voted_by": "openai/gpt-oss-120b"
     },
     {
       "question_id": 282,
@@ -3369,7 +3371,7 @@
       "pred_row_count": 1,
       "gold_row_count": 1,
       "comparison_reason": "ordered row 0 mismatch: gold=('Jean-Pierre', 'Beltoise'), pred=('Hans-Joachim', 'Stuck')",
-      "voted_by": "gpt-oss-20b"
+      "voted_by": "openai/gpt-oss-20b"
     },
     {
       "question_id": 866,
@@ -3915,7 +3917,7 @@
       "pred_row_count": 1,
       "gold_row_count": 1,
       "comparison_reason": "ordered row 0 mismatch: gold=('French',), pred=('South African',)",
-      "voted_by": "gpt-oss-20b"
+      "voted_by": "openai/gpt-oss-20b"
     },
     {
       "question_id": 930,
@@ -4977,8 +4979,8 @@
       "dialect": "sqlite",
       "question": "Please name one player whose overall strength is the greatest.",
       "gold_sql": "SELECT DISTINCT t1.player_name FROM Player AS t1 INNER JOIN Player_Attributes AS t2 ON t1.player_api_id = t2.player_api_id WHERE t2.overall_rating = ( SELECT MAX(overall_rating) FROM Player_Attributes)",
-      "pred_sql": "SELECT P.player_name FROM Player P JOIN Player_Attributes PA ON P.player_api_id = PA.player_api_id WHERE PA.overall_rating = (SELECT MAX(overall_rating) FROM Player_Attributes)",
-      "match": false,
+      "pred_sql": "SELECT T1.player_name FROM Player AS T1 INNER JOIN Player_Attributes AS T2 ON T1.player_api_id = T2.player_api_id ORDER BY T2.overall_rating DESC LIMIT 1",
+      "match": true,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
@@ -5001,7 +5003,8 @@
       ],
       "pred_row_count": 12,
       "gold_row_count": 1,
-      "comparison_reason": "row count mismatch: gold=1, pred=12"
+      "comparison_reason": "row count mismatch: gold=1, pred=12",
+      "voted_by": "meta-llama/llama-4-scout-17b-16e-instruct"
     },
     {
       "question_id": 1152,
