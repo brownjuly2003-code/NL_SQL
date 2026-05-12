@@ -1,16 +1,15 @@
 [theme]
-# Calm engineering palette — replaces Streamlit's default red.
-# Indigo accent is recognisable on a portfolio video without being playful.
-primaryColor = "#4f46e5"
-backgroundColor = "#ffffff"
-secondaryBackgroundColor = "#f5f5f7"
-textColor = "#0f172a"
+# Monochrome editorial palette — ink on warm paper, single restrained accent.
+# No color drama: hierarchy comes from typography, weight, and whitespace.
+primaryColor = "#111111"
+backgroundColor = "#FAFAF7"
+secondaryBackgroundColor = "#F1EFE9"
+textColor = "#111111"
 font = "sans serif"
 
 [server]
-# Stable port for portfolio video / link sharing. Override on the CLI
-# when needed (e.g. while another local service is on 8501).
 port = 8501
+enableStaticServing = true
 
 [browser]
 gatherUsageStats = false

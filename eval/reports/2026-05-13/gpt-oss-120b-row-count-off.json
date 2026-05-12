@@ -1,0 +1,44 @@
+{
+  "alt_model": "openai/gpt-oss-120b",
+  "summary": {
+    "voted_better": 0,
+    "voted_worse": 0,
+    "voted_same": 2,
+    "groq_input_tokens": 8032,
+    "groq_output_tokens": 1849
+  },
+  "records": [
+    {
+      "question_id": 25,
+      "db_id": "california_schools",
+      "difficulty": "moderate",
+      "question": "Name schools in Riverside which the average of average math score for SAT is grater than 400, what is the funding type of these schools?",
+      "gold_sql": "SELECT T1.sname, T2.`Charter Funding Type` FROM satscores AS T1 INNER JOIN frpm AS T2 ON T1.cds = T2.CDSCode WHERE T2.`District Name` LIKE 'Riverside%' GROUP BY T1.sname, T2.`Charter Funding Type` HAVING CAST(SUM(T1.AvgScrMath) AS REAL) / COUNT(T1.cds) > 400",
+      "baseline_pred": "SELECT s.FundingType FROM schools AS s JOIN satscores AS t ON s.CDSCode = t.cds WHERE s.City = 'Riverside' AND t.AvgScrMath > 400 GROUP BY s.FundingType HAVING AVG(t.AvgScrMath) > 400",
+      "alt_pred": "SELECT s.School, s.FundingType FROM schools s JOIN satscores ss ON s.CDSCode = ss.cds WHERE s.County = 'Riverside' GROUP BY s.CDSCode, s.School, s.FundingType HAVING AVG(ss.AvgScrMath) > 400",
+      "alt_confidence": 0.97,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "alt-pick",
+      "agree": false,
+      "elapsed_ms": 5444.815800001379
+    },
+    {
+      "question_id": 207,
+      "db_id": "toxicology",
+      "difficulty": "challenging",
+      "question": "What elements are in a double type bond?",
+      "gold_sql": "SELECT DISTINCT T1.element FROM atom AS T1 INNER JOIN bond AS T2 ON T1.molecule_id = T2.molecule_id INNER JOIN connected AS T3 ON T1.atom_id = T3.atom_id WHERE T2.bond_type = '='",
+      "baseline_pred": "SELECT DISTINCT a.element FROM atom a JOIN bond b ON a.molecule_id = b.molecule_id JOIN connected c ON b.bond_id = c.bond_id WHERE b.bond_type = '='",
+      "alt_pred": "SELECT DISTINCT element FROM atom WHERE atom_id IN (SELECT atom_id FROM connected c JOIN bond b ON c.bond_id = b.bond_id WHERE b.bond_type = '=' UNION SELECT atom_id2 FROM connected c JOIN bond b ON c.bond_id = b.bond_id WHERE b.bond_type = '=')",
+      "alt_confidence": 0.99,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "alt-pick",
+      "agree": false,
+      "elapsed_ms": 29904.941699998744
+    }
+  ]
+}

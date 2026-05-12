@@ -1,14 +1,17 @@
-"""Streamlit UI for the NL→SQL assistant — Stage 10 of the v2 roadmap.
+"""Streamlit UI for the NL→SQL assistant.
 
-Lean by design (per docs/02_architecture_v2.md §8): chat input, DB switcher,
-the four output formats (scalar / sentence / table / chart), and a "show
-working" expander with the retrieved tables, rationale, latency, tokens,
-and model. History lives in `st.session_state` (Streamlit's localStorage
-equivalent for v1 demo).
+Editorial monochrome surface: ink-on-paper background, typography-led
+hierarchy, two custom faces (Stetica sans for chrome, TT Norms Pro Serif
+for display). Bilingual: EN/RU toggle in the sidebar (chrome only — data
+questions stay in their natural language; the pipeline accepts both).
 
 Run with:
     uv run streamlit run app/streamlit_app.py
 """
+
+# Bilingual UI mixes Cyrillic and Latin in `I18N["ru"]` — silence the
+# ambiguous-glyph lint at module scope.
+# ruff: noqa: RUF001
 
 from __future__ import annotations
 
@@ -40,18 +43,154 @@ from nl_sql.render.formats import (
 )
 from nl_sql.schema_index.indexer import SchemaIndex
 
+# --------------------------------------------------------- i18n
+# Chrome-level strings only. Sample questions stay in their natural
+# language — the pipeline handles EN + RU both, the toggle only flips
+# the surrounding UI copy.
+
+I18N: dict[str, dict[str, str]] = {
+    "en": {
+        "page_title": "NL → SQL",
+        "tagline": "Natural language in. SQL out. Answer rendered in whichever shape fits the question.",
+        "lang_label": "Language",
+        "lang_en": "EN",
+        "lang_ru": "RU",
+        "metric_kicker": "Chinook business workload",
+        "metric_value": "60 / 60 correct",
+        "metric_percent": "100%",
+        "metric_caption": "30 dev + 30 held-out, balanced split, all ten query categories at 100% on the free-tier codestral pipeline.",
+        "research_kicker": "BIRD Mini-Dev research benchmark",
+        "research_value": "77.0% / 200",
+        "research_caption": "Hybrid pipeline: codestral + Sonnet on challenging tier + cross-provider voting + grounded-critique directed retry + Sonnet 4.6 bridge on the remaining fails. +29.2pp over the GPT-4 zero-shot reference (47.8%), $0 external cost.",
+        "settings_header": "Settings",
+        "db_label": "Database",
+        "db_dialect": "Dialect",
+        "db_source": "Source",
+        "schema_explorer_collapsed": "Schema · {n} tables",
+        "schema_explorer_empty": "Schema index empty for this database. Run scripts/build_index.py.",
+        "schema_explorer_caption": "The same chunks the retriever sees — table cards with columns, types, null and distinct stats, sample values, and foreign keys.",
+        "mode_header": "Mode",
+        "mode_accurate": "Accurate",
+        "mode_fast": "Fast",
+        "mode_debug": "Debug",
+        "mode_accurate_caption": "fewshot + verify-retry — best EA",
+        "mode_fast_caption": "no fewshot — fastest, slight EA loss",
+        "mode_debug_caption": "Accurate + raw trace in show-working",
+        "advanced_header": "Advanced retrieval",
+        "schema_top_k": "schema_top_k",
+        "fk_hops": "fk_hops",
+        "table_budget": "table_budget",
+        "sort_schema": "sort schema block (alphabetical)",
+        "sample_size": "extended sample size",
+        "clear_chat": "Clear chat",
+        "ask_placeholder": "Ask a question about this database (EN or RU)…",
+        "ask_intro_label": "Try one of these to start",
+        "diff_simple": "simple",
+        "diff_moderate": "moderate",
+        "diff_challenging": "challenging",
+        "no_samples": "No sample questions curated for this database yet — type your own below.",
+        "spinner_generating": "Generating SQL and executing…",
+        "pipeline_crashed": "Pipeline crashed: {kind}: {msg}",
+        "sql_label": "SQL",
+        "no_sql": "Pipeline produced no SQL.",
+        "wall_model": "{wall:.0f} ms · {model}",
+        "show_working": "Show working — pipeline trace, SQL, metadata",
+        "trace_header": "Pipeline trace",
+        "meta_header": "Metadata",
+        "shape_header": "Result shape",
+        "confidence_label": "Confidence",
+        "repair_attempted": "Repair attempted",
+        "db_field": "Database",
+        "rows_returned": "Rows returned",
+        "columns_field": "Columns",
+        "no_rows": "No result rows.",
+        "rationale_header": "Rationale",
+        "error_kind": "Error",
+        "no_output_warning": "No output format produced.",
+        "conf_high": "High",
+        "conf_med": "Medium",
+        "conf_low": "Low",
+        "conf_unknown": "Unknown",
+    },
+    "ru": {
+        "page_title": "NL → SQL",
+        "tagline": "На входе — естественный язык. На выходе — SQL и ответ в форме, которая подходит вопросу.",
+        "lang_label": "Язык",
+        "lang_en": "EN",
+        "lang_ru": "RU",
+        "metric_kicker": "Бизнес-нагрузка Chinook",
+        "metric_value": "60 из 60",
+        "metric_percent": "100%",
+        "metric_caption": "30 dev + 30 held-out, сбалансированный сплит, все десять категорий запросов на 100% через бесплатный codestral.",
+        "research_kicker": "Исследовательский бенчмарк BIRD Mini-Dev",
+        "research_value": "77.0% / 200",
+        "research_caption": "Гибрид: codestral + Sonnet на challenging-тире + кросс-провайдер voting + grounded-critique directed retry + Sonnet 4.6 bridge на оставшихся фейлах. +29.2 п.п. над zero-shot GPT-4 (47.8%), внешние расходы — ноль.",
+        "settings_header": "Настройки",
+        "db_label": "База данных",
+        "db_dialect": "Диалект",
+        "db_source": "Источник",
+        "schema_explorer_collapsed": "Схема · {n} таблиц",
+        "schema_explorer_empty": "Индекс схемы пуст для этой БД. Запусти scripts/build_index.py.",
+        "schema_explorer_caption": "Те же чанки, которые видит ретривер — карточки таблиц с колонками, типами, null/distinct, sample-значениями и foreign keys.",
+        "mode_header": "Режим",
+        "mode_accurate": "Точно",
+        "mode_fast": "Быстро",
+        "mode_debug": "Отладка",
+        "mode_accurate_caption": "fewshot + verify-retry — максимальный EA",
+        "mode_fast_caption": "без fewshot — быстрее, EA чуть ниже",
+        "mode_debug_caption": "Точно + сырой trace в show-working",
+        "advanced_header": "Тонкая настройка ретривала",
+        "schema_top_k": "schema_top_k",
+        "fk_hops": "fk_hops",
+        "table_budget": "table_budget",
+        "sort_schema": "сортировать блок схемы (по алфавиту)",
+        "sample_size": "размер расширенного семпла",
+        "clear_chat": "Очистить чат",
+        "ask_placeholder": "Спроси что-нибудь об этой базе (EN или RU)…",
+        "ask_intro_label": "Можно начать с одного из этих вопросов",
+        "diff_simple": "просто",
+        "diff_moderate": "средне",
+        "diff_challenging": "сложно",
+        "no_samples": "Для этой БД пока нет подготовленных вопросов — задай свой ниже.",
+        "spinner_generating": "Генерирую SQL и выполняю…",
+        "pipeline_crashed": "Пайплайн упал: {kind}: {msg}",
+        "sql_label": "SQL",
+        "no_sql": "Пайплайн не выдал SQL.",
+        "wall_model": "{wall:.0f} мс · {model}",
+        "show_working": "Показать работу — trace, SQL, метаданные",
+        "trace_header": "Trace пайплайна",
+        "meta_header": "Метаданные",
+        "shape_header": "Форма результата",
+        "confidence_label": "Уверенность",
+        "repair_attempted": "Был ли repair",
+        "db_field": "База",
+        "rows_returned": "Строк в ответе",
+        "columns_field": "Колонки",
+        "no_rows": "Строки не вернулись.",
+        "rationale_header": "Обоснование",
+        "error_kind": "Ошибка",
+        "no_output_warning": "Формат вывода не был построен.",
+        "conf_high": "Высокая",
+        "conf_med": "Средняя",
+        "conf_low": "Низкая",
+        "conf_unknown": "Неизвестно",
+    },
+}
+
+
+def _t(key: str, **kwargs: Any) -> str:
+    lang = st.session_state.get("lang", "en")
+    template = I18N.get(lang, I18N["en"]).get(key) or I18N["en"].get(key) or key
+    return template.format(**kwargs) if kwargs else template
+
+
 # --------------------------------------------------------- sample questions
-# Hand-picked from the cached n=200 ablation (matched=True under
-# C+sort+s=3, the production candidate). These are guaranteed cache hits,
-# so a recruiter sees a sub-second answer on first click.
 
 SOURCE_LINKS: dict[str, tuple[str, str]] = {
     "chinook": (
-        "Chinook SQLite sample (lerocha/chinook-database)",
+        "Chinook SQLite (lerocha/chinook-database)",
         "https://github.com/lerocha/chinook-database",
     ),
-    # All BIRD Mini-Dev DBs share a single public source page; the per-db
-    # schema is documented inside the BIRD bundle itself.
     "_bird_default": (
         "BIRD Mini-Dev (bird-bench.github.io)",
         "https://bird-bench.github.io/",
@@ -74,18 +213,9 @@ SAMPLE_QUESTIONS: dict[str, list[tuple[str, str]]] = {
         ("moderate", "What is the total revenue per genre?"),
     ],
     "bird_california_schools": [
-        (
-            "simple",
-            "How many schools with an average score in Math greater than 400 in the SAT test are exclusively virtual?",
-        ),
-        (
-            "simple",
-            "What is the average number of test takers from Fresno schools that opened between 1/1/1980 and 12/31/1980?",
-        ),
-        (
-            "moderate",
-            "What is the ratio of merged Unified School District schools in Orange County to merged Elementary School District schools?",
-        ),
+        ("simple", "How many schools with an average score in Math greater than 400 in the SAT test are exclusively virtual?"),
+        ("simple", "What is the average number of test takers from Fresno schools that opened between 1/1/1980 and 12/31/1980?"),
+        ("moderate", "What is the ratio of merged Unified School District schools in Orange County to merged Elementary School District schools?"),
     ],
     "bird_card_games": [
         ("simple", "How many cards have infinite power?"),
@@ -95,10 +225,7 @@ SAMPLE_QUESTIONS: dict[str, list[tuple[str, str]]] = {
     "bird_codebase_community": [
         ("simple", "When did 'chl' cast its first vote in a post?"),
         ("simple", "What is the display name of the user who acquired the first Autobiographer badge?"),
-        (
-            "moderate",
-            "Among the posts with views ranging from 100 to 150, what is the comment with the highest score?",
-        ),
+        ("moderate", "Among the posts with views ranging from 100 to 150, what is the comment with the highest score?"),
     ],
     "bird_debit_card_specializing": [
         ("simple", "What segment did the customer have at 2012/8/23 21:20:00?"),
@@ -112,10 +239,7 @@ SAMPLE_QUESTIONS: dict[str, list[tuple[str, str]]] = {
     ],
     "bird_financial": [
         ("simple", "For the female client who was born in 1976/1/29, which district did she opened her account?"),
-        (
-            "simple",
-            "List out the no. of districts that have female average salary is more than 6000 but less than 10000?",
-        ),
+        ("simple", "List out the no. of districts that have female average salary is more than 6000 but less than 10000?"),
         ("moderate", "Provide the IDs and age of the client with high level credit card, which is eligible for loans."),
     ],
     "bird_formula_1": [
@@ -146,16 +270,320 @@ SAMPLE_QUESTIONS: dict[str, list[tuple[str, str]]] = {
 }
 
 
+# --------------------------------------------------------- typography + chrome
+
+
+_FONT_CSS = """
+<style>
+@font-face {
+  font-family: 'Stetica';
+  src: url('/app/static/fonts/stetica-regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Stetica';
+  src: url('/app/static/fonts/stetica-medium.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Stetica';
+  src: url('/app/static/fonts/stetica-bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'NLEdSerif';
+  src: url('/app/static/fonts/serif-regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'NLEdSerif';
+  src: url('/app/static/fonts/serif-bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --ink:        #111111;
+  --ink-soft:   #4A4A4A;
+  --ink-mute:   #7A7A75;
+  --paper:      #FAFAF7;
+  --paper-warm: #F1EFE9;
+  --rule:       #1A1A1A;
+  --hairline:   #DCD8CE;
+}
+
+html, body, [class*="css"], .stApp, .stMarkdown, .stChatMessage {
+  font-family: 'Stetica', system-ui, sans-serif !important;
+  color: var(--ink);
+  background: var(--paper);
+}
+
+.block-container {
+  padding-top: 2.4rem;
+  padding-bottom: 4rem;
+  max-width: 1080px;
+}
+
+/* Hide Streamlit chrome we don't want */
+#MainMenu, footer, header [data-testid="stToolbar"] { visibility: hidden; }
+header { background: var(--paper) !important; }
+
+/* Display headline — serif */
+.nl-display {
+  font-family: 'NLEdSerif', Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(2.6rem, 5vw, 3.6rem);
+  letter-spacing: -0.02em;
+  line-height: 0.95;
+  color: var(--ink);
+  margin: 0 0 0.4rem 0;
+}
+.nl-display .arrow {
+  font-weight: 700;
+  display: inline-block;
+  transform: translateY(-0.04em);
+  margin: 0 0.25rem;
+}
+
+.nl-tagline {
+  font-family: 'Stetica', system-ui, sans-serif;
+  font-weight: 400;
+  font-size: 1.02rem;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  max-width: 56ch;
+  margin: 0 0 2rem 0;
+}
+
+/* Kicker — small uppercase letter-spaced label */
+.nl-kicker {
+  font-family: 'Stetica', sans-serif;
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  margin-bottom: 0.5rem;
+}
+
+/* Metric block — pure typography, no card chrome */
+.nl-metric {
+  border-top: 1px solid var(--rule);
+  padding-top: 0.8rem;
+  margin-top: 1.4rem;
+}
+.nl-metric-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+.nl-metric-value {
+  font-family: 'NLEdSerif', Georgia, serif;
+  font-weight: 700;
+  font-size: 2.2rem;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  line-height: 1;
+}
+.nl-metric-aside {
+  font-family: 'Stetica', sans-serif;
+  font-size: 0.86rem;
+  color: var(--ink-mute);
+  letter-spacing: 0.04em;
+}
+.nl-metric-cap {
+  font-family: 'Stetica', sans-serif;
+  font-size: 0.86rem;
+  color: var(--ink-soft);
+  line-height: 1.55;
+  max-width: 62ch;
+}
+
+/* Section rule */
+.nl-section-label {
+  font-family: 'Stetica', sans-serif;
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  margin: 2.4rem 0 0.7rem 0;
+  border-top: 1px solid var(--hairline);
+  padding-top: 0.7rem;
+}
+
+/* Sidebar polish */
+[data-testid="stSidebar"] {
+  background: var(--paper-warm) !important;
+  border-right: 1px solid var(--hairline);
+}
+[data-testid="stSidebar"] .nl-side-h {
+  font-family: 'NLEdSerif', Georgia, serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: -0.005em;
+  margin: 0.4rem 0 0.6rem 0;
+}
+[data-testid="stSidebar"] .nl-side-sub {
+  font-family: 'Stetica', sans-serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  margin: 1.2rem 0 0.4rem 0;
+}
+
+/* Language toggle */
+.nl-lang-row { display: flex; gap: 0; }
+.nl-lang-row button {
+  background: transparent !important;
+  color: var(--ink) !important;
+  border: 1px solid var(--rule) !important;
+  border-radius: 0 !important;
+  font-family: 'Stetica', sans-serif !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase;
+  padding: 0.35rem 0.9rem !important;
+  font-size: 0.74rem !important;
+  min-height: 0 !important;
+}
+
+/* Buttons (sample questions) */
+.stButton > button {
+  background: transparent !important;
+  color: var(--ink) !important;
+  border: 1px solid var(--rule) !important;
+  border-radius: 0 !important;
+  font-family: 'Stetica', sans-serif !important;
+  font-weight: 400 !important;
+  font-size: 0.92rem !important;
+  text-align: left !important;
+  padding: 0.85rem 1rem !important;
+  line-height: 1.45 !important;
+  transition: background 0.12s;
+  white-space: normal !important;
+  height: auto !important;
+}
+.stButton > button:hover {
+  background: var(--ink) !important;
+  color: var(--paper) !important;
+}
+.stButton > button p {
+  color: inherit !important;
+}
+
+/* Chat input */
+.stChatInput { border-top: 1px solid var(--rule) !important; }
+.stChatInput textarea {
+  font-family: 'Stetica', sans-serif !important;
+  font-size: 1rem !important;
+  color: var(--ink) !important;
+  background: var(--paper) !important;
+}
+
+/* Code blocks — keep mono but on warm paper */
+pre, code {
+  background: var(--paper-warm) !important;
+  color: var(--ink) !important;
+  border: 1px solid var(--hairline) !important;
+  border-radius: 0 !important;
+  font-family: 'JetBrains Mono', 'IBM Plex Mono', ui-monospace, monospace !important;
+}
+
+/* Scalar metric block — flatten */
+[data-testid="stMetric"] {
+  background: transparent !important;
+  border: none !important;
+}
+[data-testid="stMetricLabel"] {
+  font-family: 'Stetica', sans-serif !important;
+  font-size: 0.68rem !important;
+  letter-spacing: 0.18em !important;
+  text-transform: uppercase !important;
+  color: var(--ink-mute) !important;
+}
+[data-testid="stMetricValue"] {
+  font-family: 'NLEdSerif', Georgia, serif !important;
+  font-weight: 700 !important;
+  font-size: 2.4rem !important;
+  color: var(--ink) !important;
+}
+
+/* Tables */
+[data-testid="stDataFrame"] { border: 1px solid var(--rule); }
+
+/* Expanders */
+.streamlit-expanderHeader {
+  font-family: 'Stetica', sans-serif !important;
+  font-size: 0.78rem !important;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink) !important;
+}
+
+/* Sample card — wraps a button + difficulty kicker */
+.nl-sample {
+  display: block;
+}
+.nl-sample-kicker {
+  font-family: 'Stetica', sans-serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  margin: 0 0 0.4rem 0.05rem;
+}
+
+/* Chat message bubbles — strip default round chrome */
+[data-testid="stChatMessage"] {
+  background: transparent !important;
+  border: 0 !important;
+  padding: 0.4rem 0 1.4rem 0 !important;
+}
+[data-testid="stChatMessage"]:not(:first-child) {
+  border-top: 1px solid var(--hairline) !important;
+  padding-top: 1.4rem !important;
+}
+
+/* Remove the avatar/icon circle Streamlit injects — covers every variant */
+[data-testid="stChatMessage"] > div:first-child,
+[data-testid="chatAvatarIcon-user"],
+[data-testid="chatAvatarIcon-assistant"],
+[data-testid="stChatMessageAvatarUser"],
+[data-testid="stChatMessageAvatarAssistant"],
+[data-testid="stChatMessage"] [class*="Avatar"],
+[data-testid="stChatMessage"] svg {
+  display: none !important;
+}
+
+/* The chat message body lives in second child after the avatar; pull it left */
+[data-testid="stChatMessage"] > div:nth-child(2) {
+  margin-left: 0 !important;
+  padding-left: 0 !important;
+  width: 100% !important;
+}
+</style>
+"""
+
+
+def _inject_chrome() -> None:
+    st.markdown(_FONT_CSS, unsafe_allow_html=True)
+
+
 # --------------------------------------------------------- resource bootstrap
 
 
 @st.cache_resource(show_spinner="Initialising providers + Chroma index…")
 def _bootstrap() -> tuple[DatabaseRegistry, SchemaIndex, LLMProvider, LLMProvider]:
-    """Build registry + Chroma + providers once per session.
-
-    Cached so subsequent questions don't re-pay the Chroma persist cost
-    (~hundreds of ms) or rebuild the LLM provider chain.
-    """
     settings = get_settings()
     if not settings.mistral_api_key:
         raise RuntimeError(
@@ -193,12 +621,9 @@ def _bootstrap() -> tuple[DatabaseRegistry, SchemaIndex, LLMProvider, LLMProvide
         cache_dir=settings.llm_cache_dir,
         size_limit_gb=settings.llm_cache_size_limit_gb,
     )
-    explain_provider = sql_provider  # codestral works for caption in v1
+    explain_provider = sql_provider
 
     return registry, schema_index, sql_provider, explain_provider
-
-
-# --------------------------------------------------------- pipeline assembly
 
 
 def _make_pipeline(
@@ -242,7 +667,12 @@ def _render_output(output: OutputFormat | None, *, caption: str) -> None:
         col_label = output.column or "result"
         st.metric(col_label, str(output.value))
     elif isinstance(output, Sentence):
-        st.markdown(f"**{output.text}**")
+        st.markdown(
+            f"<div style=\"font-family:'NLEdSerif',Georgia,serif; "
+            f"font-size:1.25rem; line-height:1.45; color:var(--ink); "
+            f"margin:0.4rem 0 0.6rem;\">{output.text}</div>",
+            unsafe_allow_html=True,
+        )
         if output.fields:
             st.json(output.fields, expanded=False)
     elif isinstance(output, Table):
@@ -252,9 +682,26 @@ def _render_output(output: OutputFormat | None, *, caption: str) -> None:
         df = pd.DataFrame(output.rows, columns=output.columns)
         _render_chart(output, df)
     elif output is None:
-        st.warning("No output format produced.")
+        st.warning(_t("no_output_warning"))
     if caption:
         st.caption(caption)
+
+
+_CHART_PALETTE = ["#111111", "#4A4A4A", "#7A7A75", "#A8A29E", "#1A1A1A"]
+
+
+def _style_fig(fig: Any) -> Any:
+    fig.update_layout(
+        font_family="Stetica, system-ui, sans-serif",
+        font_color="#111111",
+        paper_bgcolor="#FAFAF7",
+        plot_bgcolor="#FAFAF7",
+        colorway=_CHART_PALETTE,
+        margin=dict(l=10, r=10, t=20, b=10),
+    )
+    fig.update_xaxes(gridcolor="#DCD8CE", zerolinecolor="#1A1A1A", tickcolor="#1A1A1A")
+    fig.update_yaxes(gridcolor="#DCD8CE", zerolinecolor="#1A1A1A", tickcolor="#1A1A1A")
+    return fig
 
 
 def _render_chart(
@@ -268,24 +715,24 @@ def _render_chart(
     elif isinstance(spec, PieChart):
         y_field = spec.y_fields[0] if spec.y_fields else df.columns[1]
         fig = px.pie(df, names=spec.x_field, values=y_field)
-    else:  # ScatterChart
+    else:
         y_field = spec.y_fields[0] if spec.y_fields else df.columns[1]
         fig = px.scatter(df, x=spec.x_field, y=y_field)
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(_style_fig(fig), use_container_width=True)
 
 
 def _confidence_label(value: float) -> str:
     if value >= 0.8:
-        return "High"
+        return _t("conf_high")
     if value >= 0.5:
-        return "Medium"
+        return _t("conf_med")
     if value > 0.0:
-        return "Low"
-    return "Unknown"
+        return _t("conf_low")
+    return _t("conf_unknown")
 
 
 def _render_show_working(result: PipelineRunResult) -> None:
-    with st.expander("Show working — pipeline trace, SQL, metadata"):
+    with st.expander(_t("show_working")):
         trace_rows: list[dict[str, Any]] = []
         for entry in result.trace:
             trace_rows.append(
@@ -298,7 +745,7 @@ def _render_show_working(result: PipelineRunResult) -> None:
                 }
             )
         if trace_rows:
-            st.markdown("**Pipeline trace**")
+            st.markdown(f"**{_t('trace_header')}**")
             st.dataframe(
                 pd.DataFrame(trace_rows),
                 use_container_width=True,
@@ -307,41 +754,31 @@ def _render_show_working(result: PipelineRunResult) -> None:
 
         col_a, col_b = st.columns(2)
         with col_a:
-            st.markdown("**Metadata**")
+            st.markdown(f"**{_t('meta_header')}**")
             conf_label = _confidence_label(result.confidence)
-            st.markdown(
-                f"- Confidence: **{conf_label}** ({result.confidence:.2f})"
-            )
-            st.markdown(f"- Repair attempted: {result.repair_attempted}")
-            st.markdown(f"- DB: `{result.db_id}`")
+            st.markdown(f"- {_t('confidence_label')}: **{conf_label}** ({result.confidence:.2f})")
+            st.markdown(f"- {_t('repair_attempted')}: {result.repair_attempted}")
+            st.markdown(f"- {_t('db_field')}: `{result.db_id}`")
         with col_b:
-            st.markdown("**Result shape**")
+            st.markdown(f"**{_t('shape_header')}**")
             if result.outcome and result.outcome.result:
-                st.markdown(f"- Rows returned: {result.outcome.result.row_count}")
-                st.markdown(
-                    f"- Columns: {', '.join(result.outcome.result.columns) or '—'}"
-                )
+                st.markdown(f"- {_t('rows_returned')}: {result.outcome.result.row_count}")
+                cols = ", ".join(result.outcome.result.columns) or "—"
+                st.markdown(f"- {_t('columns_field')}: {cols}")
             else:
-                st.markdown("- No result rows.")
+                st.markdown(f"- {_t('no_rows')}")
         if result.rationale:
-            st.markdown("**Rationale**")
+            st.markdown(f"**{_t('rationale_header')}**")
             st.write(result.rationale)
         if result.error_kind:
-            st.error(f"Error: {result.error_kind} — {result.error_message}")
+            st.error(f"{_t('error_kind')}: {result.error_kind} — {result.error_message}")
 
 
-# ----------------------------------------------------------------- schema explorer
+# ------------------------------------------------------------ schema explorer
 
 
 @st.cache_data(show_spinner=False)
 def _fetch_schema_chunks(_index_id: int, db_id: str) -> list[tuple[str, str]]:
-    """Pull all schema chunks for a db_id straight from Chroma.
-
-    Cached per (index, db_id) so flipping between DBs is instant after
-    the first view. `_index_id` is `id(schema_index)` — used to invalidate
-    the cache if the bootstrap re-creates the index, without making
-    SchemaIndex hashable.
-    """
     schema_index = st.session_state.get("_schema_index")
     if schema_index is None:
         return []
@@ -366,87 +803,82 @@ def _render_schema_explorer(db_id: str) -> None:
         return
     chunks = _fetch_schema_chunks(id(schema_index), db_id)
     if not chunks:
-        st.caption("Schema index empty for this DB. Run `build_index.py`.")
+        st.caption(_t("schema_explorer_empty"))
         return
-    with st.expander(f"Schema · {len(chunks)} tables", expanded=False):
-        st.caption(
-            "Same chunks the retriever sees — table cards with columns, "
-            "types, null/distinct stats, sample values, and FKs."
-        )
+    with st.expander(_t("schema_explorer_collapsed", n=len(chunks)), expanded=False):
+        st.caption(_t("schema_explorer_caption"))
         for table_name, text in chunks:
             with st.expander(table_name, expanded=False):
                 st.code(text, language="text")
 
 
-# ----------------------------------------------------------------- welcome
+# ----------------------------------------------------------------- hero
 
 
 def _render_welcome(db_id: str) -> None:
-    """Empty-state hero shown before any chat turn — recruiter-friendly."""
-    col_intro, col_metric = st.columns([2, 1])
-    with col_intro:
+    st.markdown(
+        "<div class='nl-display'>NL<span class='arrow'>→</span>SQL</div>",
+        unsafe_allow_html=True,
+    )
+    st.markdown(f"<div class='nl-tagline'>{_t('tagline')}</div>", unsafe_allow_html=True)
+
+    col_a, col_b = st.columns(2)
+    with col_a:
         st.markdown(
-            "Ask a natural-language question about the selected database. "
-            "The pipeline retrieves relevant tables (schema-RAG over Chroma), "
-            "generates SQL with `codestral-latest`, validates it through "
-            "sqlglot AST guards, executes against a read-only engine, and "
-            "renders the result in the cleanest format for the shape of "
-            "the answer."
+            f"""
+            <div class='nl-metric'>
+              <div class='nl-kicker'>{_t('metric_kicker')}</div>
+              <div class='nl-metric-row'>
+                <span class='nl-metric-value'>{_t('metric_value')}</span>
+                <span class='nl-metric-aside'>{_t('metric_percent')}</span>
+              </div>
+              <div class='nl-metric-cap'>{_t('metric_caption')}</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
         )
-    with col_metric:
+    with col_b:
         st.markdown(
-            """
-            <div style="border:1px solid #e5e7eb; border-radius:8px;
-                        padding:12px 14px; background:#f9fafb;">
-              <div style="font-size:0.78rem; color:#475569;
-                          letter-spacing:.02em; margin-bottom:2px;">
-                On 60 curated Chinook business questions
+            f"""
+            <div class='nl-metric'>
+              <div class='nl-kicker'>{_t('research_kicker')}</div>
+              <div class='nl-metric-row'>
+                <span class='nl-metric-value'>{_t('research_value')}</span>
               </div>
-              <div style="font-size:1.7rem; font-weight:600;
-                          color:#0f172a; line-height:1.1; margin-top:4px;">
-                60 / 60 correct &nbsp;·&nbsp; 100%
-              </div>
-              <div style="font-size:0.78rem; color:#475569; margin-top:6px;">
-                30 dev + 30 held-out questions, both at 30/30
-                (balanced split, no overfitting). All 10 categories at
-                100% (count, list, filter, aggregation, group-by,
-                having, join-2, join-3, top-n, date-filter).
-                "Correct" = result rows match the reference SQL exactly
-                (execution accuracy). codestral-latest, $0 API budget.
-                <br/><br/>
-                Research baseline on the harder
-                <a href="https://bird-bench.github.io/" target="_blank"
-                   style="color:#475569; text-decoration:underline;">BIRD</a>
-                Mini-Dev (n=200): <b>57.0%</b> hybrid
-                (codestral free tier + Claude Sonnet 4.6 challenging-tier
-                via Perplexity Pro browser bridge — same pipeline, $0
-                either way). <b>+9.2pp above GPT-4 zero-shot
-                reference (47.8%)</b>. Lift trace: 47% baseline →
-                55.5% with BIRD-train few-shot →
-                56.5% with verify-retry → 57.0% with hybrid escalation.
-              </div>
+              <div class='nl-metric-cap'>{_t('research_caption')}</div>
             </div>
             """,
             unsafe_allow_html=True,
         )
 
-    st.markdown(
-        ":speech_balloon: **Ask anything about the data in this database** — the "
-        "samples below are just to get you started; the pipeline takes free-form "
-        "natural-language questions in EN or RU."
-    )
-
     samples = SAMPLE_QUESTIONS.get(db_id)
     if not samples:
-        st.info(f"No sample questions curated for `{db_id}` yet — type your own below.")
+        st.markdown(
+            f"<div class='nl-section-label'>{_t('ask_intro_label')}</div>",
+            unsafe_allow_html=True,
+        )
+        st.info(_t("no_samples"))
         return
 
-    st.markdown("**Try a sample question:**")
+    st.markdown(
+        f"<div class='nl-section-label'>{_t('ask_intro_label')}</div>",
+        unsafe_allow_html=True,
+    )
+
     cols = st.columns(len(samples))
+    diff_map = {
+        "simple": _t("diff_simple"),
+        "moderate": _t("diff_moderate"),
+        "challenging": _t("diff_challenging"),
+    }
     for col, (difficulty, question) in zip(cols, samples, strict=False):
         with col:
+            st.markdown(
+                f"<div class='nl-sample-kicker'>{diff_map.get(difficulty, difficulty)}</div>",
+                unsafe_allow_html=True,
+            )
             if st.button(
-                f"{difficulty}\n\n{question}",
+                question,
                 key=f"sample_{db_id}_{hash(question)}",
                 use_container_width=True,
             ):
@@ -457,30 +889,48 @@ def _render_welcome(db_id: str) -> None:
 # ---------------------------------------------------------------------- main
 
 
+def _render_lang_toggle() -> None:
+    """Two flat segments: EN / RU. Active one inverts."""
+    lang = st.session_state.get("lang", "en")
+    st.markdown(f"<div class='nl-side-sub'>{_t('lang_label')}</div>", unsafe_allow_html=True)
+    cols = st.columns(2)
+    with cols[0]:
+        if st.button(_t("lang_en"), key="lang_en_btn", use_container_width=True, type="primary" if lang == "en" else "secondary"):
+            st.session_state.lang = "en"
+            st.rerun()
+    with cols[1]:
+        if st.button(_t("lang_ru"), key="lang_ru_btn", use_container_width=True, type="primary" if lang == "ru" else "secondary"):
+            st.session_state.lang = "ru"
+            st.rerun()
+
+
 def main() -> None:
+    if "lang" not in st.session_state:
+        st.session_state.lang = "en"
+
     st.set_page_config(
-        page_title="NL→SQL Assistant",
-        page_icon="📊",
+        page_title=_t("page_title"),
         layout="wide",
     )
-    st.title("NL→SQL Assistant")
-    st.caption(
-        "Portfolio demo · BIRD Mini-Dev + Chinook · codestral-latest "
-        "with schema-RAG, sqlglot AST guards, and deterministic chart picker."
-    )
+
+    _inject_chrome()
 
     try:
         registry, schema_index, sql_provider, explain_provider = _bootstrap()
     except RuntimeError as exc:
         st.error(str(exc))
         st.stop()
-    # Stash schema_index so cached helpers (schema explorer) can reach it
-    # without making SchemaIndex hashable for st.cache_data keys.
     st.session_state["_schema_index"] = schema_index
 
-    # --- sidebar: DB + knobs
+    # --- sidebar
     with st.sidebar:
-        st.header("Settings")
+        st.markdown("<div class='nl-side-h'>NL→SQL</div>", unsafe_allow_html=True)
+        _render_lang_toggle()
+
+        st.markdown(
+            f"<div class='nl-side-sub'>{_t('db_label')}</div>",
+            unsafe_allow_html=True,
+        )
         db_ids = registry.ids()
         if not db_ids:
             st.error("No databases registered. Run scripts/download_data.py first.")
@@ -490,64 +940,55 @@ def main() -> None:
             if "bird_california_schools" in db_ids
             else 0
         )
-        db_id = st.selectbox("Database", db_ids, index=default_idx)
+        db_id = st.selectbox(_t("db_label"), db_ids, index=default_idx, label_visibility="collapsed")
         spec = registry.get(db_id)
-        st.caption(f"Dialect: `{spec.dialect}`")
+        st.caption(f"{_t('db_dialect')}: `{spec.dialect}`")
         if spec.description:
             st.caption(spec.description)
 
         link = _source_link_for(db_id)
         if link is not None:
             label, url = link
-            st.markdown(f"Source: [{label}]({url})")
+            st.caption(f"{_t('db_source')}: [{label}]({url})")
 
         _render_schema_explorer(db_id)
 
-        st.divider()
-        st.subheader("Mode")
+        st.markdown(
+            f"<div class='nl-side-sub'>{_t('mode_header')}</div>",
+            unsafe_allow_html=True,
+        )
         mode = st.radio(
-            "Pipeline preset",
-            options=("Accurate", "Fast", "Debug"),
+            _t("mode_header"),
+            options=(_t("mode_accurate"), _t("mode_fast"), _t("mode_debug")),
             index=0,
-            captions=(
-                "fewshot + verify-retry (best EA)",
-                "no fewshot (fastest, slightly lower EA)",
-                "Accurate + raw trace in show-working",
-            ),
+            captions=(_t("mode_accurate_caption"), _t("mode_fast_caption"), _t("mode_debug_caption")),
             label_visibility="collapsed",
         )
-        # mode → pipeline knobs
-        if mode == "Fast":
+        if mode == _t("mode_fast"):
             fewshot_top_k = 0
             verify_retry_on_empty = False
         else:
             fewshot_top_k = 3
             verify_retry_on_empty = True
 
-        with st.expander("Advanced retrieval knobs", expanded=False):
-            schema_top_k = st.slider("schema_top_k", 1, 10, 5)
-            fk_hops = st.slider("fk_hops", 0, 2, 1)
-            table_budget = st.slider("table_budget", 4, 20, 12)
-            sort_schema_block = st.checkbox(
-                "sort_schema_block (alphabetical)", value=True
-            )
-            extended_sample_size = st.slider(
-                "extended_sample_size (0 = mixture off)", 0, 8, 0
-            )
+        with st.expander(_t("advanced_header"), expanded=False):
+            schema_top_k = st.slider(_t("schema_top_k"), 1, 10, 5)
+            fk_hops = st.slider(_t("fk_hops"), 0, 2, 1)
+            table_budget = st.slider(_t("table_budget"), 4, 20, 12)
+            sort_schema_block = st.checkbox(_t("sort_schema"), value=True)
+            extended_sample_size = st.slider(_t("sample_size"), 0, 8, 0)
 
-        st.divider()
-        if st.button("Clear chat history"):
+        st.markdown("<div style='height:1.4rem'></div>", unsafe_allow_html=True)
+        if st.button(_t("clear_chat"), use_container_width=True):
             st.session_state.messages = []
             st.rerun()
 
     if "messages" not in st.session_state:
         st.session_state.messages = []
 
-    # --- welcome / empty state with sample questions
     if not st.session_state.messages:
         _render_welcome(db_id)
 
-    # --- chat history
     for msg in st.session_state.messages:
         with st.chat_message(msg["role"]):
             if msg["role"] == "user":
@@ -555,8 +996,7 @@ def main() -> None:
             else:
                 _replay_assistant_turn(msg)
 
-    # --- new question (typed input OR queued sample button click)
-    typed = st.chat_input("Ask a question about the selected database (EN or RU)…")
+    typed = st.chat_input(_t("ask_placeholder"))
     queued = st.session_state.pop("pending_question", None)
     question = queued or typed
     if not question:
@@ -581,7 +1021,7 @@ def main() -> None:
     )
 
     with st.chat_message("assistant"):
-        with st.spinner("Generating SQL + executing…"):
+        with st.spinner(_t("spinner_generating")):
             t0 = time.perf_counter()
             try:
                 result = run_pipeline(
@@ -593,7 +1033,7 @@ def main() -> None:
                     verify_retry_on_empty=verify_retry_on_empty,
                 )
             except Exception as exc:
-                st.error(f"Pipeline crashed: {type(exc).__name__}: {exc}")
+                st.error(_t("pipeline_crashed", kind=type(exc).__name__, msg=str(exc)))
                 st.session_state.messages.append(
                     {"role": "assistant", "error": str(exc), "question": question}
                 )
@@ -603,12 +1043,12 @@ def main() -> None:
         _render_output(result.output_format, caption=result.caption)
 
         if result.sql:
-            st.markdown("**SQL**")
+            st.markdown(f"**{_t('sql_label')}**")
             st.code(result.sql, language="sql")
         else:
-            st.warning("Pipeline produced no SQL.")
+            st.warning(_t("no_sql"))
 
-        st.caption(f"Wall: {wall_ms:.0f} ms · Model: {sql_provider.model}")
+        st.caption(_t("wall_model", wall=wall_ms, model=sql_provider.model))
 
         _render_show_working(result)
 
@@ -624,15 +1064,14 @@ def main() -> None:
 
 
 def _replay_assistant_turn(msg: dict[str, Any]) -> None:
-    """Re-render a stored assistant turn from session_state."""
     if msg.get("error"):
-        st.error(f"Pipeline crashed: {msg['error']}")
+        st.error(_t("pipeline_crashed", kind="prior", msg=msg["error"]))
         return
     result = cast(PipelineRunResult, msg["result"])
     _render_output(result.output_format, caption=result.caption)
     if result.sql:
         st.code(result.sql, language="sql")
-    st.caption(f"Wall: {msg.get('wall_ms', 0):.0f} ms · Model: {msg.get('model', '?')}")
+    st.caption(_t("wall_model", wall=msg.get("wall_ms", 0), model=msg.get("model", "?")))
     _render_show_working(result)
 
 

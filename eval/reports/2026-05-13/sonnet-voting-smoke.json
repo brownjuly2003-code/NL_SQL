@@ -1,0 +1,55 @@
+{
+  "alt_model": "perplexity:claude-sonnet-4-6",
+  "summary": {
+    "voted_better": 0,
+    "voted_worse": 0,
+    "voted_same": 3
+  },
+  "records": [
+    {
+      "question_id": 25,
+      "db_id": "california_schools",
+      "difficulty": "moderate",
+      "question": "Name schools in Riverside which the average of average math score for SAT is grater than 400, what is the funding type of these schools?",
+      "gold_sql": "SELECT T1.sname, T2.`Charter Funding Type` FROM satscores AS T1 INNER JOIN frpm AS T2 ON T1.cds = T2.CDSCode WHERE T2.`District Name` LIKE 'Riverside%' GROUP BY T1.sname, T2.`Charter Funding Type` HAVING CAST(SUM(T1.AvgScrMath) AS REAL) / COUNT(T1.cds) > 400",
+      "baseline_pred": "SELECT s.FundingType FROM schools AS s JOIN satscores AS t ON s.CDSCode = t.cds WHERE s.City = 'Riverside' AND t.AvgScrMath > 400 GROUP BY s.FundingType HAVING AVG(t.AvgScrMath) > 400",
+      "alt_pred": "SELECT T2.sname, T2.AvgScrMath, T1.FundingType FROM schools AS T1 INNER JOIN satscores AS T2 ON T1.CDSCode = T2.cds WHERE T2.cname = 'Riverside' AND T2.sname IS NOT NULL GROUP BY T2.cds, T2.sname, T1.FundingType HAVING AVG(T2.AvgScrMath) > 400",
+      "alt_confidence": 0.82,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "sonnet-bridge",
+      "elapsed_ms": 46719.82850000131
+    },
+    {
+      "question_id": 37,
+      "db_id": "california_schools",
+      "difficulty": "moderate",
+      "question": "What is the complete address of the school with the lowest excellence rate? Indicate the Street, City, Zip and State.",
+      "gold_sql": "SELECT T2.Street, T2.City, T2.State, T2.Zip FROM satscores AS T1 INNER JOIN schools AS T2 ON T1.cds = T2.CDSCode ORDER BY CAST(T1.NumGE1500 AS REAL) / T1.NumTstTakr ASC LIMIT 1",
+      "baseline_pred": "SELECT Street, City, Zip, State FROM schools WHERE CDSCode = (SELECT cds FROM satscores WHERE NumTstTakr > 0 ORDER BY (NumGE1500 * 1.0 / NumTstTakr) ASC LIMIT 1)",
+      "alt_pred": "SELECT T2.Street, T2.City, T2.Zip, T2.State FROM satscores AS T1 INNER JOIN schools AS T2 ON T1.cds = T2.CDSCode WHERE T1.NumTstTakr > 0 AND T1.NumGE1500 IS NOT NULL ORDER BY CAST(T1.NumGE1500 AS REAL) / T1.NumTstTakr ASC LIMIT 1",
+      "alt_confidence": 0.82,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "sonnet-bridge",
+      "elapsed_ms": 32118.238200000633
+    },
+    {
+      "question_id": 77,
+      "db_id": "california_schools",
+      "difficulty": "moderate",
+      "question": "Which schools served a grade span of Kindergarten to 9th grade in the county of Los Angeles and what is its Percent (%) Eligible FRPM (Ages 5-17)?",
+      "gold_sql": "SELECT T2.School, T1.`FRPM Count (Ages 5-17)` * 100 / T1.`Enrollment (Ages 5-17)` FROM frpm AS T1 INNER JOIN schools AS T2 ON T1.CDSCode = T2.CDSCode WHERE T2.County = 'Los Angeles' AND T2.GSserved = 'K-9'",
+      "baseline_pred": "SELECT f.`School Name`, (f.`FRPM Count (Ages 5-17)` / f.`Enrollment (Ages 5-17)`) * 100 AS `Percent (%) Eligible FRPM (Ages 5-17)` FROM frpm f JOIN schools s ON f.CDSCode = s.CDSCode WHERE f.`County Name` = 'Los Angeles' AND f.`Low Grade` = 'K' AND f.`High Grade` = '9'",
+      "alt_pred": "SELECT T2.`School Name`, CAST(T2.`FRPM Count (Ages 5-17)` AS REAL) * 100 / T2.`Enrollment (Ages 5-17)` AS `Percent (%) Eligible FRPM (Ages 5-17)` FROM schools AS T1 INNER JOIN frpm AS T2 ON T1.CDSCode = T2.CDSCode WHERE T1.County = 'Los Angeles' AND T1.GSoffered = 'K-9'",
+      "alt_confidence": 0.82,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "sonnet-bridge",
+      "elapsed_ms": 32141.228299999057
+    }
+  ]
+}

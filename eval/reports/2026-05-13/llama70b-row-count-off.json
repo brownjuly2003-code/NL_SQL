@@ -1,0 +1,44 @@
+{
+  "alt_model": "llama-3.3-70b-versatile",
+  "summary": {
+    "voted_better": 0,
+    "voted_worse": 0,
+    "voted_same": 2,
+    "groq_input_tokens": 9634,
+    "groq_output_tokens": 444
+  },
+  "records": [
+    {
+      "question_id": 25,
+      "db_id": "california_schools",
+      "difficulty": "moderate",
+      "question": "Name schools in Riverside which the average of average math score for SAT is grater than 400, what is the funding type of these schools?",
+      "gold_sql": "SELECT T1.sname, T2.`Charter Funding Type` FROM satscores AS T1 INNER JOIN frpm AS T2 ON T1.cds = T2.CDSCode WHERE T2.`District Name` LIKE 'Riverside%' GROUP BY T1.sname, T2.`Charter Funding Type` HAVING CAST(SUM(T1.AvgScrMath) AS REAL) / COUNT(T1.cds) > 400",
+      "baseline_pred": "SELECT s.FundingType FROM schools AS s JOIN satscores AS t ON s.CDSCode = t.cds WHERE s.City = 'Riverside' AND t.AvgScrMath > 400 GROUP BY s.FundingType HAVING AVG(t.AvgScrMath) > 400",
+      "alt_pred": "SELECT T1.FundingType FROM schools AS T1 INNER JOIN satscores AS T2 ON T1.CDSCode = T2.cds WHERE T1.County = 'Riverside' GROUP BY T1.FundingType HAVING AVG(T2.AvgScrMath) > 400",
+      "alt_confidence": 0.8,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "alt-pick",
+      "agree": false,
+      "elapsed_ms": 3522.3987999997917
+    },
+    {
+      "question_id": 125,
+      "db_id": "financial",
+      "difficulty": "challenging",
+      "question": "For loans contracts which are still running where client are in debt, list the district of the and the state the percentage unemployment rate increment from year 1995 to 1996.",
+      "gold_sql": "SELECT CAST((T3.A13 - T3.A12) AS REAL) * 100 / T3.A12 FROM loan AS T1 INNER JOIN account AS T2 ON T1.account_id = T2.account_id INNER JOIN district AS T3 ON T2.district_id = T3.district_id WHERE T1.status = 'D'",
+      "baseline_pred": "SELECT district.A2, CAST((district.A13 - district.A12) * 100.0 / district.A12 AS REAL) FROM loan JOIN account ON loan.account_id = account.account_id JOIN client ON account.district_id = client.district_id JOIN district ON client.district_id = district.district_id WHERE loan.status = 'D'",
+      "alt_pred": "SELECT T1.A2, ((T1.A13 - T1.A12) / T1.A12) * 100 FROM district AS T1 INNER JOIN account AS T2 ON T1.district_id = T2.district_id INNER JOIN loan AS T3 ON T2.account_id = T3.account_id WHERE T3.status = 'D'",
+      "alt_confidence": 0.8,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "alt-pick",
+      "agree": false,
+      "elapsed_ms": 1570.1215999979468
+    }
+  ]
+}

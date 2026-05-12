@@ -1,0 +1,44 @@
+{
+  "alt_model": "openai/gpt-oss-120b",
+  "summary": {
+    "voted_better": 2,
+    "voted_worse": 0,
+    "voted_same": 0,
+    "groq_input_tokens": 9760,
+    "groq_output_tokens": 1580
+  },
+  "records": [
+    {
+      "question_id": 48,
+      "db_id": "california_schools",
+      "difficulty": "moderate",
+      "question": "What is the ratio of merged Unified School District schools in Orange County to merged Elementary School District schools?",
+      "gold_sql": "SELECT CAST(SUM(CASE WHEN DOC = 54 THEN 1 ELSE 0 END) AS REAL) / SUM(CASE WHEN DOC = 52 THEN 1 ELSE 0 END) FROM schools WHERE StatusType = 'Merged' AND County = 'Orange'",
+      "baseline_pred": "SELECT CAST(COUNT(IIF(T1.DOC = '54' AND T1.StatusType = 'Merged', 1, 0)) AS REAL) / NULLIF(COUNT(IIF(T1.DOC = '52' AND T1.StatusType = 'Merged', 1, 0)), 0) FROM schools AS T1 WHERE T1.County = 'Orange'",
+      "alt_pred": "SELECT CAST(SUM(CASE WHEN DOC='54' THEN 1 ELSE 0 END) AS REAL) / NULLIF(SUM(CASE WHEN DOC='52' THEN 1 ELSE 0 END),0) AS ratio FROM schools WHERE County='Orange' AND StatusType='Merged'",
+      "alt_confidence": 0.97,
+      "baseline_match": false,
+      "alt_match": true,
+      "vote_match": true,
+      "vote_source": "alt-pick",
+      "agree": false,
+      "elapsed_ms": 26031.938199999786
+    },
+    {
+      "question_id": 99,
+      "db_id": "financial",
+      "difficulty": "moderate",
+      "question": "Among the accounts who have loan validity more than 12 months, list out the accounts that have the highest approved amount and have account opening date in 1993.",
+      "gold_sql": "SELECT T1.account_id FROM loan AS T1 INNER JOIN account AS T2 ON T1.account_id = T2.account_id WHERE STRFTIME('%Y', T2.date) = '1993' AND T1.duration > 12 ORDER BY T1.amount DESC LIMIT 1",
+      "baseline_pred": "SELECT account_id FROM account WHERE date LIKE '1993%' AND account_id IN (SELECT account_id FROM loan WHERE duration > 12 AND status = 'A') ORDER BY (SELECT amount FROM loan WHERE loan.account_id = account.account_id LIMIT 1) DESC LIMIT 1",
+      "alt_pred": "SELECT DISTINCT `account`.`account_id` FROM `account` JOIN `loan` ON `account`.`account_id` = `loan`.`account_id` WHERE `loan`.`duration` > 12 AND strftime('%Y', `account`.`date`) = '1993' AND `loan`.`amount` = (SELECT MAX(`l2`.`amount`) FROM `loan` `l2` JOIN `account` `a2` ON `l2`.`account_id` = `a2`.`account_id` WHERE `l2`.`duration` > 12 AND strftime('%Y', `a2`.`date`) = '1993')",
+      "alt_confidence": 0.93,
+      "baseline_match": false,
+      "alt_match": true,
+      "vote_match": true,
+      "vote_source": "alt-pick",
+      "agree": false,
+      "elapsed_ms": 31668.562499999098
+    }
+  ]
+}

@@ -1,0 +1,76 @@
+{
+  "alt_model": "qwen/qwen3-32b",
+  "summary": {
+    "voted_better": 1,
+    "voted_worse": 0,
+    "voted_same": 3,
+    "groq_input_tokens": 27496,
+    "groq_output_tokens": 8063
+  },
+  "records": [
+    {
+      "question_id": 115,
+      "db_id": "financial",
+      "difficulty": "challenging",
+      "question": "For the branch which located in the south Bohemia with biggest number of inhabitants, what is the percentage of the male clients?",
+      "gold_sql": "SELECT CAST(SUM(T1.gender = 'M') AS REAL) * 100 / COUNT(T1.client_id) FROM client AS T1 INNER JOIN district AS T2 ON T1.district_id = T2.district_id WHERE T2.A3 = 'south Bohemia' GROUP BY T2.A4 ORDER BY T2.A4 DESC LIMIT 1",
+      "baseline_pred": "SELECT CAST(COUNT(CASE WHEN c.gender = 'M' THEN 1 END) AS REAL) * 100 / COUNT(c.client_id) FROM client c JOIN account a ON disp.account_id = a.account_id JOIN disp ON c.client_id = disp.client_id JOIN district d ON a.district_id = d.district_id WHERE d.A3 = 'south Bohemia' AND a.district_id = (SELECT district_id FROM district WHERE A3 = 'south Bohemia' ORDER BY CAST(A4 AS INTEGER) DESC LIMIT 1)",
+      "alt_pred": "SELECT COUNT(CASE WHEN client.gender = 'M' THEN 1 END) * 100.0 / COUNT(*) FROM client JOIN district ON client.district_id = district.district_id WHERE district.A3 = 'south Bohemia' AND district.A4 = (SELECT MAX(A4) FROM district WHERE A3 = 'south Bohemia')",
+      "alt_confidence": 0.95,
+      "baseline_match": false,
+      "alt_match": true,
+      "vote_match": true,
+      "vote_source": "alt-pick",
+      "agree": false,
+      "elapsed_ms": 49114.83880000014
+    },
+    {
+      "question_id": 1168,
+      "db_id": "thrombosis_prediction",
+      "difficulty": "challenging",
+      "question": "The oldest SJS patient's medical laboratory work was completed on what date, and what age was the patient when they initially arrived at the hospital?",
+      "gold_sql": "SELECT T1.Date, STRFTIME('%Y', T2.`First Date`) - STRFTIME('%Y', T2.Birthday),T2.Birthday FROM Laboratory AS T1 INNER JOIN Patient AS T2 ON T1.ID = T2.ID WHERE T2.Diagnosis = 'SJS' AND T2.Birthday IS NOT NULL ORDER BY T2.Birthday ASC LIMIT 1",
+      "baseline_pred": "SELECT L.Date, (strftime('%Y', P.\"First Date\") - strftime('%Y', P.Birthday)) FROM Patient P INNER JOIN Laboratory L ON P.ID = L.ID WHERE P.Diagnosis = 'SJS' AND P.Birthday = (SELECT MIN(Birthday) FROM Patient WHERE Diagnosis = 'SJS') ORDER BY L.Date ASC LIMIT 1",
+      "alt_pred": "SELECT Patient.ID, Patient.Birthday, \"First Date\", Laboratory.Date, (strftime('%Y', \"First Date\") - strftime('%Y', Birthday)) as age_at_arrival FROM Patient JOIN Laboratory ON Patient.ID = Laboratory.ID WHERE Patient.Diagnosis = 'SJS'",
+      "alt_confidence": 0.95,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "alt-pick",
+      "agree": false,
+      "elapsed_ms": 109885.70600000094
+    },
+    {
+      "question_id": 1255,
+      "db_id": "thrombosis_prediction",
+      "difficulty": "moderate",
+      "question": "For the patients with an abnormal Ig M level, what is the most common disease they are diagnosed with?",
+      "gold_sql": "SELECT T1.Diagnosis FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.IGM NOT BETWEEN 40 AND 400 GROUP BY T1.Diagnosis ORDER BY COUNT(T1.Diagnosis) DESC LIMIT 1",
+      "baseline_pred": "SELECT Diagnosis FROM Examination WHERE ID IN (SELECT ID FROM Laboratory WHERE IGM <= 40 OR IGM >= 400) GROUP BY Diagnosis ORDER BY COUNT(*) DESC LIMIT 1",
+      "alt_pred": "SELECT P.Diagnosis FROM Patient P WHERE P.ID IN (SELECT L.ID FROM Laboratory L WHERE (L.IGM <= 40 OR L.IGM >= 400)) GROUP BY P.Diagnosis ORDER BY COUNT(*) DESC LIMIT 1",
+      "alt_confidence": 0.95,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "agree",
+      "agree": true,
+      "elapsed_ms": 105567.40260000151
+    },
+    {
+      "question_id": 1531,
+      "db_id": "debit_card_specializing",
+      "difficulty": "moderate",
+      "question": "Who is the top spending customer and how much is the average price per single item purchased by this customer? What currency was being used?",
+      "gold_sql": "SELECT T2.CustomerID, SUM(T2.Price / T2.Amount), T1.Currency FROM customers AS T1 INNER JOIN transactions_1k AS T2 ON T1.CustomerID = T2.CustomerID WHERE T2.CustomerID = ( SELECT CustomerID FROM yearmonth ORDER BY Consumption DESC LIMIT 1 ) GROUP BY T2.CustomerID, T1.Currency",
+      "baseline_pred": "SELECT customers.CustomerID, SUM(transactions_1k.Price) / SUM(transactions_1k.Amount) AS avg_price_per_item, customers.Currency FROM transactions_1k JOIN customers ON transactions_1k.CustomerID = customers.CustomerID GROUP BY transactions_1k.CustomerID, customers.Currency ORDER BY SUM(transactions_1k.Price) DESC LIMIT 1",
+      "alt_pred": "SELECT \n    t.CustomerID,\n    SUM(t.Amount * t.Price) / SUM(t.Amount) AS avg_price,\n    c.Currency\nFROM transactions_1k t\nJOIN customers c ON t.CustomerID = c.CustomerID\nGROUP BY t.CustomerID, c.Currency\nORDER BY SUM(t.Amount * t.Price) DESC\nLIMIT 1\n\nWait, the error says \"Invalid expression / Unexpected token. Line 1, Col: 36.\" Looking at line 1, column 36. Let me count the characters. The first line is \"select CustomerID, the average price, and Currency...\" but in the actual SQL, the user probably wrote something like \"SUM(t.Amount * t.Price) / SUM(t.Amount) AS avg_price,\" which is correct. But maybe the error is due to a typo or incorrect syntax in the actual code that was run. Wait, the user's previous SQL might have had a different version. The assistant's thought process mentions that the user's original attempt had a placeholder like \"the average price\" which is not valid SQL. Oh right, the user's previous SQL was a placeholder, but the actual code they tried might have had an error. For example, maybe they wrote \"average price\" without using the correct aggregate function.\n\nBut according to the error context, the problem is in the SELECT clause. The error is at column 36. Let me check the exact original SQL that failed. The user's previous SQL was written as:\n\nselect CustomerID, the average price, and Currency. But according to the projection discipline, the user wants the \"who\" (CustomerID?), the average price, and currency. \n\nWait, that's not actual SQL. It seems like a description. The actual SQL that failed might have been written with incorrect syntax. For example, maybe they tried to use \"average price\" directly without the SUM division. But the assistant's thought process then provided a corrected version. However, the error message points to line 1, column 36. Let me look at the corrected SQL that the assistant wrote. The corrected SQL uses SUM(t.Amount * t.Price)/SUM(t.Amount) as avg_price. That's valid SQL. But maybe in the actual code that was run, there was a typo, like using \"AVG(price)\" instead of the correct calculation. Or perhaps there was a missing comma or something else.\n\nWait, the error message says \"Invalid expression / Unexpected token. Line 1, Col: 36.\" Let me look at the corrected SQL again. The first line of the corrected SQL is:\n\nSELECT \n    t.CustomerID,\n    SUM(t.Amount * t.Price) / SUM(t.Amount) AS avg_price,\n    c.Currency\n\nAssuming that the actual SQL that was run had a mistake here. For example, maybe the user wrote \"SUM(t.Amount * t.Price) / SUM(t.Amount)\" correctly, but perhaps there's an issue with the division operator. In SQLite, division is done with /, which is correct. Alternatively, maybe there was a missing parenthesis or something else. Wait, maybe the original SQL had a typo in the column names. Let me check the schema again. The transactions_1k table has columns Amount and Price. So t.Amount and t.Price are correct.\n\nAnother possibility: the GROUP BY clause. The corrected SQL groups by t.CustomerID and c.Currency. But if the SELECT clause includes t.CustomerID and c.Currency, that's okay. However, if the original SQL had a different grouping, maybe that's an issue. But the error is in the SELECT line, not the GROUP BY.\n\nWait, maybe the problem is that in SQLite, when using aggregate functions, all non-aggregated columns in the SELECT must be in the GROUP BY. But in the corrected SQL, the SELECT has t.CustomerID and c.Currency, which are both in the GROUP BY. So that's correct.\n\nHmm. Maybe the error is due to a different reason. Let me think again. The error is at line 1, column 36. Let's count the characters in the first line of the corrected SQL. The first line is \"SELECT ...\". Let's see:\n\n\"SELECT t.CustomerID, SUM(t.Amount * t.Price) / SUM(t.Amount) AS avg_price, c.Currency FROM ...\"\n\nThe 36th character might be the '/' in the division. Wait, SQLite allows the '/' operator for division. So that's okay. Alternatively, maybe the original SQL used a different operator, but in the corrected version, it's correct.\n\nWait, maybe the original SQL had a different expression. For example, if the user tried to calculate the average as AVG(Price), which",
+      "alt_confidence": 0.0,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "base-fallback",
+      "agree": false,
+      "elapsed_ms": 64040.59330000018
+    }
+  ]
+}

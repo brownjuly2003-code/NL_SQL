@@ -1,0 +1,28 @@
+{
+  "alt_model": "openai/gpt-oss-20b",
+  "summary": {
+    "voted_better": 0,
+    "voted_worse": 0,
+    "voted_same": 1,
+    "groq_input_tokens": 5622,
+    "groq_output_tokens": 862
+  },
+  "records": [
+    {
+      "question_id": 37,
+      "db_id": "california_schools",
+      "difficulty": "moderate",
+      "question": "What is the complete address of the school with the lowest excellence rate? Indicate the Street, City, Zip and State.",
+      "gold_sql": "SELECT T2.Street, T2.City, T2.State, T2.Zip FROM satscores AS T1 INNER JOIN schools AS T2 ON T1.cds = T2.CDSCode ORDER BY CAST(T1.NumGE1500 AS REAL) / T1.NumTstTakr ASC LIMIT 1",
+      "baseline_pred": "SELECT Street, City, Zip, State FROM schools WHERE CDSCode = (SELECT cds FROM satscores WHERE NumTstTakr > 0 ORDER BY (NumGE1500 * 1.0 / NumTstTakr) ASC LIMIT 1)",
+      "alt_pred": "SELECT Street, City, Zip, State FROM schools WHERE CDSCode = (SELECT cds FROM satscores ORDER BY CASE WHEN NumTstTakr = 0 THEN 0 ELSE NumGE1500 * 1.0 / NumTstTakr END ASC LIMIT 1)",
+      "alt_confidence": 0.95,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "agree",
+      "agree": true,
+      "elapsed_ms": 3640.9640999991097
+    }
+  ]
+}
