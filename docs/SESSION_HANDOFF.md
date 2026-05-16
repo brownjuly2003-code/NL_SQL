@@ -869,7 +869,25 @@ Live API status (with keys from `.env`):
 - Groq `llama-3.3-70b-versatile` — works, sub-second, free tier
 - GitHub Models `openai/gpt-4o-mini` — **401 Unauthorized** (PAT lacks `models:read` scope)
 
-## Open issues
+## Open issues — historic (2026-05-10 snapshot, superseded)
+
+> **Read the 2026-05-13 / 2026-05-12 sections at the top first.** Most
+> items below were closed during the May 11–13 sessions:
+> - **Config D / fewshot pool** — shipped. `fewshot_qsql` collection
+>   currently has 9428 records from BIRD train split; production hybrid
+>   path uses `run_config_d` and `run_config_g` end-to-end (see
+>   `eval/reports/2026-05-13/hybrid+multi-vote+critique+selfcon+sonnet-v6.json`,
+>   77.0% n=200).
+> - **Config B (BM25)** — intentionally absent from the shipped pipeline
+>   (dense retrieval strictly superior; see
+>   `docs/03_eval_methodology.md` §4.1 and `src/nl_sql/eval/runner.py`
+>   docstring).
+> - **Schema Recall@k 98%** — fixed via AST-based `extract_gold_tables`
+>   (sqlglot); recall is 100% across all configs at n=200.
+> - **n=50 too small** — production headline runs at n=200, per-tier
+>   slices n=67 / 99 / 34.
+>
+> Items still relevant (PAT scope, Ollama install) are flagged below.
 
 ### 1. BIRD Mini-Dev download — FIXED (Google Drive via gdown)
 
