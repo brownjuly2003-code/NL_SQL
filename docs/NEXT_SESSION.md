@@ -3,12 +3,14 @@
 > Один лист, без воды. Берёшь, делаешь, обновляешь `SESSION_HANDOFF.md`,
 > удаляешь этот файл (или переписываешь под следующий sprint).
 
-## Контекст на 2026-05-13 EOS
+## Контекст на 2026-05-17
 
-- HEAD `329b251` (после aa2e245 + 1 commit этой сессии)
+- HEAD `3ca3612` (после 0b0a42e + 4 commits автономной сессии 2026-05-17)
 - BIRD Mini-Dev n=200: **77.0% EA** (154/200), per tier 88.1/74.7/61.8
-- 247 pytest pass, ruff + mypy strict clean
-- Streamlit UI переписан в editorial monochrome + EN/RU
+- 270 pytest pass (+20 за scalar label classifier + 3 drift guards), ruff + mypy strict clean
+- Streamlit UI переписан в editorial monochrome + EN/RU; scalar metric labels гуманизированы
+- Portfolio screenshots EN/RU в `docs/ui-2026-05-17-{en,ru}.png` привязаны в README hero
+- 2026-05-12 audit P1 backlog закрыт (build_index sample-size drift, CI lint scope, pinned requirements, BM25 cleanup в methodology)
 - GraceKelly Sonnet bridge доказан рабочим (9 rescues / 0 regressions)
 
 ## P0 — Streamlit Cloud deploy
