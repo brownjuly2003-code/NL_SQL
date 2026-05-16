@@ -17,6 +17,12 @@ Portfolio demo для Senior Data Engineer / Data Analyst. Принимает в
 
 **UI (2026-05-13 редизайн):** Streamlit chrome переписан в editorial monochrome — кастомные шрифты (TT Norms Pro Serif для display, AA Stetica для UI), тёплая бумажная палитра без primary-цветов, EN↔RU переключатель языка, без эмодзи и стоковых иконок. Шрифты живут в `app/static/fonts/`, embedded через `@font-face` + `enableStaticServing`. Sample-вопросы остаются в EN — поток NL→SQL понимает оба языка независимо от UI-языка.
 
+| EN | RU |
+|:--:|:--:|
+| ![NL→SQL UI English hero](docs/ui-2026-05-17-en.png) | ![NL→SQL UI Russian hero](docs/ui-2026-05-17-ru.png) |
+
+Скриншоты сняты на live local Streamlit (`docs/ui-2026-05-17-en.png` / `-ru.png`), 1440×900 viewport, default DB `bird_california_schools`.
+
 **Что есть кроме eval:**
 - Streamlit UI с modes (Accurate/Fast/Debug), schema explorer, sample questions, show-working trace, confidence labels.
 - FastAPI surface: `POST /ask`, `GET /databases`, `GET /eval/latest`, `GET /readyz`, X-API-Key auth + token-bucket rate limit (60 req/min).

@@ -41,10 +41,12 @@ Runbook на текущий Streamlit Cloud-вариант: `docs/SESSION_HANDOF
 
 Хороший shot нового UI = sellable артефакт. Конкретно:
 
-1. **Один screenshot EN + один RU** под hero-section какого-нибудь
+1. ~~**Один screenshot EN + один RU** под hero-section какого-нибудь
    проектного проф-сайта или LinkedIn. 1440×900 viewport, default DB
    `bird_california_schools`, без открытых expanders. Сохранить под
-   `docs/ui-2026-05-13-{en,ru}.png` и привязать в README.
+   `docs/ui-2026-05-13-{en,ru}.png` и привязать в README.~~ **Закрыто
+   2026-05-17:** `docs/ui-2026-05-17-{en,ru}.png` сняты через Playwright
+   headless Streamlit, привязаны в README hero-секции.
 2. **Короткий AutoReel-ролик** (`D:\AutoReel\`) с тремя shots:
    (a) headline + metric block,
    (b) sample-click → answer render,
