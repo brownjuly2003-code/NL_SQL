@@ -30,9 +30,7 @@ def test_generate_strips_ansi_escape_codes() -> None:
     bracket variant `[4m..."[0m`) and fail with "Unexpected token".
     """
     provider = PerplexityProvider(model="claude-sonnet-4-6")
-    ansi_dirty = (
-        'SELECT * FROM t WHERE name IN ([4m"a"[0m, [4m"b"[0m)'
-    )
+    ansi_dirty = 'SELECT * FROM t WHERE name IN ([4m"a"[0m, [4m"b"[0m)'
     response = _fake_response({"answer": ansi_dirty, "model_id": "claude-sonnet-4-6"})
 
     with patch("nl_sql.llm.providers.perplexity.urlrequest.urlopen") as mock_urlopen:
@@ -137,8 +135,7 @@ def test_unwrap_handles_literal_newlines_in_sql_value() -> None:
         "WHERE b.bond_type = '#' AND a.element IN ('p', 'br')"
     )
     envelope = (
-        '{"sql": "' + multiline_sql + '",\n'
-        '"rationale": "joined three tables on molecule_id"}'
+        '{"sql": "' + multiline_sql + '",\n"rationale": "joined three tables on molecule_id"}'
     )
     response = _fake_response({"answer": envelope, "model_id": "claude-sonnet-4-6"})
     with patch("nl_sql.llm.providers.perplexity.urlrequest.urlopen") as mock_urlopen:
@@ -154,9 +151,7 @@ def test_unwrap_decodes_escaped_quotes_inside_sql() -> None:
     quotes — needed for column identifiers like "FRPM Count".
     """
     provider = PerplexityProvider(model="claude-sonnet-4-6")
-    envelope = (
-        '{"sql": "SELECT \\"FRPM Count\\" FROM t", "rationale": "quoted col"}'
-    )
+    envelope = '{"sql": "SELECT \\"FRPM Count\\" FROM t", "rationale": "quoted col"}'
     response = _fake_response({"answer": envelope, "model_id": "claude-sonnet-4-6"})
     with patch("nl_sql.llm.providers.perplexity.urlrequest.urlopen") as mock_urlopen:
         mock_urlopen.return_value.__enter__.return_value = response
@@ -172,7 +167,7 @@ def test_unwrap_does_not_false_positive_on_sql_with_sql_substring() -> None:
     literal.
     """
     provider = PerplexityProvider(model="claude-sonnet-4-6")
-    bare = "SELECT * FROM t WHERE json_col = '{\"sql\": \"hack\"}' ORDER BY id"
+    bare = 'SELECT * FROM t WHERE json_col = \'{"sql": "hack"}\' ORDER BY id'
     response = _fake_response({"answer": bare, "model_id": "claude-sonnet-4-6"})
     with patch("nl_sql.llm.providers.perplexity.urlrequest.urlopen") as mock_urlopen:
         mock_urlopen.return_value.__enter__.return_value = response

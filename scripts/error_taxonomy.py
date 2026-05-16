@@ -56,7 +56,11 @@ def _classify(rec: dict[str, Any]) -> str:
     if gc != pc:
         return "row_count_off"
 
-    if gc == pc == 1 and _RE_AGG.search(gold) and (_RE_CASE.search(gold) or "/ " in gold or "*100" in gold.replace(" ", "")):
+    if (
+        gc == pc == 1
+        and _RE_AGG.search(gold)
+        and (_RE_CASE.search(gold) or "/ " in gold or "*100" in gold.replace(" ", ""))
+    ):
         return "filter_or_value"
 
     if reason.startswith("ordered row"):
@@ -89,8 +93,10 @@ def summarise(report_path: Path) -> dict[str, Any]:
 
     print(f"\n=== {report_path.name} (n={n}) ===")
     overall = data.get("overall", {})
-    print(f"EA={overall.get('ea', 0):.3f}  first_pass={overall.get('first_pass_ea', 0):.3f}  "
-          f"valid={overall.get('validity_rate', 0):.3f}  recall={overall.get('schema_recall_at_k', 0):.3f}")
+    print(
+        f"EA={overall.get('ea', 0):.3f}  first_pass={overall.get('first_pass_ea', 0):.3f}  "
+        f"valid={overall.get('validity_rate', 0):.3f}  recall={overall.get('schema_recall_at_k', 0):.3f}"
+    )
     print("\n  bucket             n     %   lift_if_solved")
     print("  ----------------- ---  ----  --------------")
     for bucket, cnt in by_bucket.most_common():
@@ -106,9 +112,10 @@ def summarise(report_path: Path) -> dict[str, Any]:
         total = sum(bd.values())
         miss = total - bd.get("match", 0)
         if total:
-            print(f"    {diff:12s} n={total:3d} miss={miss:3d}  " + ", ".join(
-                f"{k}={v}" for k, v in bd.most_common() if k != "match"
-            ))
+            print(
+                f"    {diff:12s} n={total:3d} miss={miss:3d}  "
+                + ", ".join(f"{k}={v}" for k, v in bd.most_common() if k != "match")
+            )
 
     print("\n  top failure buckets — exemplars:")
     for bucket, _ in [(b, c) for b, c in by_bucket.most_common() if b != "match"][:4]:
@@ -121,7 +128,10 @@ def summarise(report_path: Path) -> dict[str, Any]:
             print(f"      pred: {(r.get('pred_sql') or '')[:140]}")
             print(f"      reason: {r.get('comparison_reason') or r.get('error_kind') or 'n/a'}")
 
-    return {"by_bucket": dict(by_bucket), "by_difficulty": {k: dict(v) for k, v in by_diff_bucket.items()}}
+    return {
+        "by_bucket": dict(by_bucket),
+        "by_difficulty": {k: dict(v) for k, v in by_diff_bucket.items()},
+    }
 
 
 def main() -> int:

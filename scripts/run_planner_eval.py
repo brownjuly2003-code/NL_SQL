@@ -39,7 +39,12 @@ def main() -> int:
     p.add_argument("--n", type=int, default=200, help="prefix size BEFORE difficulty filter")
     p.add_argument("--seed", type=int, default=0)
     p.add_argument("--out", type=Path, required=True)
-    p.add_argument("--log", type=Path, default=None, help="per-example progress log; default <out>.progress.log")
+    p.add_argument(
+        "--log",
+        type=Path,
+        default=None,
+        help="per-example progress log; default <out>.progress.log",
+    )
     p.add_argument("--enable-planner", action="store_true", default=False)
     p.add_argument("--no-planner", dest="enable_planner", action="store_false")
     p.add_argument("--enable-grounded-critique", action="store_true", default=False)
@@ -53,8 +58,12 @@ def main() -> int:
     args.out.parent.mkdir(parents=True, exist_ok=True)
 
     s = get_settings()
-    sql_prov = CachingLLMProvider(build_provider(args.provider, settings=s), cache_dir=s.llm_cache_dir)
-    emb = CachingEmbeddingProvider(MistralProvider(api_key=s.mistral_api_key), cache_dir=s.llm_cache_dir)
+    sql_prov = CachingLLMProvider(
+        build_provider(args.provider, settings=s), cache_dir=s.llm_cache_dir
+    )
+    emb = CachingEmbeddingProvider(
+        MistralProvider(api_key=s.mistral_api_key), cache_dir=s.llm_cache_dir
+    )
     idx = SchemaIndex(persist_dir="chroma_data", embedder=emb)
     registry = get_default_registry()
 
@@ -88,7 +97,9 @@ def main() -> int:
         sys.stderr.write(line)
         sys.stderr.flush()
 
-    log(f"start: n={len(sample)} difficulty={args.difficulty} enable_planner={args.enable_planner} out={args.out}")
+    log(
+        f"start: n={len(sample)} difficulty={args.difficulty} enable_planner={args.enable_planner} out={args.out}"
+    )
 
     records: list[dict] = []
     matched = 0
@@ -110,7 +121,9 @@ def main() -> int:
                 traceback.print_exc(file=sys.stderr)
                 continue
             try:
-                gold_rows, _ = _execute_gold(gold_engine, ex.sql, statement_timeout_ms=30_000, row_cap=10_000)
+                gold_rows, _ = _execute_gold(
+                    gold_engine, ex.sql, statement_timeout_ms=30_000, row_cap=10_000
+                )
             except Exception:
                 gold_rows = []
             if res.outcome is not None and res.outcome.result is not None:
@@ -179,7 +192,7 @@ def main() -> int:
         ),
         encoding="utf-8",
     )
-    log(f"done: EA={matched}/{len(records)} = {100*ea:.1f}% → {args.out}")
+    log(f"done: EA={matched}/{len(records)} = {100 * ea:.1f}% → {args.out}")
     return 0
 
 

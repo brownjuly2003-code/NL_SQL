@@ -36,13 +36,16 @@ DEFAULT_BENCHMARK = Path(__file__).parent.parent / "eval" / "demo_benchmark.json
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--benchmark", type=Path, default=DEFAULT_BENCHMARK,
+        "--benchmark",
+        type=Path,
+        default=DEFAULT_BENCHMARK,
         help=f"path to benchmark JSON (default: {DEFAULT_BENCHMARK})",
     )
     parser.add_argument("--persist", default="chroma_data")
     parser.add_argument("--no-cache", action="store_true")
     parser.add_argument(
-        "--report", type=Path,
+        "--report",
+        type=Path,
         help="optional output JSON path for the full per-question report",
     )
     args = parser.parse_args(argv)
@@ -82,17 +85,32 @@ def main(argv: list[str] | None = None) -> int:
         embed_model=settings.mistral_embed_model,
         base_url=settings.mistral_base_url,
     )
-    embedder = raw_embed if args.no_cache else CachingEmbeddingProvider(
-        raw_embed, cache_dir=settings.llm_cache_dir,
-        size_limit_gb=settings.llm_cache_size_limit_gb,
+    embedder = (
+        raw_embed
+        if args.no_cache
+        else CachingEmbeddingProvider(
+            raw_embed,
+            cache_dir=settings.llm_cache_dir,
+            size_limit_gb=settings.llm_cache_size_limit_gb,
+        )
     )
-    sql_provider = raw_sql if args.no_cache else CachingLLMProvider(
-        raw_sql, cache_dir=settings.llm_cache_dir,
-        size_limit_gb=settings.llm_cache_size_limit_gb,
+    sql_provider = (
+        raw_sql
+        if args.no_cache
+        else CachingLLMProvider(
+            raw_sql,
+            cache_dir=settings.llm_cache_dir,
+            size_limit_gb=settings.llm_cache_size_limit_gb,
+        )
     )
-    explain_provider = raw_explain if args.no_cache else CachingLLMProvider(
-        raw_explain, cache_dir=settings.llm_cache_dir,
-        size_limit_gb=settings.llm_cache_size_limit_gb,
+    explain_provider = (
+        raw_explain
+        if args.no_cache
+        else CachingLLMProvider(
+            raw_explain,
+            cache_dir=settings.llm_cache_dir,
+            size_limit_gb=settings.llm_cache_size_limit_gb,
+        )
     )
 
     index = SchemaIndex(persist_dir=persist, embedder=embedder, client=client)
@@ -121,22 +139,31 @@ def main(argv: list[str] | None = None) -> int:
         for i, q in enumerate(questions, start=1):
             t0 = time.perf_counter()
             try:
-                result = run_pipeline(pipeline, question=q["question"], db_id=db_id, dialect=dialect)
+                result = run_pipeline(
+                    pipeline, question=q["question"], db_id=db_id, dialect=dialect
+                )
             except Exception as exc:
                 elapsed = (time.perf_counter() - t0) * 1000
-                records.append({
-                    "id": q["id"], "category": q.get("category", ""),
-                    "difficulty": q.get("difficulty", ""),
-                    "split": q.get("split", "dev"),
-                    "question": q["question"], "gold_sql": q["gold_sql"],
-                    "pred_sql": "", "match": False,
-                    "reason": f"pipeline raised: {exc!r}",
-                    "latency_ms": elapsed,
-                })
+                records.append(
+                    {
+                        "id": q["id"],
+                        "category": q.get("category", ""),
+                        "difficulty": q.get("difficulty", ""),
+                        "split": q.get("split", "dev"),
+                        "question": q["question"],
+                        "gold_sql": q["gold_sql"],
+                        "pred_sql": "",
+                        "match": False,
+                        "reason": f"pipeline raised: {exc!r}",
+                        "latency_ms": elapsed,
+                    }
+                )
                 print(f"  [{i:>2}/{len(questions)}] EXCEPTION {q['id']}: {exc}")
                 continue
 
-            with execute_readonly(gold_engine, q["gold_sql"], statement_timeout_ms=30_000, row_cap=10_000) as gold:
+            with execute_readonly(
+                gold_engine, q["gold_sql"], statement_timeout_ms=30_000, row_cap=10_000
+            ) as gold:
                 gold_rows = list(gold.rows)
 
             if result.outcome is not None and result.outcome.result is not None:
@@ -145,23 +172,33 @@ def main(argv: list[str] | None = None) -> int:
                 reason = cmp.reason
             else:
                 match = False
-                reason = f"pred failed: {result.error_kind.value if result.error_kind else 'unknown'}"
+                reason = (
+                    f"pred failed: {result.error_kind.value if result.error_kind else 'unknown'}"
+                )
 
             elapsed = (time.perf_counter() - t0) * 1000
             flag = "OK  " if match else "MISS"
-            print(f"  [{i:>2}/{len(questions)}] {flag} ({elapsed:5.0f}ms) {q['id']} — {q['question'][:70]}")
+            print(
+                f"  [{i:>2}/{len(questions)}] {flag} ({elapsed:5.0f}ms) {q['id']} — {q['question'][:70]}"
+            )
             if not match:
                 print(f"        gold: {q['gold_sql'][:140]}")
                 print(f"        pred: {result.sql[:140]}")
                 print(f"        why:  {reason}")
-            records.append({
-                "id": q["id"], "category": q.get("category", ""),
-                "difficulty": q.get("difficulty", ""),
-                "split": q.get("split", "dev"),
-                "question": q["question"], "gold_sql": q["gold_sql"],
-                "pred_sql": result.sql, "match": match, "reason": reason,
-                "latency_ms": elapsed,
-            })
+            records.append(
+                {
+                    "id": q["id"],
+                    "category": q.get("category", ""),
+                    "difficulty": q.get("difficulty", ""),
+                    "split": q.get("split", "dev"),
+                    "question": q["question"],
+                    "gold_sql": q["gold_sql"],
+                    "pred_sql": result.sql,
+                    "match": match,
+                    "reason": reason,
+                    "latency_ms": elapsed,
+                }
+            )
     finally:
         gold_engine.dispose()
 
@@ -195,11 +232,19 @@ def main(argv: list[str] | None = None) -> int:
     if args.report:
         args.report.parent.mkdir(parents=True, exist_ok=True)
         args.report.write_text(
-            json.dumps({
-                "benchmark": bench["name"], "db_id": db_id, "dialect": dialect,
-                "n": len(records), "matches": matches, "ea": ea,
-                "records": records,
-            }, indent=2, ensure_ascii=False),
+            json.dumps(
+                {
+                    "benchmark": bench["name"],
+                    "db_id": db_id,
+                    "dialect": dialect,
+                    "n": len(records),
+                    "matches": matches,
+                    "ea": ea,
+                    "records": records,
+                },
+                indent=2,
+                ensure_ascii=False,
+            ),
             encoding="utf-8",
         )
         print(f"[report] {args.report}")

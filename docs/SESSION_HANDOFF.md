@@ -41,7 +41,7 @@ Layered five moves on the 69 fails of `hybrid+gpt-oss-vote-n200.json`:
 - `scripts/merge_voting_rescues.py` (new) — reproducible merger of multi-source rescues into a baseline report.
 - `eval/reports/2026-05-13/hybrid+multi-vote+critique+selfcon+sonnet-v6.json` — **77.0% headline**.
 - `eval/reports/2026-05-13/sonnet-voting.json` — 9 Sonnet rescues, per-question audit trail.
-- 247 tests pass; ruff + mypy strict clean on all new files.
+- 250 tests pass; ruff + mypy strict clean on all new files.
 
 **Remaining 46 fails (true ceiling work):**
 

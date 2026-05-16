@@ -90,7 +90,11 @@ def main() -> int:
     p.add_argument("--max-cases", type=int, default=20)
     p.add_argument("--bucket", default="filter_or_value", choices=list(_BUCKETS.keys()))
     p.add_argument("--difficulty", default=None, choices=["simple", "moderate", "challenging"])
-    p.add_argument("--skip-qids", default="", help="comma-separated qids to skip (already covered by prior runs)")
+    p.add_argument(
+        "--skip-qids",
+        default="",
+        help="comma-separated qids to skip (already covered by prior runs)",
+    )
     p.add_argument("--bird-root", default="data/bird_mini_dev/MINIDEV")
     p.add_argument("--out", type=Path, required=True)
     args = p.parse_args()
@@ -107,8 +111,7 @@ def main() -> int:
         candidates = [r for r in candidates if r["difficulty"] == args.difficulty]
     candidates = candidates[: args.max_cases]
     print(
-        f"[info] picked {len(candidates)} {args.bucket} cases "
-        f"(skipped {len(skip)} qids)",
+        f"[info] picked {len(candidates)} {args.bucket} cases (skipped {len(skip)} qids)",
         file=sys.stderr,
     )
 
@@ -138,6 +141,7 @@ def main() -> int:
                 raise RuntimeError(f"groq {self.model}: {exc}") from exc
             lat = (time.perf_counter() - t0) * 1000.0
             from nl_sql.llm.providers.base import GenerateResponse
+
             return GenerateResponse(
                 text=completion.choices[0].message.content or "",
                 model=completion.model or self.model,

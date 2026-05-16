@@ -255,6 +255,7 @@ def create_app() -> FastAPI:
 
     api_key_env = ""  # `NL_SQL_API_KEY` via env, optional
     import os
+
     api_key_env = os.environ.get("NL_SQL_API_KEY", "")
 
     async def require_api_key(
@@ -375,6 +376,7 @@ def create_app() -> FastAPI:
     def eval_latest() -> EvalLatestResponse:
         """Returns metadata of the latest hybrid eval report committed to repo."""
         import json
+
         baseline = Path("eval/baselines/hybrid_n200_v0.json")
         if not baseline.exists():
             raise HTTPException(

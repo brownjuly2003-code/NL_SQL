@@ -108,14 +108,19 @@ def main() -> int:
             alt_sql = winner.result.sql or ""
             try:
                 outcome = execute_validated(
-                    engine, alt_sql, dialect="sqlite",
-                    statement_timeout_ms=30_000, row_cap=10_000,
+                    engine,
+                    alt_sql,
+                    dialect="sqlite",
+                    statement_timeout_ms=30_000,
+                    row_cap=10_000,
                 )
                 alt_rows = list(outcome.result.rows) if outcome.result else []
             except Exception:
                 alt_rows = []
             try:
-                gold_rows, _ = _execute_gold(engine, ex.sql, statement_timeout_ms=30_000, row_cap=10_000)
+                gold_rows, _ = _execute_gold(
+                    engine, ex.sql, statement_timeout_ms=30_000, row_cap=10_000
+                )
             except Exception:
                 gold_rows = []
             alt_cmp = compare_results(gold_rows, alt_rows, gold_sql=ex.sql)

@@ -111,9 +111,7 @@ def main(argv: list[str] | None = None) -> int:
     )
 
     questions: tuple[SmokeQuestion, ...]
-    questions = (
-        (SmokeQuestion(text=args.question),) if args.question else CHINOOK_QUESTIONS
-    )
+    questions = (SmokeQuestion(text=args.question),) if args.question else CHINOOK_QUESTIONS
 
     ok_count = 0
     print(f"\nLive pipeline smoke against db_id={args.db!r}\n{'=' * 78}\n")

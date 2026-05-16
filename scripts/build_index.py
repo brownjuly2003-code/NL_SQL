@@ -5,6 +5,10 @@ upsert chunks under the same `chunk_id` (db::table), so vectors get refreshed
 in place and stale chunks for renamed tables are NOT auto-pruned (run with
 ``--reset`` to clear the collection first if you have schema deletions).
 
+The default ``--sample-size`` is imported from ``PipelineConfig.primary_sample_size``
+so the index is built with the same density runtime expects. Pass an explicit
+value only if you want to rebuild for a non-default runtime configuration.
+
 Usage:
     uv run python scripts/build_index.py --db chinook
     uv run python scripts/build_index.py --db all --persist chroma_data
@@ -15,10 +19,12 @@ from __future__ import annotations
 
 import argparse
 import sys
+from dataclasses import fields
 from pathlib import Path
 
 import chromadb
 
+from nl_sql.agent.graph import PipelineConfig
 from nl_sql.config import get_settings
 from nl_sql.db.registry import get_default_registry
 from nl_sql.llm.cache import CachingEmbeddingProvider
@@ -29,7 +35,25 @@ from nl_sql.schema_index.indexer import SCHEMA_COLLECTION, SchemaIndex
 from nl_sql.schema_index.introspector import introspect
 
 
-def build_for_db(idx: SchemaIndex, db_id: str, *, sample_size: int = 5) -> int:
+def _runtime_sample_size_default() -> int:
+    """Read `PipelineConfig.primary_sample_size` default without constructing
+    the dataclass (it requires live providers/registry we don't have here)."""
+    for field_ in fields(PipelineConfig):
+        if field_.name == "primary_sample_size":
+            default = field_.default
+            if isinstance(default, int):
+                return default
+    raise RuntimeError("PipelineConfig.primary_sample_size default missing")
+
+
+DEFAULT_SAMPLE_SIZE: int = _runtime_sample_size_default()
+"""Source of truth for the sample density baked into Chroma chunks.
+Runtime expects this to equal `PipelineConfig.primary_sample_size`; the
+mixture appendix breaks if the index is built with more samples than
+runtime advertises."""
+
+
+def build_for_db(idx: SchemaIndex, db_id: str, *, sample_size: int = DEFAULT_SAMPLE_SIZE) -> int:
     registry = get_default_registry()
     spec = registry.get(db_id)
     print(f"[introspect] {db_id} ({spec.url})")
@@ -42,7 +66,7 @@ def build_for_db(idx: SchemaIndex, db_id: str, *, sample_size: int = 5) -> int:
     return n
 
 
-def main(argv: list[str] | None = None) -> int:
+def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--db",
@@ -57,8 +81,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--sample-size",
         type=int,
-        default=5,
-        help="Top-K sample values per column (default: 5)",
+        default=DEFAULT_SAMPLE_SIZE,
+        help=(
+            "Top-K sample values per column to bake into each chunk "
+            f"(default: {DEFAULT_SAMPLE_SIZE} = PipelineConfig.primary_sample_size). "
+            "Keep aligned with runtime or the sample-mixture appendix breaks."
+        ),
     )
     parser.add_argument(
         "--reset",
@@ -70,7 +98,11 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Disable diskcache wrapper around the embedding provider.",
     )
-    args = parser.parse_args(argv)
+    return parser
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = build_parser().parse_args(argv)
 
     settings = get_settings()
     persist = Path(args.persist)

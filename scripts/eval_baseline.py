@@ -47,9 +47,7 @@ from nl_sql.schema_index.indexer import SchemaIndex
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--n", type=int, default=50, help="number of BIRD examples (default: 50)"
-    )
+    parser.add_argument("--n", type=int, default=50, help="number of BIRD examples (default: 50)")
     parser.add_argument("--seed", type=int, default=0, help="dev_split seed")
     parser.add_argument(
         "--db",
@@ -228,10 +226,7 @@ def main(argv: list[str] | None = None) -> int:
                 file=sys.stderr,
             )
             return 3
-    print(
-        f"[info] loaded {len(examples)} examples → "
-        f"sampled {len(sample)} (seed={args.seed})"
-    )
+    print(f"[info] loaded {len(examples)} examples → sampled {len(sample)} (seed={args.seed})")
     missing = sorted({e.registry_db_id for e in sample} - set(registry.ids()))
     if missing:
         print(
@@ -301,14 +296,10 @@ def main(argv: list[str] | None = None) -> int:
                 size_limit_gb=settings.llm_cache_size_limit_gb,
             )
         )
-        index = SchemaIndex(
-            persist_dir=persist_dir, embedder=embedder, client=chroma_client
-        )
+        index = SchemaIndex(persist_dir=persist_dir, embedder=embedder, client=chroma_client)
         explain_provider = sql_provider  # codestral works for caption too in eval
         if args.config == "F":
-            temps = tuple(
-                float(x) for x in args.sql_candidate_temperatures.split(",") if x.strip()
-            )
+            temps = tuple(float(x) for x in args.sql_candidate_temperatures.split(",") if x.strip())
             print(f"[info] self-consistency: {len(temps)} candidates @ {temps}")
             run = run_config_f(
                 sample,
@@ -384,12 +375,22 @@ def main(argv: list[str] | None = None) -> int:
     print(f"Examples:      {run.overall.n}")
     print(f"EA (final):    {run.overall.ea * 100:.1f}%")
     print(f"EA (1st pass): {run.overall.first_pass_ea * 100:.1f}%")
-    print(f"  simple:      {run.per_difficulty['simple'].ea * 100:.1f}% (n={run.per_difficulty['simple'].n})")
-    print(f"  moderate:    {run.per_difficulty['moderate'].ea * 100:.1f}% (n={run.per_difficulty['moderate'].n})")
-    print(f"  challenging: {run.per_difficulty['challenging'].ea * 100:.1f}% (n={run.per_difficulty['challenging'].n})")
+    print(
+        f"  simple:      {run.per_difficulty['simple'].ea * 100:.1f}% (n={run.per_difficulty['simple'].n})"
+    )
+    print(
+        f"  moderate:    {run.per_difficulty['moderate'].ea * 100:.1f}% (n={run.per_difficulty['moderate'].n})"
+    )
+    print(
+        f"  challenging: {run.per_difficulty['challenging'].ea * 100:.1f}% (n={run.per_difficulty['challenging'].n})"
+    )
     print(f"Validity:      {run.overall.validity_rate * 100:.1f}%")
-    print(f"Repair fired:  {sum(1 for r in run.records if r.repair_attempted)}/{run.overall.n}; success rate {run.overall.repair_success_rate * 100:.1f}%")
-    print(f"Schema rec@k:  {run.overall.schema_recall_at_k * 100:.1f}%  (k = full schema, so recall ≈ 100% expected)")
+    print(
+        f"Repair fired:  {sum(1 for r in run.records if r.repair_attempted)}/{run.overall.n}; success rate {run.overall.repair_success_rate * 100:.1f}%"
+    )
+    print(
+        f"Schema rec@k:  {run.overall.schema_recall_at_k * 100:.1f}%  (k = full schema, so recall ≈ 100% expected)"
+    )
     print(f"Empty result:  {run.overall.empty_result_rate * 100:.1f}%")
     print(f"Latency P50:   {run.overall.latency_p50_ms:.0f} ms")
     print(f"Latency P95:   {run.overall.latency_p95_ms:.0f} ms")
@@ -397,9 +398,7 @@ def main(argv: list[str] | None = None) -> int:
     print(f"Tokens P95:    {run.overall.tokens_p95:.0f}")
     print(f"Wall time:     {elapsed:.1f}s")
 
-    json_path = write_json_report(
-        run, root=args.reports, name_suffix=args.report_suffix
-    )
+    json_path = write_json_report(run, root=args.reports, name_suffix=args.report_suffix)
 
     # Combine today's run with any other configurations that finished earlier
     # so the HTML index keeps a single side-by-side ablation table per day.

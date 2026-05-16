@@ -22,7 +22,9 @@ from nl_sql.execution.guards import ValidationReport
 from nl_sql.execution.runner import ExecutionOutcome
 
 
-def _outcome(rows: list[tuple[object, ...]] | None, error: ExecutionErrorKind | None = None) -> ExecutionOutcome:
+def _outcome(
+    rows: list[tuple[object, ...]] | None, error: ExecutionErrorKind | None = None
+) -> ExecutionOutcome:
     validation = ValidationReport(sql="select 1", dialect="sqlite", violations=[])
     if rows is None:
         return ExecutionOutcome(
@@ -57,8 +59,14 @@ def _result(
 ) -> PipelineRunResult:
     outcome = _outcome(rows, error=error)
     trace = [
-        {"node": "generate_sql", "model": "x", "confidence": confidence,
-         "tables_used": [], "input_tokens": 10, "output_tokens": 20}
+        {
+            "node": "generate_sql",
+            "model": "x",
+            "confidence": confidence,
+            "tables_used": [],
+            "input_tokens": 10,
+            "output_tokens": 20,
+        }
     ]
     return PipelineRunResult(
         question="q",

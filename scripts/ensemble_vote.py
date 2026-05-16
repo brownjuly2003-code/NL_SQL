@@ -98,7 +98,9 @@ def ensemble_runs(
     common_qids = set(indices[0])
     for index in indices[1:]:
         common_qids &= set(index)
-    ordered_qids = [record.question_id for record in runs[0].records if record.question_id in common_qids]
+    ordered_qids = [
+        record.question_id for record in runs[0].records if record.question_id in common_qids
+    ]
 
     engines: dict[str, Engine] = {}
     merged: list[EvalRecord] = []
@@ -350,11 +352,7 @@ def _cluster_model_name(members: Sequence[ReportMember]) -> str:
     confidence = _max_confidence(members)
     if confidence is None:
         return _model_name(members[0])
-    return min(
-        _model_name(member)
-        for member in members
-        if _confidence(member) == confidence
-    )
+    return min(_model_name(member) for member in members if _confidence(member) == confidence)
 
 
 def _model_name(member: ReportMember) -> str:

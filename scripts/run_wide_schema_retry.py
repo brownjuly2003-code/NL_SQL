@@ -122,15 +122,20 @@ def main() -> int:
             alt_rows: list[Any] = []
             try:
                 outcome = execute_validated(
-                    engine, alt_sql, dialect="sqlite",
-                    statement_timeout_ms=30_000, row_cap=10_000,
+                    engine,
+                    alt_sql,
+                    dialect="sqlite",
+                    statement_timeout_ms=30_000,
+                    row_cap=10_000,
                 )
                 if outcome.result:
                     alt_rows = list(outcome.result.rows)
             except Exception:
                 pass
             try:
-                gold_rows, _ = _execute_gold(engine, ex.sql, statement_timeout_ms=30_000, row_cap=10_000)
+                gold_rows, _ = _execute_gold(
+                    engine, ex.sql, statement_timeout_ms=30_000, row_cap=10_000
+                )
             except Exception:
                 gold_rows = []
             alt_cmp = compare_results(gold_rows, alt_rows, gold_sql=ex.sql)
@@ -171,8 +176,10 @@ def main() -> int:
             engine.dispose()
 
     print("\n=== wide-schema retry summary ===", file=sys.stderr)
-    print(f"  cases: {len(records)}  rescued: {rescued}  regressed: {regressed}  same: {same}",
-          file=sys.stderr)
+    print(
+        f"  cases: {len(records)}  rescued: {rescued}  regressed: {regressed}  same: {same}",
+        file=sys.stderr,
+    )
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(

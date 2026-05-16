@@ -150,13 +150,15 @@ class PerplexityProvider:
         prompt = req.prompt
         if req.system:
             prompt = f"{req.system}\n\n{prompt}"
-        payload = json.dumps({
-            "prompt": prompt,
-            "model": self.model,
-            "reliability_level": "quick",
-            "multi_model": False,
-            "dry_run": False,
-        }).encode("utf-8")
+        payload = json.dumps(
+            {
+                "prompt": prompt,
+                "model": self.model,
+                "reliability_level": "quick",
+                "multi_model": False,
+                "dry_run": False,
+            }
+        ).encode("utf-8")
 
         http_request = urlrequest.Request(
             f"{self._base_url}/api/v1/pipeline",

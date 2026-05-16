@@ -106,15 +106,20 @@ def main() -> int:
             alt_rows: list[Any] = []
             try:
                 outcome = execute_validated(
-                    engine, alt_sql, dialect="sqlite",
-                    statement_timeout_ms=30_000, row_cap=10_000,
+                    engine,
+                    alt_sql,
+                    dialect="sqlite",
+                    statement_timeout_ms=30_000,
+                    row_cap=10_000,
                 )
                 if outcome.result:
                     alt_rows = list(outcome.result.rows)
             except Exception:
                 pass
             try:
-                gold_rows, _ = _execute_gold(engine, ex.sql, statement_timeout_ms=30_000, row_cap=10_000)
+                gold_rows, _ = _execute_gold(
+                    engine, ex.sql, statement_timeout_ms=30_000, row_cap=10_000
+                )
             except Exception:
                 gold_rows = []
             alt_cmp = compare_results(gold_rows, alt_rows, gold_sql=ex.sql)
@@ -148,7 +153,7 @@ def main() -> int:
                 }
             )
             print(
-                f"[{i:3d}/{len(fails)}] qid={qid} {ex.difficulty:11s} {tag} ({elapsed/1000:.1f}s)",
+                f"[{i:3d}/{len(fails)}] qid={qid} {ex.difficulty:11s} {tag} ({elapsed / 1000:.1f}s)",
                 file=sys.stderr,
             )
 
@@ -158,7 +163,11 @@ def main() -> int:
                 json.dumps(
                     {
                         "alt_model": f"perplexity:{args.model}",
-                        "summary": {"voted_better": rescued, "voted_worse": regressed, "voted_same": same},
+                        "summary": {
+                            "voted_better": rescued,
+                            "voted_worse": regressed,
+                            "voted_same": same,
+                        },
                         "records": records,
                     },
                     indent=2,

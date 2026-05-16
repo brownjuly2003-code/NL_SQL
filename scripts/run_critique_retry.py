@@ -137,7 +137,11 @@ def main() -> int:
                     "elapsed_ms": elapsed,
                 }
             )
-            tag = "RESCUE" if (alt_match and not br.get("match")) else ("regression" if (br.get("match") and not alt_match) else "same")
+            tag = (
+                "RESCUE"
+                if (alt_match and not br.get("match"))
+                else ("regression" if (br.get("match") and not alt_match) else "same")
+            )
             print(
                 f"[{i:3d}/{len(fails)}] qid={qid} {ex.difficulty:11s} {tag} ({elapsed:.0f}ms)",
                 file=sys.stderr,

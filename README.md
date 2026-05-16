@@ -2,7 +2,7 @@
 
 Portfolio demo для Senior Data Engineer / Data Analyst. Принимает вопрос на естественном языке (RU/EN), возвращает ответ из реляционной БД в одной из четырёх форм: число, предложение, таблица, график. Всегда показывает использованный SQL и объяснение. AST-guard + read-only execution + row cap — без шанса на DML/DDL побег.
 
-**Статус:** Stages 1–10 закрыты + grounded-critique directed retry + multi-provider voting + Sonnet 4.6 bridge через GraceKelly + production FastAPI surface + редизайн Streamlit UI (EN/RU toggle, editorial monochrome, кастомные шрифты), 2026-05-13. **247 тестов зелёные**, ruff/mypy strict clean. Live API verified: Mistral + Groq + Perplexity Pro.
+**Статус:** Stages 1–10 закрыты + grounded-critique directed retry + multi-provider voting + Sonnet 4.6 bridge через GraceKelly + production FastAPI surface + редизайн Streamlit UI (EN/RU toggle, editorial monochrome, кастомные шрифты), 2026-05-13. **250 тестов зелёные**, ruff/mypy strict clean. Live API verified: Mistral + Groq + Perplexity Pro.
 
 **Headline metrics:**
 - **Chinook demo workload (n=60): 100% EA — 60/60.** 30 dev + 30 held-out, balanced split, no overfitting. Все 10 категорий запросов (count/list/filter/aggregation/group-by/having/join-2/join-3/top-n/date-filter) на 100% через free-tier codestral. Это реальный analyst workload, как BI tool в проде.

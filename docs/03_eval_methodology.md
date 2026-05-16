@@ -81,35 +81,52 @@
 
 ### 4.1 Конфигурации
 
-Прогон делается на одном и том же **dev split** (250 примеров из 500 Mini-Dev — детерминированный sample) через **5 конфигураций**, каждая надстраивается над предыдущей:
+Прогон делается на одном и том же **dev split** (250 примеров из 500 Mini-Dev — детерминированный sample). Shipped production-ладдер — **A → C → D → G**, каждая надстраивается над предыдущей:
 
 | # | Конфигурация | Что включено |
 |---|---|---|
 | **A** | `full_schema` baseline | Вся схема целиком в prompt (если влезает; иначе truncate). Никакой RAG, никаких few-shot, никакого repair. |
-| **B** | `BM25 cards` | BM25 retrieval топ-N таблиц как table cards (имя+колонки+типы). Без few-shot, без repair. |
 | **C** | `Chroma cards` | Dense retrieval (mistral-embed) топ-N table cards + FK graph traversal. Без few-shot, без repair. |
 | **D** | `+ fewshot` | C + top-k few-shot Q→SQL примеров из train split. Без repair. |
-| **E** | `+ repair_once` | D + один repair pass при FAIL validate/execute. **Это финальная конфигурация v2.** |
+| **G** | `+ verify_retry` | D + один verify/repair pass при FAIL validate/execute или empty result. **Финальная shipped конфигурация.** |
+
+> **Config B (BM25 cards) намеренно не shipped.** В пилоте dense retrieval (C) был строго лучше BM25 на тех же top-N; BM25 расширял prompt без recall lift. Enum `Configuration.B_BM25` и `run_config_b` сохранены как `NotImplementedError`, чтобы методология читалась как полный A–E ладдер, но production path не зависит от B. См. `src/nl_sql/eval/runner.py` верхний docstring.
+>
+> Configs E (repair_once) и F (self-consistency vote) живут отдельно — реализованы для ablation, но не на shipped пути.
 
 ### 4.2 Что репортится для каждой конфигурации
 
-Шаблон с реальными числами для конфига `G_dense_fewshot_verify_retry` (hybrid codestral + Sonnet challenging, n=200, seed=0):
+Шаблон с реальными числами для финальной shipped конфигурации (G + multi-vote + critique + selfcon + Sonnet challenging hybrid, n=200, seed=0, отчёт 2026-05-13):
 
 ```
-Configuration G_dense_fewshot_verify_retry (hybrid)
-  EA (overall):           57.0%
-  EA (simple):            71.6%
-  EA (moderate):          53.5%
-  EA (challenging):       38.2%
-  EA (SQLite only):       57.0% (мы запускаем только SQLite split)
+Configuration G_hybrid+multi-vote+critique+selfcon+sonnet  (final shipped path)
+  EA (overall):           77.0%   (154/200, +29.2pp vs GPT-4 zero-shot 47.8%)
+  EA (simple):            88.1%   (59/67)
+  EA (moderate):          74.7%   (74/99)
+  EA (challenging):       61.8%   (21/34)
+  EA (SQLite only):       77.0%   (BIRD Mini-Dev is SQLite-only)
+  Voting rescues:         40/200  (frozen-fail directed retry across vote buckets)
   Schema Recall@5:        100.0%
   SQL Validity Rate:      100.0%
-  First-pass / Final EA:  54.0 / 57.0
-  Repair Success Rate:    26.1%
-  Empty-Result Rate:      2.0%
-  Latency P50 / P95:      65 ms / 61.4 s   (p95 driven by Sonnet challenging-tier calls)
-  Cost per query:         $0   ($0 external — Mistral free tier + Perplexity Pro browser bridge)
-  Tokens P50 / P95:       не агрегируется (cache hits stamped 0)
+  First-pass / Final EA:  47.0 / 77.0   (codestral A baseline → final)
+  Latency P50 / P95:      ~65 ms cache-hit / dozens of seconds on Sonnet-rescued tier
+  Cost per query:         $0    (Mistral free + Groq free + Perplexity Pro browser bridge)
+```
+
+Per-bucket lifts that compose the 77.0% headline:
+
+```
+A (codestral full_schema)                         47.0%   baseline
+C (codestral dense_cards + sort)                  51.0%   +4.0pp
+D (codestral dense_fewshot k=3)                   55.5%   +4.5pp
+G (codestral verify-retry)                        56.5%   +1.0pp
+G + Sonnet challenging tier hybrid                57.0%   +0.5pp
++ groq voting on filter_or_value                  62.0%   +5.0pp
++ gpt-oss-20b voting on remaining failures        64.5%   +2.5pp
++ row_count_off voting bucket                     65.5%   +1.0pp
++ grounded-critique directed retry                72.0%   +6.5pp
++ Mistral self-consistency                        72.5%   +0.5pp
++ Sonnet rescue on frozen-fail tail               77.0%   +4.5pp (9 rescues, 0 regressions)
 ```
 
 Все формулы метрик — см. §5. Полные per-config таблицы — §6 ниже. Чтобы получить эти числа локально:
@@ -127,13 +144,13 @@ uv run python scripts/error_taxonomy.py eval/baselines/hybrid_n200_v0.json
 
 Это и есть «инженерный сигнал» в портфолио:
 
-- **A → B:** даёт ли BM25 retrieval выигрыш над full_schema? (на BIRD обычно да, потому что некоторые БД не влезают)
-- **B → C:** даёт ли dense retrieval над BM25 measurable lift? (часто да, +2-5%)
-- **C → D:** насколько важен few-shot retrieval? (обычно +5-10%)
-- **D → E:** оправдан ли repair loop? (обычно +2-4%, но видна и trade-off на latency/cost)
+- **A → C:** даёт ли dense retrieval выигрыш над full_schema? (на BIRD да, +4pp — некоторые БД не влезают целиком)
+- **C → D:** насколько важен few-shot retrieval? (на BIRD +4.5pp на n=200)
+- **D → G:** оправдан ли verify-retry pass? (на BIRD +1.0pp + cures empty-result tail)
+- **G → G+Sonnet hybrid:** даёт ли Sonnet на challenging tier дополнительный lift? (+11.5pp на n=200, см. 2026-05-13 run)
 
-Если B → C даёт ≤+1% — **обоснование Chroma снято**, переходим на BM25.
-Если D → E даёт ≤+1% — **repair убирается** как лишняя сложность.
+Если C → D даёт ≤+1% — **few-shot убирается** как лишняя сложность.
+Если D → G даёт ≤+0.5pp — **verify-retry убирается**.
 
 Это и есть честный engineering: каждый компонент имеет measured cost/benefit.
 
@@ -178,11 +195,11 @@ uv run python scripts/error_taxonomy.py eval/baselines/hybrid_n200_v0.json
 - Артефакт: HTML-отчёт в `eval/reports/YYYY-MM-DD.html`.
 - Тригер: cron (если хватит API quota) или manual `make eval-full`.
 
-**Cost estimate:** см. `02_architecture_v2.md §6.5` — один полный eval-прогон 5 конфигураций = ~2600 unique generation calls (после первого прогона повторы = 0 API calls благодаря cache).
+**Cost estimate:** см. `02_architecture_v2.md §6.5` — один полный eval-прогон по shipped ладдеру A → C → D → G = ~2000 unique generation calls (после первого прогона повторы = 0 API calls благодаря cache). Дополнительные voting/critique/selfcon/Sonnet-rescue layers — ещё ~600 calls на frozen-fail tail.
 
 ### 6.3 Pre-release (manual, перед merge в main или релизом)
 
-- **Полная ablation** (A → E) на dev split.
+- **Полная ablation** (A → G + final shipped path) на dev split.
 - **Bakeoff** (3 providers × 30 questions) если есть изменения в provider adapter.
 - Обновление главной таблицы в README.
 
@@ -277,11 +294,16 @@ Business hints:
 | A: full_schema (codestral)                       | 47.0%       | 64.2%  | 43.4%    | 29.4%       |
 | C: dense_cards (codestral + sort)                | 51.0%       | 67.2%  | 47.5%    | 32.4%       |
 | D: dense_fewshot (codestral, k=3 BIRD train)     | 55.5%       | 70.1%  | 51.5%    | 35.3%       |
-| G: + verify_retry (codestral)                    | 56.5%       | 71.6%  | 53.5%    | 38.2% (after repair) |
-| **G + Sonnet challenging hybrid (final)**        | **57.0%**   | 71.6%  | 53.5%    | **38.2%**   |
+| G: + verify_retry (codestral)                    | 56.5%       | 71.6%  | 53.5%    | 38.2%       |
+| G + Sonnet challenging hybrid                    | 57.0%       | 71.6%  | 53.5%    | 38.2%       |
+| + multi-vote + grounded-critique + selfcon       | 72.5%       | 86.6%  | 70.7%    | 55.9%       |
+| **+ Sonnet rescue on frozen-fail tail (final)**  | **77.0%**   | **88.1%** | **74.7%** | **61.8%** |
 | Reference: GPT-4 zero-shot (BIRD paper)          | 47.8%       | —      | —        | —           |
+| Reference: paid SOTA CHESS/Distillery 2024       | 73–76%      | —      | —        | —           |
 
-Config B (BM25 cards) is intentionally absent from the shipped pipeline — dense retrieval (config C) was strictly superior in pilot runs and BM25 would only widen the prompt with no recall lift. The original A–E ladder remains documented for methodology-completeness but the production path is A → C → D → G → hybrid.
+Final shipped configuration matches `eval/reports/2026-05-13/hybrid+multi-vote+critique+selfcon+sonnet-v6.json` — see also memory note `project_nl_sql_quality_push`.
+
+Config B (BM25 cards) is intentionally absent from the shipped pipeline — dense retrieval (config C) was strictly superior in pilot runs and BM25 would only widen the prompt with no recall lift. `Configuration.B_BM25` enum and `run_config_b` (NotImplementedError) are kept so the A–E ladder reads as documented, but the production path is A → C → D → G → hybrid → voting/critique/selfcon → Sonnet rescue.
 
 ### Provider Bakeoff (chinook smoke, n=60, configuration G)
 

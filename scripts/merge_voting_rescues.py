@@ -102,9 +102,11 @@ def main() -> int:
         base["per_difficulty"] = diff_summary
 
     # Update headline fields.
-    base["sql_model"] = base.get("sql_model", "") + " + " + " + ".join(
-        sorted(rescue_models.keys())
-    ) if rescue_models else base.get("sql_model", "")
+    base["sql_model"] = (
+        base.get("sql_model", "") + " + " + " + ".join(sorted(rescue_models.keys()))
+        if rescue_models
+        else base.get("sql_model", "")
+    )
     base["configuration"] = base.get("configuration", "") + "+merged"
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
@@ -113,11 +115,11 @@ def main() -> int:
     print(f"Rescues applied: {rescues}", file=sys.stderr)
     for model_name, count in rescue_models.most_common():
         print(f"  by {model_name}: {count}", file=sys.stderr)
-    print(f"\nEA: {matched}/{n} = {matched/n*100:.1f}%", file=sys.stderr)
+    print(f"\nEA: {matched}/{n} = {matched / n * 100:.1f}%", file=sys.stderr)
     for d in ["simple", "moderate", "challenging"]:
         m_count, t_count = by_diff.get(d, [0, 0])
         if t_count:
-            print(f"  {d}: {m_count}/{t_count} = {m_count/t_count*100:.1f}%", file=sys.stderr)
+            print(f"  {d}: {m_count}/{t_count} = {m_count / t_count * 100:.1f}%", file=sys.stderr)
     return 0
 
 

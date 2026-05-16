@@ -67,11 +67,7 @@ def _assert_no_dev_leakage(
     """Hard guard against leakage even though train/dev partition by db_id."""
     dev = load_bird_mini_dev(bird_root)
     dev_questions = {e.question.strip().lower() for e in dev}
-    overlap = [
-        e
-        for e in examples
-        if e.question.strip().lower() in dev_questions
-    ]
+    overlap = [e for e in examples if e.question.strip().lower() in dev_questions]
     if overlap:
         msg = (
             f"FATAL: {len(overlap)} fewshot examples overlap with BIRD Mini-Dev. "

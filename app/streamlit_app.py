@@ -213,24 +213,51 @@ SAMPLE_QUESTIONS: dict[str, list[tuple[str, str]]] = {
         ("moderate", "What is the total revenue per genre?"),
     ],
     "bird_california_schools": [
-        ("simple", "How many schools with an average score in Math greater than 400 in the SAT test are exclusively virtual?"),
-        ("simple", "What is the average number of test takers from Fresno schools that opened between 1/1/1980 and 12/31/1980?"),
-        ("moderate", "What is the ratio of merged Unified School District schools in Orange County to merged Elementary School District schools?"),
+        (
+            "simple",
+            "How many schools with an average score in Math greater than 400 in the SAT test are exclusively virtual?",
+        ),
+        (
+            "simple",
+            "What is the average number of test takers from Fresno schools that opened between 1/1/1980 and 12/31/1980?",
+        ),
+        (
+            "moderate",
+            "What is the ratio of merged Unified School District schools in Orange County to merged Elementary School District schools?",
+        ),
     ],
     "bird_card_games": [
         ("simple", "How many cards have infinite power?"),
-        ("simple", "What language is the set of 180 cards that belongs to the Ravnica block translated into?"),
-        ("moderate", "Among the sets in the block 'Ice Age', how many of them have an Italian translation?"),
+        (
+            "simple",
+            "What language is the set of 180 cards that belongs to the Ravnica block translated into?",
+        ),
+        (
+            "moderate",
+            "Among the sets in the block 'Ice Age', how many of them have an Italian translation?",
+        ),
     ],
     "bird_codebase_community": [
         ("simple", "When did 'chl' cast its first vote in a post?"),
-        ("simple", "What is the display name of the user who acquired the first Autobiographer badge?"),
-        ("moderate", "Among the posts with views ranging from 100 to 150, what is the comment with the highest score?"),
+        (
+            "simple",
+            "What is the display name of the user who acquired the first Autobiographer badge?",
+        ),
+        (
+            "moderate",
+            "Among the posts with views ranging from 100 to 150, what is the comment with the highest score?",
+        ),
     ],
     "bird_debit_card_specializing": [
         ("simple", "What segment did the customer have at 2012/8/23 21:20:00?"),
-        ("simple", "What is the percentage of 'premium' against the overall segment in Country = 'SVK'?"),
-        ("moderate", "What was the average monthly consumption of customers in SME for the year 2013?"),
+        (
+            "simple",
+            "What is the percentage of 'premium' against the overall segment in Country = 'SVK'?",
+        ),
+        (
+            "moderate",
+            "What was the average monthly consumption of customers in SME for the year 2013?",
+        ),
     ],
     "bird_european_football_2": [
         ("simple", "List down most tallest players' name."),
@@ -238,9 +265,18 @@ SAMPLE_QUESTIONS: dict[str, list[tuple[str, str]]] = {
         ("moderate", "What was the overall rating for Aaron Mooy on 2016/2/4?"),
     ],
     "bird_financial": [
-        ("simple", "For the female client who was born in 1976/1/29, which district did she opened her account?"),
-        ("simple", "List out the no. of districts that have female average salary is more than 6000 but less than 10000?"),
-        ("moderate", "Provide the IDs and age of the client with high level credit card, which is eligible for loans."),
+        (
+            "simple",
+            "For the female client who was born in 1976/1/29, which district did she opened her account?",
+        ),
+        (
+            "simple",
+            "List out the no. of districts that have female average salary is more than 6000 but less than 10000?",
+        ),
+        (
+            "moderate",
+            "Provide the IDs and age of the client with high level credit card, which is eligible for loans.",
+        ),
     ],
     "bird_formula_1": [
         ("simple", "What's the reference name of Marina Bay Street Circuit?"),
@@ -611,9 +647,7 @@ def _bootstrap() -> tuple[DatabaseRegistry, SchemaIndex, LLMProvider, LLMProvide
         cache_dir=settings.llm_cache_dir,
         size_limit_gb=settings.llm_cache_size_limit_gb,
     )
-    schema_index = SchemaIndex(
-        persist_dir=persist_dir, embedder=embedder, client=chroma_client
-    )
+    schema_index = SchemaIndex(persist_dir=persist_dir, embedder=embedder, client=chroma_client)
 
     raw_sql = build_provider("mistral", settings=settings)
     sql_provider: LLMProvider = CachingLLMProvider(
@@ -670,7 +704,7 @@ def _render_output(output: OutputFormat | None, *, caption: str) -> None:
         st.markdown(
             f"<div style=\"font-family:'NLEdSerif',Georgia,serif; "
             f"font-size:1.25rem; line-height:1.45; color:var(--ink); "
-            f"margin:0.4rem 0 0.6rem;\">{output.text}</div>",
+            f'margin:0.4rem 0 0.6rem;">{output.text}</div>',
             unsafe_allow_html=True,
         )
         if output.fields:
@@ -827,12 +861,12 @@ def _render_welcome(db_id: str) -> None:
         st.markdown(
             f"""
             <div class='nl-metric'>
-              <div class='nl-kicker'>{_t('metric_kicker')}</div>
+              <div class='nl-kicker'>{_t("metric_kicker")}</div>
               <div class='nl-metric-row'>
-                <span class='nl-metric-value'>{_t('metric_value')}</span>
-                <span class='nl-metric-aside'>{_t('metric_percent')}</span>
+                <span class='nl-metric-value'>{_t("metric_value")}</span>
+                <span class='nl-metric-aside'>{_t("metric_percent")}</span>
               </div>
-              <div class='nl-metric-cap'>{_t('metric_caption')}</div>
+              <div class='nl-metric-cap'>{_t("metric_caption")}</div>
             </div>
             """,
             unsafe_allow_html=True,
@@ -841,11 +875,11 @@ def _render_welcome(db_id: str) -> None:
         st.markdown(
             f"""
             <div class='nl-metric'>
-              <div class='nl-kicker'>{_t('research_kicker')}</div>
+              <div class='nl-kicker'>{_t("research_kicker")}</div>
               <div class='nl-metric-row'>
-                <span class='nl-metric-value'>{_t('research_value')}</span>
+                <span class='nl-metric-value'>{_t("research_value")}</span>
               </div>
-              <div class='nl-metric-cap'>{_t('research_caption')}</div>
+              <div class='nl-metric-cap'>{_t("research_caption")}</div>
             </div>
             """,
             unsafe_allow_html=True,
@@ -895,11 +929,21 @@ def _render_lang_toggle() -> None:
     st.markdown(f"<div class='nl-side-sub'>{_t('lang_label')}</div>", unsafe_allow_html=True)
     cols = st.columns(2)
     with cols[0]:
-        if st.button(_t("lang_en"), key="lang_en_btn", use_container_width=True, type="primary" if lang == "en" else "secondary"):
+        if st.button(
+            _t("lang_en"),
+            key="lang_en_btn",
+            use_container_width=True,
+            type="primary" if lang == "en" else "secondary",
+        ):
             st.session_state.lang = "en"
             st.rerun()
     with cols[1]:
-        if st.button(_t("lang_ru"), key="lang_ru_btn", use_container_width=True, type="primary" if lang == "ru" else "secondary"):
+        if st.button(
+            _t("lang_ru"),
+            key="lang_ru_btn",
+            use_container_width=True,
+            type="primary" if lang == "ru" else "secondary",
+        ):
             st.session_state.lang = "ru"
             st.rerun()
 
@@ -936,11 +980,11 @@ def main() -> None:
             st.error("No databases registered. Run scripts/download_data.py first.")
             st.stop()
         default_idx = (
-            db_ids.index("bird_california_schools")
-            if "bird_california_schools" in db_ids
-            else 0
+            db_ids.index("bird_california_schools") if "bird_california_schools" in db_ids else 0
         )
-        db_id = st.selectbox(_t("db_label"), db_ids, index=default_idx, label_visibility="collapsed")
+        db_id = st.selectbox(
+            _t("db_label"), db_ids, index=default_idx, label_visibility="collapsed"
+        )
         spec = registry.get(db_id)
         st.caption(f"{_t('db_dialect')}: `{spec.dialect}`")
         if spec.description:
@@ -961,7 +1005,11 @@ def main() -> None:
             _t("mode_header"),
             options=(_t("mode_accurate"), _t("mode_fast"), _t("mode_debug")),
             index=0,
-            captions=(_t("mode_accurate_caption"), _t("mode_fast_caption"), _t("mode_debug_caption")),
+            captions=(
+                _t("mode_accurate_caption"),
+                _t("mode_fast_caption"),
+                _t("mode_debug_caption"),
+            ),
             label_visibility="collapsed",
         )
         if mode == _t("mode_fast"):

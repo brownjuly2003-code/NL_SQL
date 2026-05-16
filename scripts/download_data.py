@@ -97,7 +97,9 @@ def download_bird_mini_dev() -> None:
         print(f"[skip] {archive} already downloaded ({archive.stat().st_size:,} bytes)")
     _write_checksum(archive)
 
-    print(f"[unzip] {archive} → {target_dir} (stripping '{BIRD_MINI_DEV_INNER_PREFIX}', skipping __MACOSX)")
+    print(
+        f"[unzip] {archive} → {target_dir} (stripping '{BIRD_MINI_DEV_INNER_PREFIX}', skipping __MACOSX)"
+    )
     with zipfile.ZipFile(archive) as zf:
         for member in zf.infolist():
             name = member.filename
@@ -105,7 +107,7 @@ def download_bird_mini_dev() -> None:
                 continue
             if not name.startswith(BIRD_MINI_DEV_INNER_PREFIX):
                 continue
-            stripped = name[len(BIRD_MINI_DEV_INNER_PREFIX):]
+            stripped = name[len(BIRD_MINI_DEV_INNER_PREFIX) :]
             if not stripped:
                 continue
             dest = target_dir / stripped
