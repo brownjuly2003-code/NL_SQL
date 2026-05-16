@@ -1,4 +1,19 @@
-# NL_SQL — Session Handoff (2026-05-13, multi-vote + grounded-critique + Sonnet bridge + UI redesign → 77.0% BIRD)
+# NL_SQL — Session Handoff (2026-05-17 EOS: 77.5% BIRD + live HF Space + autonomous deploy/lift sprint)
+
+> **Tl;dr 2026-05-17 EOS:** P0 closed (live demo on HF Spaces, headless API
+> deploy), P2.B closed (+1 selective fewshot rescue → 77.5% n=200). Full
+> gate green: 270 pytest, ruff + mypy strict clean. Mistral-large voting
+> on residue tried → negative (rate-limit + structural agreement with
+> codestral). Open: P2.A (GraceKelly GPT-5.4) and P2.C (Sonnet
+> rephrasing) gated on Chrome profile confirmation; P2.D (custom
+> schema-linker for row_count_off) research-grade.
+>
+> Read `docs/NEXT_SESSION.md` for the action list and historic context
+> in this file below.
+
+---
+
+# Historic handoff: 2026-05-13 (multi-vote + grounded-critique + Sonnet bridge + UI redesign → 77.0% BIRD)
 
 > Read this first when picking up. It's the single source of truth for
 > "where we stopped" and "what to do next". When you take action, update

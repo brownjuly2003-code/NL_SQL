@@ -48,6 +48,13 @@ def main() -> int:
         help="PipelineConfig.fewshot_top_k (default 3 = G prod). "
         "Use 5 for P2.B selective expansion experiment.",
     )
+    p.add_argument(
+        "--gen-model",
+        type=str,
+        default="codestral-latest",
+        help="Mistral gen model id (default codestral-latest = G prod). "
+        "Use mistral-large-latest for cross-model voting on residue.",
+    )
     args = p.parse_args()
 
     settings = get_settings()
@@ -59,7 +66,7 @@ def main() -> int:
     examples = {e.question_id: e for e in load_bird_mini_dev(args.bird_root)}
     registry = get_default_registry()
 
-    mistral = MistralProvider(api_key=settings.mistral_api_key, gen_model="codestral-latest")
+    mistral = MistralProvider(api_key=settings.mistral_api_key, gen_model=args.gen_model)
     sql_prov = CachingLLMProvider(mistral, cache_dir=settings.llm_cache_dir)
     expl_prov = sql_prov  # same provider for explain
     emb = CachingEmbeddingProvider(
@@ -166,7 +173,7 @@ def main() -> int:
     args.out.write_text(
         json.dumps(
             {
-                "alt_model": "codestral+grounded_critique",
+                "alt_model": f"{args.gen_model}+grounded_critique+fewshot{args.fewshot_top_k}",
                 "summary": {
                     "voted_better": rescued,
                     "voted_worse": regressed,
