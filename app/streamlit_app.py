@@ -41,6 +41,7 @@ from nl_sql.render.formats import (
     Sentence,
     Table,
 )
+from nl_sql.render.labels import classify_scalar_label
 from nl_sql.schema_index.indexer import SchemaIndex
 
 # --------------------------------------------------------- i18n
@@ -111,6 +112,13 @@ I18N: dict[str, dict[str, str]] = {
         "conf_med": "Medium",
         "conf_low": "Low",
         "conf_unknown": "Unknown",
+        "scalar_label_count": "Count",
+        "scalar_label_sum": "Sum",
+        "scalar_label_average": "Average",
+        "scalar_label_minimum": "Minimum",
+        "scalar_label_maximum": "Maximum",
+        "scalar_label_ratio": "Ratio",
+        "scalar_label_result": "Result",
     },
     "ru": {
         "page_title": "NL → SQL",
@@ -174,6 +182,13 @@ I18N: dict[str, dict[str, str]] = {
         "conf_med": "Средняя",
         "conf_low": "Низкая",
         "conf_unknown": "Неизвестно",
+        "scalar_label_count": "Количество",
+        "scalar_label_sum": "Сумма",
+        "scalar_label_average": "Среднее",
+        "scalar_label_minimum": "Минимум",
+        "scalar_label_maximum": "Максимум",
+        "scalar_label_ratio": "Отношение",
+        "scalar_label_result": "Результат",
     },
 }
 
@@ -698,8 +713,7 @@ def _make_pipeline(
 
 def _render_output(output: OutputFormat | None, *, caption: str) -> None:
     if isinstance(output, Scalar):
-        col_label = output.column or "result"
-        st.metric(col_label, str(output.value))
+        st.metric(_scalar_metric_label(output.column), str(output.value))
     elif isinstance(output, Sentence):
         st.markdown(
             f"<div style=\"font-family:'NLEdSerif',Georgia,serif; "
@@ -753,6 +767,17 @@ def _render_chart(
         y_field = spec.y_fields[0] if spec.y_fields else df.columns[1]
         fig = px.scatter(df, x=spec.x_field, y=y_field)
     st.plotly_chart(_style_fig(fig), use_container_width=True)
+
+
+def _scalar_metric_label(column: str) -> str:
+    """Translate a raw SQL column label into a localized business label
+    (audit P2 #5). Engine columns like ``COUNT(DISTINCT s.CDSCode)`` become
+    "Count" / "Количество"; identifier-like columns (``total_revenue``) are
+    kept as-is."""
+    kind = classify_scalar_label(column)
+    if kind == "identifier":
+        return column
+    return _t(f"scalar_label_{kind}")
 
 
 def _confidence_label(value: float) -> str:
