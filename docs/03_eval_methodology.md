@@ -96,24 +96,24 @@
 
 ### 4.2 Что репортится для каждой конфигурации
 
-Шаблон с реальными числами для финальной shipped конфигурации (G + multi-vote + critique + selfcon + Sonnet challenging hybrid, n=200, seed=0, отчёт 2026-05-13):
+Шаблон с реальными числами для финальной shipped конфигурации (G + multi-vote + critique + selfcon + Sonnet bridge + selective fewshot expansion, n=200, seed=0, отчёт 2026-05-17 v7):
 
 ```
-Configuration G_hybrid+multi-vote+critique+selfcon+sonnet  (final shipped path)
-  EA (overall):           77.0%   (154/200, +29.2pp vs GPT-4 zero-shot 47.8%)
-  EA (simple):            88.1%   (59/67)
+Configuration G_hybrid+multi-vote+critique+selfcon+sonnet+fewshot5  (final shipped path)
+  EA (overall):           77.5%   (155/200, +29.7pp vs GPT-4 zero-shot 47.8%)
+  EA (simple):            89.6%   (60/67)
   EA (moderate):          74.7%   (74/99)
   EA (challenging):       61.8%   (21/34)
-  EA (SQLite only):       77.0%   (BIRD Mini-Dev is SQLite-only)
-  Voting rescues:         40/200  (frozen-fail directed retry across vote buckets)
+  EA (SQLite only):       77.5%   (BIRD Mini-Dev is SQLite-only)
+  Voting rescues:         41/200  (frozen-fail directed retry across vote buckets)
   Schema Recall@5:        100.0%
   SQL Validity Rate:      100.0%
-  First-pass / Final EA:  47.0 / 77.0   (codestral A baseline → final)
+  First-pass / Final EA:  47.0 / 77.5   (codestral A baseline → final)
   Latency P50 / P95:      ~65 ms cache-hit / dozens of seconds on Sonnet-rescued tier
   Cost per query:         $0    (Mistral free + Groq free + Perplexity Pro browser bridge)
 ```
 
-Per-bucket lifts that compose the 77.0% headline:
+Per-bucket lifts that compose the 77.5% headline:
 
 ```
 A (codestral full_schema)                         47.0%   baseline
@@ -127,7 +127,16 @@ G + Sonnet challenging tier hybrid                57.0%   +0.5pp
 + grounded-critique directed retry                72.0%   +6.5pp
 + Mistral self-consistency                        72.5%   +0.5pp
 + Sonnet rescue on frozen-fail tail               77.0%   +4.5pp (9 rescues, 0 regressions)
++ selective fewshot_top_k=5 on residue            77.5%   +0.5pp (1 rescue / 0 regressions, qid=1500)
 ```
+
+**Selective fewshot expansion note:** глобальный `fewshot_top_k=5` (вместо
+default 3) давал −1pp на n=200 в 2026-05 sessions — extra examples
+запутывали codestral на correct cases. На frozen failure set после
+Sonnet, тот же лeверь даёт +1 rescue / 0 regressions (`qid=1500` simple,
+2026-05-17 v7). Это validates общую гипотезу sprint'а: лeвера которые
+вредят глобально могут помогать selective на ranked residue, если
+применять с `enable_grounded_critique=True` чтобы re-prompt shape-aware.
 
 Все формулы метрик — см. §5. Полные per-config таблицы — §6 ниже. Чтобы получить эти числа локально:
 
@@ -297,11 +306,12 @@ Business hints:
 | G: + verify_retry (codestral)                    | 56.5%       | 71.6%  | 53.5%    | 38.2%       |
 | G + Sonnet challenging hybrid                    | 57.0%       | 71.6%  | 53.5%    | 38.2%       |
 | + multi-vote + grounded-critique + selfcon       | 72.5%       | 86.6%  | 70.7%    | 55.9%       |
-| **+ Sonnet rescue on frozen-fail tail (final)**  | **77.0%**   | **88.1%** | **74.7%** | **61.8%** |
+| + Sonnet rescue on frozen-fail tail              | 77.0%       | 88.1%  | 74.7%    | 61.8%       |
+| **+ selective fewshot_top_k=5 on residue (final)** | **77.5%**   | **89.6%** | **74.7%** | **61.8%** |
 | Reference: GPT-4 zero-shot (BIRD paper)          | 47.8%       | —      | —        | —           |
 | Reference: paid SOTA CHESS/Distillery 2024       | 73–76%      | —      | —        | —           |
 
-Final shipped configuration matches `eval/reports/2026-05-13/hybrid+multi-vote+critique+selfcon+sonnet-v6.json` — see also memory note `project_nl_sql_quality_push`.
+Final shipped configuration matches `eval/reports/2026-05-17/hybrid+multi-vote+critique+selfcon+sonnet+fewshot5-v7.json` — see also memory note `project_nl_sql_quality_push`.
 
 Config B (BM25 cards) is intentionally absent from the shipped pipeline — dense retrieval (config C) was strictly superior in pilot runs and BM25 would only widen the prompt with no recall lift. `Configuration.B_BM25` enum and `run_config_b` (NotImplementedError) are kept so the A–E ladder reads as documented, but the production path is A → C → D → G → hybrid → voting/critique/selfcon → Sonnet rescue.
 

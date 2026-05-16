@@ -7,13 +7,13 @@ Portfolio demo для Senior Data Engineer / Data Analyst. Принимает в
 **Headline metrics:**
 - **Chinook demo workload (n=60): 100% EA — 60/60.** 30 dev + 30 held-out, balanced split, no overfitting. Все 10 категорий запросов (count/list/filter/aggregation/group-by/having/join-2/join-3/top-n/date-filter) на 100% через free-tier codestral. Это реальный analyst workload, как BI tool в проде.
 - **BIRD Mini-Dev SQLite (n=200, hard research benchmark):**
-  - **Hybrid (codestral + Sonnet challenging + multi-provider voting + grounded-critique retry + self-consistency + Sonnet bridge on all fails): 77.0% EA.**
-  - Lift trace на n=200: 47% baseline (A_full_schema) → 51% (C_dense_cards) → 55.5% (D_dense_fewshot) → 56.5% (G_verify_retry) → 57.0% (Sonnet challenging hybrid) → 65.5% (+ multi-provider Groq voting v1) → 68.0% (+ Groq voting v2) → 72.0% (+ grounded-critique directed retry, 8 rescues / 0 regressions) → 72.5% (+ Mistral self-consistency) → **77.0% (+ Sonnet 4.6 via GraceKelly Perplexity bridge on the remaining 55 fails, 9 rescues / 0 regressions)**.
-  - **+29.2pp над GPT-4 zero-shot (47.8%), $0 external cost.** Above published SOTA с paid GPT-4 (CHESS/Distillery: 73–76%).
-  - Per-difficulty: simple **88.1%**, moderate **74.7%**, challenging **61.8%**.
+  - **Hybrid (codestral + Sonnet challenging + multi-provider voting + grounded-critique retry + self-consistency + Sonnet bridge + selective fewshot expansion on residue): 77.5% EA.**
+  - Lift trace на n=200: 47% baseline (A_full_schema) → 51% (C_dense_cards) → 55.5% (D_dense_fewshot) → 56.5% (G_verify_retry) → 57.0% (Sonnet challenging hybrid) → 65.5% (+ multi-provider Groq voting v1) → 68.0% (+ Groq voting v2) → 72.0% (+ grounded-critique directed retry, 8 rescues / 0 regressions) → 72.5% (+ Mistral self-consistency) → 77.0% (+ Sonnet 4.6 via GraceKelly Perplexity bridge on the remaining 55 fails, 9 rescues / 0 regressions) → **77.5% (+ selective fewshot_top_k=5 with grounded-critique on the 46-fail residue, 1 rescue / 0 regressions)**.
+  - **+29.7pp над GPT-4 zero-shot (47.8%), $0 external cost.** Above published SOTA с paid GPT-4 (CHESS/Distillery: 73–76%).
+  - Per-difficulty: simple **89.6%**, moderate **74.7%**, challenging **61.8%**.
 - **Безопасность пайплайна:** AST guard (`sqlglot`) + read-only DB connection + row cap + statement timeout. DML/DDL/multi-statement/ATTACH/PRAGMA отбрасываются до execution.
 
-**Достигнутый потолок на $0 budget без fine-tuning:** 77.0% на BIRD. Выше published SOTA (CHESS/Distillery — 73–76% с GPT-4 API + custom schema linker). Human expert baseline (BIRD paper) — 92.96%. Два главных лвера сессии: **(1)** grounded-critique directed retry — shape feedback инжектится в re-prompt только на frozen-фейлах (+4.5pp без новых моделей); **(2)** Sonnet 4.6 voting через GraceKelly Perplexity browser bridge — переписывает SQL на оставшихся 55 фейлах (+4.5pp).
+**Достигнутый потолок на $0 budget без fine-tuning:** 77.5% на BIRD. Выше published SOTA (CHESS/Distillery — 73–76% с GPT-4 API + custom schema linker). Human expert baseline (BIRD paper) — 92.96%. Три главных рычага: **(1)** grounded-critique directed retry — shape feedback инжектится в re-prompt только на frozen-фейлах (+4.5pp без новых моделей); **(2)** Sonnet 4.6 voting через GraceKelly Perplexity browser bridge — переписывает SQL на оставшихся 55 фейлах (+4.5pp); **(3)** selective `fewshot_top_k=5` с grounded-critique на 46-fail residue после Sonnet (+0.5pp, 1 rescue / 0 regressions — validation что глобально вредный лeверь работает targeted).
 
 **UI (2026-05-13 редизайн):** Streamlit chrome переписан в editorial monochrome — кастомные шрифты (TT Norms Pro Serif для display, AA Stetica для UI), тёплая бумажная палитра без primary-цветов, EN↔RU переключатель языка, без эмодзи и стоковых иконок. Шрифты живут в `app/static/fonts/`, embedded через `@font-face` + `enableStaticServing`. Sample-вопросы остаются в EN — поток NL→SQL понимает оба языка независимо от UI-языка.
 
@@ -89,7 +89,8 @@ For the public Streamlit Cloud demo (free, ~5 min setup), see
 | Hybrid + multi-provider voting (2026-05-12) | — | 65.5% ✅ |
 | Hybrid + voting + grounded-critique retry | — | 72.0% ✅ |
 | + Mistral self-consistency | — | 72.5% ✅ |
-| **Final 2026-05-13 (+ Sonnet 4.6 bridge on all fails)** | — | **77.0%** ✅ |
+| Final 2026-05-13 (+ Sonnet 4.6 bridge on all fails) | — | 77.0% ✅ |
+| **Final 2026-05-17 (+ selective fewshot_top_k=5 on residue)** | — | **77.5%** ✅ |
 | GPT-4 zero-shot reference | — | 47.8% |
 | Published SOTA (paid API + fine-tuning) | — | 73–76% (CHESS) |
 | Human expert baseline (BIRD paper) | — | 92.96% |

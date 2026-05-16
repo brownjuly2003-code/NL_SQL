@@ -6,7 +6,7 @@
 ## Контекст на 2026-05-17
 
 - HEAD `298614f` (после 3ca3612 + docs:refresh + HF deploy session)
-- BIRD Mini-Dev n=200: **77.0% EA** (154/200), per tier 88.1/74.7/61.8
+- BIRD Mini-Dev n=200: **77.5% EA** (155/200), per tier 89.6/74.7/61.8 (v7 = v6 + selective fewshot_top_k=5 on residue, +1 rescue qid=1500)
 - 270 pytest pass (+20 за scalar label classifier + 3 drift guards), ruff + mypy strict clean
 - Streamlit UI переписан в editorial monochrome + EN/RU; scalar metric labels гуманизированы
 - Portfolio screenshots EN/RU в `docs/ui-2026-05-17-{en,ru}.png` привязаны в README hero

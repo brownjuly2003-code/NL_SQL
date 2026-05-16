@@ -41,6 +41,13 @@ def main() -> int:
     p.add_argument("--bird-root", type=Path, default=Path("data/bird_mini_dev/MINIDEV"))
     p.add_argument("--out", type=Path, required=True)
     p.add_argument("--max-cases", type=int, default=200)
+    p.add_argument(
+        "--fewshot-top-k",
+        type=int,
+        default=3,
+        help="PipelineConfig.fewshot_top_k (default 3 = G prod). "
+        "Use 5 for P2.B selective expansion experiment.",
+    )
     args = p.parse_args()
 
     settings = get_settings()
@@ -65,7 +72,7 @@ def main() -> int:
         explain_provider=expl_prov,
         schema_index=idx,
         registry=registry,
-        fewshot_top_k=3,
+        fewshot_top_k=args.fewshot_top_k,
         sort_schema_block=True,
         cross_db_fewshot=True,
         verify_retry_on_empty=True,
