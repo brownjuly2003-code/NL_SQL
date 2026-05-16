@@ -414,7 +414,39 @@ Everything below this line is reference / detail for these items.
 
 ---
 
-## Deploy — finishing it manually (resume here)
+## Deploy — DONE (2026-05-17, HF Spaces)
+
+**Live:** <https://liovina-nl-sql.hf.space> (HF Docker Space, free tier).
+Dashboard: <https://huggingface.co/spaces/liovina/nl-sql>.
+
+Полностью headless deploy через `.deploy_hf.py` (gitignored):
+
+```bash
+uv run python .deploy_hf.py
+```
+
+Скрипт делает:
+1. `HfApi().create_repo(repo_id="liovina/nl-sql", space_sdk="docker", exist_ok=True)`.
+2. `add_space_secret("MISTRAL_API_KEY", <value from D:/TXT/Mistral_API.txt>)`.
+3. `upload_folder(folder_path=".", ...)` — 214 MB кода + данных, auto-LFS для >10MB файлов (`financial.sqlite` 71 MB, `chroma data_level0.bin` 38 MB, `debit_card_specializing.sqlite` 34 MB, и пр.).
+4. Поверх загружает modified `README.md` с HF frontmatter (`sdk: docker, app_port: 7860, short_description: ≤60 chars`) и `Dockerfile` (`python:3.12-slim` → `pip -r requirements.txt` → `streamlit run app/streamlit_app.py --server.port 7860 --server.address 0.0.0.0`).
+5. Поллит `api.get_space_runtime` — RUNNING обычно через 60-90 секунд (BUILDING → APP_STARTING → RUNNING).
+
+**Почему НЕ Streamlit Cloud:** sign-in 2026-05-10 заблокирован на Gmail OAuth; альтернативный GitHub OAuth flow тоже требует ручной клик. HF Token у Юлии уже сохранён в `~/.cache/huggingface/token` (`hf_*`, user `liovina`) — пишется без OAuth.
+
+**Repush после правок:** просто перезапустить `.deploy_hf.py`. `exist_ok=True` + idempotent upload_folder корректно перезаписывают Space. Build триггерится автоматически на push.
+
+**Если нужен другой Streamlit-version pin:** HF Docker mode НЕ ограничивает — он использует `requirements.txt` как есть (`streamlit==1.57.0`). В отличие от Streamlit Cloud, HF Docker не валидирует SDK version vs README.
+
+**Если build падает:** `api.get_space_runtime` вернёт `RUNTIME_ERROR` или `BUILD_ERROR`; build logs доступны в dashboard UI (нет API в huggingface_hub 1.15). Большие правки логов — обычно missing apt deps или Streamlit конфликт.
+
+**Старый Streamlit Cloud runbook (на случай альтернативы):**
+- `.deploy_helper.py` (headed Playwright) гитигнор, требует 1 GitHub OAuth клик; в 2026-05-10 не отработал.
+- Mistral key в `D:\TXT\Mistral_API.txt` — формат: header lines + key в последней строке (32 chars).
+
+---
+
+## Deploy — legacy notes (2026-05-10, prior to HF)
 
 **Status as of 2026-05-10 EOD:**
 - ✅ Public repo `brownjuly2003-code/NL_SQL` — 8 commits, HEAD

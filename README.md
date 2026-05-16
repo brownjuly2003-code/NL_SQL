@@ -31,7 +31,7 @@ Portfolio demo для Senior Data Engineer / Data Analyst. Принимает в
 
 См. [`docs/SESSION_HANDOFF.md`](docs/SESSION_HANDOFF.md) — single source of truth для следующей сессии.
 
-**Streamlit Cloud:** пока заблокирован на OAuth/login (Gmail account issue). Repo + data + deps + headless smoke готовы; финальный ручной deploy-шаг описан в [`docs/SESSION_HANDOFF.md` § Deploy](docs/SESSION_HANDOFF.md).
+**Live demo:** <https://liovina-nl-sql.hf.space> (Hugging Face Spaces, Docker runtime, free tier). Cold start ~30 c при первом заходе, дальше interactive. Default DB — `bird_california_schools`; в sidebar можно переключить на любую из 9 shipped DBs (chinook + 8 BIRD).
 
 ## Quick start
 

@@ -130,3 +130,5 @@ frontend/.env.local
 ehthumbs.db
 Desktop.ini
 .deploy_helper.py
+.deploy_hf.py
+.tmp_deploy.log

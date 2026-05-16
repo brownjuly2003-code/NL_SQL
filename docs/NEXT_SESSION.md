@@ -5,39 +5,32 @@
 
 ## Контекст на 2026-05-17
 
-- HEAD `3ca3612` (после 0b0a42e + 4 commits автономной сессии 2026-05-17)
+- HEAD `298614f` (после 3ca3612 + docs:refresh + HF deploy session)
 - BIRD Mini-Dev n=200: **77.0% EA** (154/200), per tier 88.1/74.7/61.8
 - 270 pytest pass (+20 за scalar label classifier + 3 drift guards), ruff + mypy strict clean
 - Streamlit UI переписан в editorial monochrome + EN/RU; scalar metric labels гуманизированы
 - Portfolio screenshots EN/RU в `docs/ui-2026-05-17-{en,ru}.png` привязаны в README hero
+- **Live demo на HF Spaces:** <https://liovina-nl-sql.hf.space> (deploy headless через `.deploy_hf.py`, see § P0)
 - 2026-05-12 audit P1 backlog закрыт (build_index sample-size drift, CI lint scope, pinned requirements, BM25 cleanup в methodology)
 - GraceKelly Sonnet bridge доказан рабочим (9 rescues / 0 regressions)
 
-## P0 — Streamlit Cloud deploy
+## ~~P0 — Streamlit Cloud deploy~~ **CLOSED 2026-05-17**
 
-Это единственный реально blocking пункт для портфолио. Repo + data + deps
-готовы; финальный кусок — login в Streamlit Cloud, которое требует Gmail
-OAuth. У Юлии `uedomskikh@gmail.com` (см. memory `user_contacts_jobsearch`)
-вместо `gemini.ge2026@gmail.com` — попробовать сначала её.
+Live: <https://liovina-nl-sql.hf.space> (HF Spaces, Docker runtime, free
+tier). Headless deploy через `huggingface_hub.HfApi`: `.deploy_hf.py`
+создаёт Space `liovina/nl-sql` с `space_sdk=docker`, прокидывает
+`MISTRAL_API_KEY` через `add_space_secret`, заливает 214 MB кода + данных
+с auto-LFS, генерирует HF README frontmatter (`sdk: docker, app_port:
+7860`) + Dockerfile (`python:3.12-slim`, `pip -r requirements.txt`,
+`streamlit run app/streamlit_app.py --server.port 7860`).
 
-**Запасные варианты (если Streamlit Cloud режется на OAuth):**
+Streamlit Cloud не пошёл (требует Gmail OAuth, у Юлии не открывается),
+Fly.io/Railway/Render не пошли (sign-up через email OAuth). HF — у
+Юлии уже залогинен (`liovina`, token в `~/.cache/huggingface/token`),
+поэтому весь deploy ушёл headless без единого клика.
 
-1. **Hugging Face Spaces** — открытый альтернативный хост, поддерживает
-   Streamlit, deploy через `git push` к их repo. Login через email или
-   GitHub OAuth (последний у неё точно работает).
-2. **Fly.io / Railway / Render** — Docker deploy из существующего
-   `Dockerfile` (есть в repo). Fly.io free tier валит на 256MB RAM —
-   проверь, у chroma_data 100MB index + Mistral SDK + Streamlit
-   запускается в 400MB+ при первом query.
-3. **VPS через её существующий хостинг.** Если у неё есть TimeWeb / любой
-   другой VPS с 1GB+ — самый чистый путь.
-
-Runbook на текущий Streamlit Cloud-вариант: `docs/SESSION_HANDOFF.md`
-секция § Deploy + `.deploy_helper.py` (gitignored).
-
-**Success criteria:** публичный URL, который открывается в инкогнито,
-показывает headline `77.0% / 200`, sample-question click работает за
-< 5 секунд (cache-warm), EN/RU toggle переключается мгновенно.
+Repush после правок: повторить `uv run python .deploy_hf.py` — `exist_ok`
++ idempotent upload_folder корректно перезаписывают Space.
 
 ## P1 — портфолио-материалы под новый UI
 
