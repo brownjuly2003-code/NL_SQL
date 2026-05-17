@@ -1,13 +1,23 @@
-# NL_SQL — Session Handoff (2026-05-17 next-day-2: v11 81.0% saturation confirmed + portfolio video)
+# NL_SQL — Session Handoff (2026-05-17 next-day-2: v11 81.0% saturation confirmed × 6)
 
-> **Tl;dr 2026-05-17 next-day-2 (post-saturation sprint):** v11 81.0% (162/200)
-> остаётся production. v11 residue (38 fails) проверен ещё двумя free-tier
-> voting слоями — оба negative: llama-3.3-70b TPD reset retry (17/38 reached,
-> 0/17 rescues, 21 hit 429), gpt-oss-20b (9/38 attempted, 2 reached "same",
-> 5 json_validate_failed, 2 connection_error). Все доступные chrome-free
-> $0-budget voting layers исчерпаны. Дальнейший lift требует Chrome-gated
-> Sonnet bridge (P3.A/D/E), paid API (~$1-3), либо research-grade JOIN-path
-> linker (P3.F, дни).
+> **Tl;dr 2026-05-17 next-day-2 (post-saturation sprint EXTENDED):** v11 81.0%
+> (162/200) — production. v11 residue (38 fails) проверен **шестью** free-tier
+> voting слоями через **все** API keys в `D:\TXT\` — все нули.
+>
+> 1. llama-3.3-70b Groq: 17/38 reached, 0 rescues (TPD 100K hit)
+> 2. gpt-oss-20b Groq: 2/38 reached, 0 rescues (json_validate_failed)
+> 3. gemini-2.5-flash Google: 10/38, 0 rescues (RPD 10/day hit)
+> 4. gemini-2.5-flash-lite Google: 9/38, 0 rescues (RPD 20/day hit)
+> 5. nvidia/nemotron-3-super-120b:free OpenRouter: 18/38, 0 rescues (50/day account-wide hit)
+> 6. codestral + NLSQL_M_SCHEMA=1 + NLSQL_DAC=1 combined (новый комбо): 13/38, 0 rescues (Mistral RPM-bound)
+>
+> **Итого 69 уникальных case-attempts, 0 rescues.** v11 saturation подтверждён
+> definitively. Полная audit-trail + reset times: `docs/v11_saturation_evidence.md`.
+>
+> Дальнейший lift требует Chrome-gated Sonnet/GPT-5.x bridge (P3.A/D/E),
+> paid API (~$1-3 на Anthropic Sonnet sweep), либо research-grade JOIN-path
+> linker (P3.F, дни). Tomorrow daily quotas reset → можно повторить 5 моделей,
+> но binomial 95% CI ≤ 5% rescue rate → ожидаемо ≤2 rescues max.
 >
 > P1 ролик-портфолио закрыт: `docs/ui-live-demo.mp4` (47s, 2.1MB, Playwright
 > headless 1440×900 на live HF Space). Три бита: hero 81.0%/200, sample-click

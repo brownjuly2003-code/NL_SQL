@@ -71,6 +71,23 @@ def main() -> int:
         help="SQL provider: mistral (default, uses --gen-model) or groq "
         "(uses --gen-model as Groq model id, e.g. qwen/qwen3-32b).",
     )
+    p.add_argument(
+        "--base-url",
+        type=str,
+        default=None,
+        help="Override OpenAI-compatible base_url for the SQL provider. "
+        "Use with --provider groq to redirect to OpenRouter "
+        "(https://openrouter.ai/api/v1) or Gemini OpenAI compat "
+        "(https://generativelanguage.googleapis.com/v1beta/openai). "
+        "Requires GROQ_API_KEY env to actually hold the alt-provider key.",
+    )
+    p.add_argument(
+        "--api-key",
+        type=str,
+        default=None,
+        help="Override API key for the SQL provider (otherwise read from "
+        "settings.groq_api_key / settings.mistral_api_key).",
+    )
     args = p.parse_args()
 
     settings = get_settings()
@@ -85,7 +102,13 @@ def main() -> int:
     if args.provider == "mistral":
         gen_provider = MistralProvider(api_key=settings.mistral_api_key, gen_model=args.gen_model)
     else:
-        gen_provider = GroqProvider(api_key=settings.groq_api_key, model=args.gen_model)
+        groq_kwargs = {
+            "api_key": args.api_key or settings.groq_api_key,
+            "model": args.gen_model,
+        }
+        if args.base_url:
+            groq_kwargs["base_url"] = args.base_url
+        gen_provider = GroqProvider(**groq_kwargs)
     sql_prov = CachingLLMProvider(gen_provider, cache_dir=settings.llm_cache_dir)
     expl_prov = sql_prov  # same provider for explain
     emb = CachingEmbeddingProvider(

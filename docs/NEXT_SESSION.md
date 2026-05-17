@@ -3,15 +3,21 @@
 > Один лист, без воды. Берёшь, делаешь, обновляешь `SESSION_HANDOFF.md`,
 > удаляешь этот файл (или переписываешь под следующий sprint).
 
-## Контекст на 2026-05-17 next-day-2 (post-saturation sprint)
+## Контекст на 2026-05-17 next-day-2 EXTENDED (six-model saturation sprint)
 
-- HEAD post-`e67a64f` + this sprint's commit (см. SESSION_HANDOFF.md, top section)
-- BIRD original gold n=200 (**v11**): **81.0% EA** (162/200) — UNCHANGED, чистое saturation подтверждение
-- Sprint итог: v11 residue (38 fails) проверен ещё двумя моделями — **0 rescues**.
-  - llama-3.3-70b TPD reset retry: 17/38 reached (cache hits prior runs), 0 rescued / 0 regressed, остальные 21 hit 429 TPD (98.8K/100K used).
-  - gpt-oss-20b retry: 9/38 attempted, 2 reached "same" (qid 25, 37), 5 hit `json_validate_failed` (gpt-oss-20b структурная слабость с JSON output), 2 connection_error. Pattern явный → stop.
-- Артефакты sprint'а: `eval/reports/2026-05-17b/{groq-llama70b-on-v11-residue.json, groq-gpt-oss-20b-on-v11-residue.json, *.log}` — negative-evidence для следующих сессий
-- **Live demo video:** `docs/ui-live-demo.mp4` (47s, 2.1MB, Playwright headless 1440×900). Три бита (hero 81.0% + sample SQL render + EN↔RU toggle). Embed в README hero section. P1 ролик-портфолио закрыт.
+- HEAD post-`bf26e91` + this sprint's commits (см. SESSION_HANDOFF.md и `docs/v11_saturation_evidence.md`)
+- BIRD original gold n=200 (**v11**): **81.0% EA** (162/200) — UNCHANGED
+- Sprint итог: v11 residue (38 fails) проверен **шестью** разными free-tier voting слоями через все API keys в `D:\TXT\` — **0 rescues**, **69 unique case-attempts**.
+  1. llama-3.3-70b Groq: 17/38, 0 (TPD)
+  2. gpt-oss-20b Groq: 2/38, 0 (json_validate)
+  3. gemini-2.5-flash Google: 10/38, 0 (RPD 10/day)
+  4. gemini-2.5-flash-lite Google: 9/38, 0 (RPD 20/day)
+  5. nvidia/nemotron-3-super-120b:free OpenRouter: 18/38, 0 (50/day account-wide)
+  6. codestral + M-Schema + DAC combined env-flags (новый комбо): 13/38, 0 (Mistral RPM)
+- Full audit trail: **`docs/v11_saturation_evidence.md`** — model × provider × reached × rescues × why-stopped table + API key inventory + reset times.
+- Артефакты sprint'а: `eval/reports/2026-05-17b/{groq-llama70b-*.json, *.log × 5}` — negative-evidence
+- **scripts/run_critique_retry.py** получил `--base-url` + `--api-key` args для cross-provider routing (Gemini/OpenRouter через GroqProvider hijack)
+- **Live demo video:** `docs/ui-live-demo.mp4` (47s, 2.1MB). Три бита. P1 ролик-портфолио закрыт.
 
 ## Чистое saturation summary
 
