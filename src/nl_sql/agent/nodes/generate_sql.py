@@ -42,8 +42,13 @@ def make_generate_sql_node(
             schema_text = render_m_schema(context)
         else:
             schema_text = render_schema_block(context, sort_alphabetically=sort_schema_block)
+        # Experimental: CHASE-SQL divide-and-conquer prompt — decompose
+        # multi-clause questions into sub-questions before composing SQL.
+        # Toggle via env NLSQL_DAC=1. Targeted at residue retry layer for
+        # the challenging tier (multi-part conditional questions).
+        prompt_name = "generate_sql_dac" if os.environ.get("NLSQL_DAC") == "1" else "generate_sql"
         prompt = load_prompt(
-            "generate_sql",
+            prompt_name,
             dialect=dialect,
             schema_block=schema_text,
             fewshot_block=render_fewshot_block(context),

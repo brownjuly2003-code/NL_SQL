@@ -1,6 +1,15 @@
-# NL_SQL — Session Handoff (2026-05-17 next-day: corrected-gold stress test on v10)
+# NL_SQL — Session Handoff (2026-05-17 next-day: v11 81.0% via DAC + corrected-gold)
 
-> **Tl;dr 2026-05-17 next-day:** v10 stack rescored against Arcwise-Plat
+> **Tl;dr 2026-05-17 next-day (v11):** divide-and-conquer prompting
+> (CHASE-SQL technique) added as env-gated alternate generate_sql prompt.
+> Run on v10-residue produced **+1 rescue qid 1036 challenging / 0 regressions**.
+> v11 = **81.0% EA n=200** (162/200), challenging tier **67.6% → 70.6%**.
+> Live HF unchanged for now (residue retry layer; production stack
+> defaults to base prompt). The v10 corrected-gold stress test stands:
+> 67.34% on Arcwise-Plat-SQL with +6 audit-catches.
+>
+> Earlier in the same day (v10 → corrected-gold sprint):
+> v10 stack rescored against Arcwise-Plat
 > corrected gold (Jin et al., CIDR/VLDB 2026, arXiv:2601.08778).
 >
 > - **BIRD original gold:** 80.5% n=200 (unchanged)
