@@ -3,6 +3,41 @@
 > Один лист, без воды. Берёшь, делаешь, обновляешь `SESSION_HANDOFF.md`,
 > удаляешь этот файл (или переписываешь под следующий sprint).
 
+## Контекст на 2026-05-17 next-day-2 (post-saturation sprint)
+
+- HEAD post-`e67a64f` + this sprint's commit (см. SESSION_HANDOFF.md, top section)
+- BIRD original gold n=200 (**v11**): **81.0% EA** (162/200) — UNCHANGED, чистое saturation подтверждение
+- Sprint итог: v11 residue (38 fails) проверен ещё двумя моделями — **0 rescues**.
+  - llama-3.3-70b TPD reset retry: 17/38 reached (cache hits prior runs), 0 rescued / 0 regressed, остальные 21 hit 429 TPD (98.8K/100K used).
+  - gpt-oss-20b retry: 9/38 attempted, 2 reached "same" (qid 25, 37), 5 hit `json_validate_failed` (gpt-oss-20b структурная слабость с JSON output), 2 connection_error. Pattern явный → stop.
+- Артефакты sprint'а: `eval/reports/2026-05-17b/{groq-llama70b-on-v11-residue.json, groq-gpt-oss-20b-on-v11-residue.json, *.log}` — negative-evidence для следующих сессий
+- **Live demo video:** `docs/ui-live-demo.mp4` (47s, 2.1MB, Playwright headless 1440×900). Три бита (hero 81.0% + sample SQL render + EN↔RU toggle). Embed в README hero section. P1 ролик-портфолио закрыт.
+
+## Чистое saturation summary
+
+Текущий потолок **$0/chrome-free = 81.0% v11**. На v11-residue все доступные free-tier
+voting layers либо вернули 0 (cache=same), либо упёрлись в TPM/TPD/structural-failure:
+
+| Lever | Status | Detail |
+|---|---|---|
+| codestral T=0 baseline | saturated | первая ступень pipeline |
+| codestral self-consistency T=0.2-0.8 | plateau (✗) | 2026-05-13 sprint |
+| mistral-large voting | TPM-blocked (✗) | 18 reached, 0 rescues |
+| qwen3-32b voting | partial (✓ once, 1 rescue v8) | 5K TPM cap |
+| gpt-oss-20b voting | TPM-blocked (✓ +2 v9, ✗ v11 json_validate) | 6K TPM cap |
+| gpt-oss-120b voting | TPM-blocked (✗) | 8K TPM cap |
+| llama-3.3-70b voting | TPD-exhausted (✓ +2 v8, ✗ v9/v10/v11) | 100K TPD |
+| M-Schema retry | additive once (✓ +1 v10) | structural cliff на baseline |
+| CHASE-SQL DAC retry | additive once (✓ +1 v11) | structural cliff на baseline |
+| Wide-schema retry | saturated (✗) | row_count_off структурный |
+| Audit rules в prompt | saturated (✗) | residue не отвечает |
+| Evidence-hoist | saturated (✗) | residue не отвечает |
+| Sonnet 4.6 bridge | already used (✓ +9 v6) | Chrome-gated |
+
+**Что осталось как реальный лeверь:** Chrome-gated (P3.A, P3.D, P3.E) или
+paid API (Sonnet ~$1-3 на 38-case sweep) или research-grade JOIN-path linker
+(P3.F, дни).
+
 ## Контекст на 2026-05-17 next-day (post-DAC v11)
 
 - HEAD `aede599` + DAC sprint (см. SESSION_HANDOFF.md, top section)
@@ -25,11 +60,7 @@
 ## P1 — оставшийся портфолио-материал
 
 1. ~~Screenshots EN+RU local Streamlit~~ ✓ закрыто 2026-05-17.
-2. **Короткий live-URL ролик** (`D:\AutoReel\` шаблон ИЛИ Playwright video record):
-   - shot A: hero (headline 80.5% + metric block)
-   - shot B: sample-click → SQL + answer render
-   - shot C: EN→RU toggle
-   - **Источник: live URL** (`https://liovina-nl-sql.hf.space`), не localhost — memory `feedback_real_product_over_mockup`.
+2. ~~Короткий live-URL ролик~~ ✓ закрыто 2026-05-17 next-day-2. `docs/ui-live-demo.mp4` (47s, 2.1MB, Playwright headless 1440×900). Три бита: hero 81.0%, sample-click → SQL + COUNT(4), EN↔RU toggle. Источник — live HF Space. Embed в README hero section.
 
 ## P1.5 — corrected-gold портфолио narrative (just-closed)
 

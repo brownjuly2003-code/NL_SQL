@@ -22,7 +22,13 @@ Portfolio demo для Senior Data Engineer / Data Analyst. Принимает в
 |:--:|:--:|
 | ![NL→SQL UI English hero (live)](docs/ui-live-en.png) | ![NL→SQL UI Russian hero (live)](docs/ui-live-ru.png) |
 
-Скриншоты сняты с live HF Space (<https://liovina-nl-sql.hf.space>), 1440×900 viewport, default DB `bird_california_schools`. На обоих видна полная триплет-подпись: 80.5% published / 67.34% Arcwise corrected / +6 audit-catches.
+Скриншоты сняты с live HF Space (<https://liovina-nl-sql.hf.space>), 1440×900 viewport, default DB `bird_california_schools`. На обоих видна полная триплет-подпись: 81.0% published / 67.34% Arcwise corrected / +6 audit-catches.
+
+**47-секундный live-demo (без звука, headless 1440×900):**
+
+https://github.com/brownjuly2003-code/NL_SQL/raw/master/docs/ui-live-demo.mp4
+
+Три бита: (1) hero с метрикой 81.0% / 200 + 60/60 Chinook, (2) клик по sample-вопросу → SQL с подсветкой + COUNT(4) ответ за ~5.5 c через codestral, (3) переключение EN ↔ RU без перезагрузки. Источник — live HF Space, не локалхост.
 
 **Что есть кроме eval:**
 - Streamlit UI с modes (Accurate/Fast/Debug), schema explorer, sample questions, show-working trace, confidence labels.

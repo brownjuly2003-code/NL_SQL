@@ -1,4 +1,28 @@
-# NL_SQL — Session Handoff (2026-05-17 next-day: v11 81.0% via DAC + corrected-gold)
+# NL_SQL — Session Handoff (2026-05-17 next-day-2: v11 81.0% saturation confirmed + portfolio video)
+
+> **Tl;dr 2026-05-17 next-day-2 (post-saturation sprint):** v11 81.0% (162/200)
+> остаётся production. v11 residue (38 fails) проверен ещё двумя free-tier
+> voting слоями — оба negative: llama-3.3-70b TPD reset retry (17/38 reached,
+> 0/17 rescues, 21 hit 429), gpt-oss-20b (9/38 attempted, 2 reached "same",
+> 5 json_validate_failed, 2 connection_error). Все доступные chrome-free
+> $0-budget voting layers исчерпаны. Дальнейший lift требует Chrome-gated
+> Sonnet bridge (P3.A/D/E), paid API (~$1-3), либо research-grade JOIN-path
+> linker (P3.F, дни).
+>
+> P1 ролик-портфолио закрыт: `docs/ui-live-demo.mp4` (47s, 2.1MB, Playwright
+> headless 1440×900 на live HF Space). Три бита: hero 81.0%/200, sample-click
+> → SQL + COUNT(4) рендер, EN↔RU toggle без перезагрузки. Embed в README
+> hero section рядом со скриншотами.
+>
+> Артефакты sprint'а: `eval/reports/2026-05-17b/groq-{llama70b,gpt-oss-20b}-on-v11-residue.{json,log}`
+> — negative-evidence для будущих сессий («не повторять» list).
+>
+> 270 pytest pass, ruff + mypy strict clean. No HF redeploy (стек неизменён).
+> Live URL <https://liovina-nl-sql.hf.space> по-прежнему 81.0%.
+
+---
+
+# Previous: 2026-05-17 next-day (v11 81.0% via DAC + corrected-gold)
 
 > **Tl;dr 2026-05-17 next-day (v11):** divide-and-conquer prompting
 > (CHASE-SQL technique) added as env-gated alternate generate_sql prompt.
