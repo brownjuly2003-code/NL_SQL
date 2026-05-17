@@ -76,7 +76,7 @@ For the public Streamlit Cloud demo (free, ~5 min setup), see
 
 - **LangGraph** — 6-узловой pipeline (`context_builder → generate_sql → validate/repair_once → execute → deterministic_format → explain_trace`)
 - **Mistral API** (`codestral-latest` для SQL, `mistral-large-latest` для NL caption, `mistral-embed`) + provider abstraction (GitHub Models / Ollama)
-- **Hard budget: $0 external cost.** Free tiers only: Mistral La Plateforme + GitHub Models (frontier slot) + Ollama (local). Backup: Gemini 2.0 Flash через AI Studio.
+- **Hard budget: $0 external cost.** Primary: Mistral La Plateforme (`codestral-latest` SQL + `mistral-large-latest` NL + `mistral-embed`). Voting layers cycled через free-tier Groq (llama-3.3-70b / qwen3-32b / gpt-oss-20b — TPM/TPD-bounded) + OpenRouter free models (nemotron-3-super-120b — 50/day account-wide) + Sonnet 4.6 via GraceKelly Perplexity bridge (Chrome-gated). См. `docs/v11_saturation_evidence.md` для actual reach × rescues × why-stopped per провайдер.
 - **ChromaDB** — 2 коллекции: `schema_chunks` + `fewshot_qsql`
 - **Postgres 16** + **SQLite** — target БД (StackExchange-mini + Chinook + BIRD Mini-Dev)
 - **sqlglot** — AST guard, dialect translation
@@ -100,7 +100,9 @@ For the public Streamlit Cloud demo (free, ~5 min setup), see
 | Final 2026-05-17 EOS (+ selective fewshot_top_k=5 on residue) | — | 77.5% ✅ |
 | Final 2026-05-17 night (+ cross-Groq llama3.3-70b + qwen3-32b voting) | — | 79.0% ✅ |
 | Final 2026-05-17 late-night (+ gpt-oss-20b voting on v8 residue) | — | 80.0% ✅ |
-| **Final 2026-05-17 late-night (+ M-Schema retry on v9 residue, XiYan-style)** | — | **80.5%** ✅ |
+| Final 2026-05-17 late-night (+ M-Schema retry on v9 residue, XiYan-style) | — | 80.5% ✅ |
+| **Final 2026-05-17 next-day (+ CHASE-SQL DAC prompt on v10 residue)** | — | **81.0%** ✅ |
+| 2026-05-17 next-day-2 + 2026-05-18 day-3 saturation sweeps (× 7 models / 115 case-attempts) | — | 0 rescues — confirmed final |
 | GPT-4 zero-shot reference | — | 47.8% |
 | Published SOTA (paid API + fine-tuning) | — | 73–76% (CHESS) |
 | Human expert baseline (BIRD paper) | — | 92.96% |
