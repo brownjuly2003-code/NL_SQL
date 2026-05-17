@@ -100,6 +100,33 @@ hit the daily cap on the next request.
 recovery, ping a real-sized prompt (≥3000 tokens), not a 5-token "pong",
 before launching a retry sweep.
 
+### GraceKelly Perplexity bridge — UI drift blocker
+
+В тот же sanity-sprint поднят GraceKelly (`uvicorn gracekelly.main:create_app
+--factory --port 8011`). API surface отвечает, Perplexity Pro auth check
+вернул `logged_in=True`. Однако обе попытки браузерного inference
+(`POST /api/v1/pipeline {model: claude-sonnet-4-6}` и `{model: gpt-5-4}`)
+дали один и тот же fail:
+
+```
+gracekelly.adapters.browser.playwright_driver: Perplexity model option
+  'Claude Sonnet 4.6' was not found; current menu appears to start with 'Search'.
+gracekelly.adapters.browser.perplexity: Model selection override detected
+  (attempt 1/3): got 'Search', expected 'Claude Sonnet 4.6'; retrying
+[3 retries, all same]
+Browser execution failed code=model_mismatch
+```
+
+Это классический Perplexity UI drift (предсказан GraceKelly README:
+«typically every 2–3 months»). Dropdown в текущем Perplexity Pro UI больше
+не содержит ни 'GPT-5.4', ни 'Claude Sonnet 4.6' — обнуляет P3.A/D/E пути
+до тех пор, пока на стороне GraceKelly не пересняты selectors
+(`tools/capture_perplexity_recon.py`) и не обновлены константы в
+`adapters/browser/playwright_driver.py`. Это maintenance работа на стороне
+GraceKelly, не NL_SQL.
+
+GK probe log: `D:/GraceKelly/logs/gk-day3.log`.
+
 Artefacts:
 - `eval/reports/2026-05-17c/v11-residue-fresh21.json` (filtered baseline, 21 qids)
 - `eval/reports/2026-05-17c/groq-llama70b-on-v11-residue-fresh21.json` (final report: cases=0, 0 reached)

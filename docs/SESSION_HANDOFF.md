@@ -1,15 +1,21 @@
-# NL_SQL — Session Handoff (2026-05-18 day-3: v11 81.0% — TPD recovery negative + P3.F realism audit)
+# NL_SQL — Session Handoff (2026-05-18 day-3: v11 81.0% — TPD recovery negative + P3.F realism audit + GK UI drift blocker)
 
 > **Tl;dr 2026-05-18 day-3 (autonomous sanity sprint):**
 > - Groq llama70b TPD НЕ сбросился (98077/100000), 21/21 fresh-qid retry hit 429.
 >   Operational rule: для TPD recovery ping ≥3000-token prompt, не 5-token "pong".
-> - GraceKelly port 8011 DOWN, Chrome-gated пути недоступны без user mandate.
+> - **GraceKelly bridge** поднят (`uvicorn gracekelly.main:create_app --factory --port 8011`),
+>   API reachable, Perplexity Pro auth `logged_in=True`. **БЛОКЕР — Perplexity UI drift:**
+>   model picker dropdown больше не содержит ни 'GPT-5.4', ни 'Claude Sonnet 4.6'
+>   (3 retries × 'option not found; menu starts with Search') → `code=model_mismatch`.
+>   Fix требует re-run **`D:/GraceKelly/tools/capture_perplexity_recon.py`** + обновить
+>   selector constants в `D:/GraceKelly/src/gracekelly/adapters/browser/playwright_driver.py`.
+>   Это maintenance работа на стороне GraceKelly, не NL_SQL.
 > - P3.F per-qid аудит (`docs/p3f_design.md`): realistic ceiling +0.5–1pp, не +5–10pp.
 >   Memory обещал JOIN-path linker лечит 22 row_count_off; реально только 2/20 — чистый JOIN-path,
 >   остальное query-structure mis-interpretations. Не строить speculatively.
 > - Headline тройка (81.0% BIRD / 67.34% Arcwise-Plat / +6 audit catches) окончательная.
 >
-> Артефакты дня: `eval/reports/2026-05-17c/{v11-residue-fresh21.json, groq-llama70b-on-v11-residue-fresh21.json, llama70b-fresh21.log}`, `docs/p3f_design.md`, updates в `docs/v11_saturation_evidence.md` § day-3 + `docs/NEXT_SESSION.md`.
+> Артефакты дня: `eval/reports/2026-05-17c/{v11-residue-fresh21.json, groq-llama70b-on-v11-residue-fresh21.json, llama70b-fresh21.log}`, `docs/p3f_design.md`, updates в `docs/v11_saturation_evidence.md` § day-3 + `docs/NEXT_SESSION.md`. GK probe log: `D:/GraceKelly/logs/gk-day3.log`.
 
 > **Tl;dr 2026-05-17 next-day-2 (post-saturation sprint EXTENDED):** v11 81.0%
 > (162/200) — production. v11 residue (38 fails) проверен **шестью** free-tier

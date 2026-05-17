@@ -16,8 +16,14 @@
    real-sized prompt (≥3000 токенов), не 5-token "pong".
    Артефакты: `eval/reports/2026-05-17c/{v11-residue-fresh21.json, groq-llama70b-on-v11-residue-fresh21.json, llama70b-fresh21.log}`.
 
-2. **GraceKelly hybrid bridge port 8011 DOWN.** Chrome-gated P3.A/D/E
-   недоступны без user-initiated GraceKelly start.
+2. **GraceKelly hybrid bridge — UI drift блокер.** Поднят через
+   `uvicorn gracekelly.main:create_app --factory --port 8011`, API reachable,
+   Perplexity Pro auth `logged_in=True`, но **model picker dropdown сменился**:
+   ни 'GPT-5.4' ни 'Claude Sonnet 4.6' не находятся в текущем меню
+   (3× retry, all same, fail `code=model_mismatch`). Fix НЕ в NL_SQL:
+   re-run `D:/GraceKelly/tools/capture_perplexity_recon.py` + обновить
+   selector constants в `D:/GraceKelly/src/gracekelly/adapters/browser/playwright_driver.py`.
+   До этого P3.A/D/E недоступны.
 
 3. **P3.F realism audit** (`docs/p3f_design.md`). Memory обещал P3.F +5–10pp
    на row_count_off bucket. Per-qid аудит 20-case row_count_off показал:
