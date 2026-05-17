@@ -1,4 +1,32 @@
-# NL_SQL — Session Handoff (2026-05-17 late-night: 80.5% BIRD via M-Schema XiYan retry)
+# NL_SQL — Session Handoff (2026-05-17 next-day: corrected-gold stress test on v10)
+
+> **Tl;dr 2026-05-17 next-day:** v10 stack rescored against Arcwise-Plat
+> corrected gold (Jin et al., CIDR/VLDB 2026, arXiv:2601.08778).
+>
+> - **BIRD original gold:** 80.5% n=200 (unchanged)
+> - **Arcwise-Plat-SQL** (SQL-only corrections): **67.34%** (134/199)
+> - **Arcwise-Plat full** (SQL + question + evidence + schema): **61.81%** (123/199)
+> - Net transitions vs original (sql-only): **+6 gained / -32 lost**.
+>   GAINED are cases where our pred catches a BIRD annotation bug (qid 672, 1029,
+>   1144, 1247, 1251, 1254 — DISTINCT-missing, ASC-vs-DESC, extra-id-column,
+>   wrong-precedence, unnecessary-joins). LOST are mostly Arcwise tightening
+>   gold (rtype='S', NOT NULL, DISTINCT, tie-handling).
+>
+> New portfolio framing — three numbers, not one:
+> 1. 80.5% on published BIRD Mini-Dev (leaderboard-comparable)
+> 2. 67.34% on Arcwise-Plat-SQL (honest noise-floor estimate)
+> 3. +6 auditable cases where our pred beat BIRD's wrong gold (signal)
+>
+> Methodology + per-qid audit in `docs/corrected_gold_evaluation.md`; rescore
+> script `scripts/rescore_arcwise.py`; per-record output
+> `eval/reports/2026-05-17/arcwise_rescored.json`.
+>
+> 270 pytest pass, ruff + mypy strict clean. No HF redeploy needed (rescore is
+> measurement-only — pred SQLs and prod stack unchanged).
+
+---
+
+# Previous: 2026-05-17 late-night (80.5% BIRD via M-Schema XiYan retry)
 
 > **Tl;dr 2026-05-17 late-night (v10, HEAD `d0cd792`):** P0 closed (live HF),
 > P2.B closed (+1 selective fewshot → 77.5%), P3 cross-Groq (+3 → 79.0%),

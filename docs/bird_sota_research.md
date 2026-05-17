@@ -127,6 +127,24 @@ Jin et al. ([arXiv:2601.08778](https://arxiv.org/abs/2601.08778), CIDR/VLDB 2026
 2. If chasing one more bump: **M-Schema + pairwise Sonnet tournament on residue** (highest-EV combo, ~3 hours, plausible 82%).
 3. **Package the result around methodology, not the raw number**: we beat free-tier published ceilings (Arctic 71.83%, CSC 73.67%, XiYan 75.63%) and approach paid SOTA (81.95%) without fine-tuning or paid APIs. That's the headline. Pushing 80% → 82% is marginal; pushing the *story* is high-EV.
 
+### Update 2026-05-17 next-day: recommendation #1 executed
+
+Arcwise-Plat artefacts (`arcwise_plat_sql_only_with_diff.json`, `arcwise_plat_full_with_diff.json`) downloaded from Jin et al.'s repo; 199/200 of our v10 qids overlap.
+
+**Results** (scoring v10 predictions against corrected gold; see `docs/corrected_gold_evaluation.md`):
+
+| Gold variant | EA | Δ vs original |
+|---|---:|---:|
+| BIRD original (published) | 80.5% (161/200) | — |
+| Arcwise-Plat-SQL (SQL-only fixes) | **67.34%** (134/199) | **−13.2pp** |
+| Arcwise-Plat full (SQL + question + evidence + schema) | **61.81%** (123/199) | **−18.7pp** |
+
+Net transitions vs original (sql_only): **+6 gained / −32 lost**. Gained cases are auditable proof our pred catches BIRD annotation bugs (missing DISTINCT, ASC-vs-DESC, extra-id-column, wrong-precedence, unnecessary-joins). Lost cases mostly reflect Arcwise tightening gold with quality fixes (rtype filters, NOT NULL guards, DISTINCT corrections, tie-handling).
+
+**Implication for portfolio:** publish a triplet, not a single number — "80.5% on published BIRD; 67.34% on Arcwise corrected; +6 cases where our pred beats BIRD's wrong gold". Triplet differentiates from leaderboard-only entries and directly addresses the Jin et al. credibility critique.
+
+Reproduce: `uv run python scripts/rescore_arcwise.py --report eval/reports/2026-05-17/hybrid-vote-critique-selfcon-sonnet-fewshot5-groq4-mschema-v10.json --sql-only data/arcwise_plat_sql_only.json --full data/arcwise_plat_full.json --out eval/reports/2026-05-17/arcwise_rescored.json` (~90s, no LLM calls).
+
 ---
 
 ## Sources

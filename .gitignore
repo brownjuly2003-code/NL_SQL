@@ -86,6 +86,11 @@ data/**/*
 # `scripts/build_fewshot_index.py` to populate the cross-db fewshot
 # pool. Source: huggingface.co/datasets/xu3kev/BIRD-SQL-data-train.
 !data/bird_train.parquet
+# Arcwise-Plat corrected-gold artefacts (Jin et al., CIDR/VLDB 2026,
+# arXiv:2601.08778). ~300 KB each. Used by scripts/rescore_arcwise.py to
+# stress-test our EA on annotation-error-corrected BIRD.
+!data/arcwise_plat_sql_only.json
+!data/arcwise_plat_full.json
 # Chroma vector store. Committing the prebuilt index so the deployed
 # app can serve queries without first re-embedding via the Mistral
 # API. Local rebuilds via build_index.py overwrite this directory.

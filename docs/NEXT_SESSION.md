@@ -3,11 +3,16 @@
 > Один лист, без воды. Берёшь, делаешь, обновляешь `SESSION_HANDOFF.md`,
 > удаляешь этот файл (или переписываешь под следующий sprint).
 
-## Контекст на 2026-05-17 late-night (v10)
+## Контекст на 2026-05-17 next-day (post-corrected-gold)
 
-- HEAD `d0cd792` + v10 sprint (см. SESSION_HANDOFF.md)
-- BIRD Mini-Dev n=200: **80.5% EA** (161/200), per tier 92.5/76.8/67.6 (v10 = v9 + M-Schema retry +1 rescue qid 1525 simple)
-- **Live demo:** <https://liovina-nl-sql.hf.space> RUNNING, headline 80.5% / 200
+- HEAD `d0cd792` + corrected-gold sprint (см. SESSION_HANDOFF.md, top section)
+- BIRD original gold n=200: **80.5% EA** (161/200), per tier 92.5/76.8/67.6
+- Arcwise-Plat-SQL (corrected gold, 199/200 overlap): **67.34%** (134/199), per tier 80.6/65.3/47.1
+- Arcwise-Plat full: **61.81%** (123/199), per tier 73.1/60.2/44.1
+- Transitions vs BIRD original (sql-only): **+6 gained / -32 lost**
+- Methodology doc: `docs/corrected_gold_evaluation.md`
+- Rescore artefacts: `scripts/rescore_arcwise.py`, `eval/reports/2026-05-17/arcwise_rescored.json`
+- **Live demo:** <https://liovina-nl-sql.hf.space> RUNNING (нет redeploy — rescore чисто на измерении, pred stack unchanged)
 - 270 pytest pass, ruff + mypy strict clean (55 source files)
 - M-Schema render: `render_m_schema()` в `src/nl_sql/agent/nodes/_support.py`, gated env `NLSQL_M_SCHEMA=1` (default OFF; глобально ломает baseline на ~25pp т.к. парсер теряет null/distinct/flags — использовать ТОЛЬКО на residue retry layer поверх voting stack)
 - BIRD SOTA research → `docs/bird_sota_research.md` (top-10 leaderboard, free-tier ceilings, Jin et al. annotation-error finding)
@@ -22,6 +27,22 @@
    - shot B: sample-click → SQL + answer render
    - shot C: EN→RU toggle
    - **Источник: live URL** (`https://liovina-nl-sql.hf.space`), не localhost — memory `feedback_real_product_over_mockup`.
+
+## P1.5 — corrected-gold портфолио narrative (just-closed)
+
+Stress-test на Arcwise-Plat (Jin et al., CIDR/VLDB 2026) выполнен. Три числа
+для портфолио (см. `docs/corrected_gold_evaluation.md`):
+
+- 80.5% on published BIRD (leaderboard-comparable)
+- 67.34% on Arcwise-Plat-SQL (honest noise-floor)
+- +6 qids (672, 1029, 1144, 1247, 1251, 1254) где наш pred правильнее BIRD gold
+
+**Что делать дальше с этой темой:**
+- Можно опционально загрузить в HF Space UI «Methodology» tab или README block,
+  но без чрезмерной детализации (резюме + ссылка на docs/).
+- Можно сравнить наши 67.34% с published corrected-gold числами 16 систем из
+  Jin et al. — но они опубликовали только график (`materials/ex.png`), не
+  таблицу. Если найдём числа — добавим в `docs/corrected_gold_evaluation.md`.
 
 ## P2/P3 — quality push past 80.5% ($0 budget)
 
