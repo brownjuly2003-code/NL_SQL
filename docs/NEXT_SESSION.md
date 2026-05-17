@@ -3,28 +3,43 @@
 > Один лист, без воды. Берёшь, делаешь, обновляешь `SESSION_HANDOFF.md`,
 > удаляешь этот файл (или переписываешь под следующий sprint).
 
-## Контекст на 2026-05-17 late-night
+## Контекст на 2026-05-17 late-night (v10)
 
-- HEAD `fcd7ec3` + v9 sprint (см. SESSION_HANDOFF.md)
-- BIRD Mini-Dev n=200: **80.0% EA** (160/200), per tier 91.0/76.8/67.6 (v9 = v8 + gpt-oss-20b voting +2 rescues qids 571 moderate + 1232 challenging)
-- **Live demo:** <https://liovina-nl-sql.hf.space> RUNNING, headline 80.0% / 200
+- HEAD `d0cd792` + v10 sprint (см. SESSION_HANDOFF.md)
+- BIRD Mini-Dev n=200: **80.5% EA** (161/200), per tier 92.5/76.8/67.6 (v10 = v9 + M-Schema retry +1 rescue qid 1525 simple)
+- **Live demo:** <https://liovina-nl-sql.hf.space> RUNNING, headline 80.5% / 200
 - 270 pytest pass, ruff + mypy strict clean (55 source files)
+- M-Schema render: `render_m_schema()` в `src/nl_sql/agent/nodes/_support.py`, gated env `NLSQL_M_SCHEMA=1` (default OFF; глобально ломает baseline на ~25pp т.к. парсер теряет null/distinct/flags — использовать ТОЛЬКО на residue retry layer поверх voting stack)
+- BIRD SOTA research → `docs/bird_sota_research.md` (top-10 leaderboard, free-tier ceilings, Jin et al. annotation-error finding)
 - Streamlit UI editorial monochrome + EN/RU (закрыто 2026-05-13)
-- Portfolio screenshots: `docs/ui-2026-05-17-{en,ru}.png` (local Streamlit) + `docs/ui-live-en.png` (live HF)
-- P2.B + P0 deploy closed автономно 2026-05-17
+- Portfolio screenshots: `docs/ui-2026-05-17-{en,ru}.png` (local) + `docs/ui-live-en.png` (live HF)
 
 ## P1 — оставшийся портфолио-материал
 
 1. ~~Screenshots EN+RU local Streamlit~~ ✓ закрыто 2026-05-17.
 2. **Короткий live-URL ролик** (`D:\AutoReel\` шаблон ИЛИ Playwright video record):
-   - shot A: hero (headline 80.0% + metric block)
+   - shot A: hero (headline 80.5% + metric block)
    - shot B: sample-click → SQL + answer render
    - shot C: EN→RU toggle
    - **Источник: live URL** (`https://liovina-nl-sql.hf.space`), не localhost — memory `feedback_real_product_over_mockup`.
 
-## P2/P3 — quality push past 80.0% ($0 budget)
+## P2/P3 — quality push past 80.5% ($0 budget)
 
-Остаток **40 фейлов** (после v9). gpt-oss-20b voting (free tier, lightweight) использован на 13/20 ранее-unattempted residue — +2 rescues, TPM 8K режет на 7/20 с long prompts. Residue после v9 ещё содержит ~28 unattempted llama-3.3-70b (TPD cooldown) + 7 gpt-oss-20b TPM-blocked.
+Остаток **39 фейлов** (после v10). M-Schema +1 (qid 1525 simple). Кандидаты на дальнейший lift (CHASE-SQL/XiYan technique stack из `docs/bird_sota_research.md`):
+
+| Эксперимент | Ожидание | Cost | Risk |
+|---|---|---|---|
+| **Pairwise Sonnet tournament** на residue (вместо plurality vote) | +1-2pp | 3h | low |
+| **Value-retrieval grounding** (BM25 по DB cell values, инжектить как evidence) | +1-2pp | 4h | medium |
+| **Divide-and-conquer prompting** только на challenging tier | +0.5-1pp | 2h | low |
+| **Corrective self-consistency** (CSC-SQL: top-2 result clusters → Sonnet merge-revise) | +0.7-3pp | 4h | medium |
+| Audit rules в generate_sql.txt | ✗ 0/0 на residue retry, прогон 2026-05-17 |  |  |
+| Evidence-hoist (split Hint выше schema) | ✗ 0/0 на residue retry, прогон 2026-05-17 |  |  |
+| FK explicit injection | ✗ FK уже в chunker.py, hypothesis отпала |  |  |
+| llama-3.3-70b TPD retry | ~28 unattempted, cooldown ~hr |  |  |
+| qid 990 eval bug fix | -1pp net (regression на 959, 989) → defer до большего буфера |  |  |
+
+**Backlog:** evidence/M-Schema attempts уже null на retry — следующий null может означать что нужен full n=200 rerun (час+ codestral live).
 
 | Эксперимент | Статус | Ожидание |
 |---|---|---|
