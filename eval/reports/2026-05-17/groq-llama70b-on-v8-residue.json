@@ -1,0 +1,11 @@
+{
+  "alt_model": "llama-3.3-70b-versatile",
+  "summary": {
+    "voted_better": 0,
+    "voted_worse": 0,
+    "voted_same": 0,
+    "groq_input_tokens": 0,
+    "groq_output_tokens": 0
+  },
+  "records": []
+}

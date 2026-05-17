@@ -3,11 +3,11 @@
 > Один лист, без воды. Берёшь, делаешь, обновляешь `SESSION_HANDOFF.md`,
 > удаляешь этот файл (или переписываешь под следующий sprint).
 
-## Контекст на 2026-05-17 EOS
+## Контекст на 2026-05-17 late-night
 
-- HEAD `e0ea5ad` (после 9370070 + P2.B fewshot5-residue lift + HF Dockerfile fix)
-- BIRD Mini-Dev n=200: **79.0% EA** (158/200), per tier 91.0/75.8/64.7 (v8 = v7 + cross-Groq llama-3.3-70b + qwen3-32b voting на residue, +3 rescues qids 219+352+366)
-- **Live demo:** <https://liovina-nl-sql.hf.space> RUNNING, headline 79.0% / 200
+- HEAD `fcd7ec3` + v9 sprint (см. SESSION_HANDOFF.md)
+- BIRD Mini-Dev n=200: **80.0% EA** (160/200), per tier 91.0/76.8/67.6 (v9 = v8 + gpt-oss-20b voting +2 rescues qids 571 moderate + 1232 challenging)
+- **Live demo:** <https://liovina-nl-sql.hf.space> RUNNING, headline 80.0% / 200
 - 270 pytest pass, ruff + mypy strict clean (55 source files)
 - Streamlit UI editorial monochrome + EN/RU (закрыто 2026-05-13)
 - Portfolio screenshots: `docs/ui-2026-05-17-{en,ru}.png` (local Streamlit) + `docs/ui-live-en.png` (live HF)
@@ -17,14 +17,14 @@
 
 1. ~~Screenshots EN+RU local Streamlit~~ ✓ закрыто 2026-05-17.
 2. **Короткий live-URL ролик** (`D:\AutoReel\` шаблон ИЛИ Playwright video record):
-   - shot A: hero (headline 77.5% + metric block)
+   - shot A: hero (headline 80.0% + metric block)
    - shot B: sample-click → SQL + answer render
    - shot C: EN→RU toggle
    - **Источник: live URL** (`https://liovina-nl-sql.hf.space`), не localhost — memory `feedback_real_product_over_mockup`.
 
-## P2/P3 — quality push past 79.0% ($0 budget)
+## P2/P3 — quality push past 80.0% ($0 budget)
 
-Остаток **42 фейла** (после v8): 22 row_count_off + 13 filter_or_value + 5 order_by_off + 2 errors.
+Остаток **40 фейлов** (после v9). gpt-oss-20b voting (free tier, lightweight) использован на 13/20 ранее-unattempted residue — +2 rescues, TPM 8K режет на 7/20 с long prompts. Residue после v9 ещё содержит ~28 unattempted llama-3.3-70b (TPD cooldown) + 7 gpt-oss-20b TPM-blocked.
 
 | Эксперимент | Статус | Ожидание |
 |---|---|---|

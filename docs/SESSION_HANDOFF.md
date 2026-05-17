@@ -1,24 +1,26 @@
-# NL_SQL — Session Handoff (2026-05-17 night: 79.0% BIRD + cross-Groq voting + live HF Space)
+# NL_SQL — Session Handoff (2026-05-17 late-night: 80.0% BIRD + gpt-oss-20b v8 rescue + live HF Space)
 
-> **Tl;dr 2026-05-17 night:** P0 closed (live demo on HF Spaces, headless API
-> deploy with PYTHONPATH fix), P2.B closed (+1 selective fewshot rescue → 77.5%),
-> **P3 cross-Groq voting closed (+3 rescues → 79.0% n=200, 158/200,
-> simple 91.0 / moderate 75.8 / challenging 64.7)**. Live:
-> <https://liovina-nl-sql.hf.space>, headline 79.0%. Full gate green:
-> 270 pytest, ruff + mypy strict clean.
+> **Tl;dr 2026-05-17 late-night:** P0 closed (live demo on HF Spaces),
+> P2.B closed (+1 selective fewshot rescue → 77.5%), P3 cross-Groq closed
+> (+3 rescues → 79.0%), **gpt-oss-20b voting on v8 residue closed
+> (+2 rescues qids 571 moderate / 1232 challenging → 80.0% n=200, 160/200,
+> simple 91.0 / moderate 76.8 / challenging 67.6)**. Live:
+> <https://liovina-nl-sql.hf.space>, headline 80.0%.
 >
-> **Sprint 2026-05-17 night results** (HEAD `7953748`):
-> - llama-3.3-70b-versatile: +2 rescues (qids 352 moderate, 366 simple)
-> - qwen3-32b: +1 rescue (qid 219 challenging)
-> - gpt-oss-120b: 0/24 reached (TPM 8K bottleneck on critique prompts)
-> - mistral-large-latest: 0/18 reached (TPD limit, structural failures unanimous через Mistral family)
-> - codestral fewshot_top_k=7: 0/45 (top_k=5 saturates residue)
-> - wide-schema retry (top_k=10, table_budget=20): 0/20 (row_count_off structural ceiling)
+> **Sprint 2026-05-17 late-night results** (HEAD `fcd7ec3` → v9):
+> - openai/gpt-oss-20b: +2 rescues (qids 571 ratio aggregation, 1232 date-arith) — lightweight model добивает то, что Mistral family unanimous провалил
+> - llama-3.3-70b-versatile retry: TPD ещё не сброшен (96.5K/100K, reset 20-108 мин на момент попытки)
+> - qwen/qwen3-32b retry: TPM 6K hard режет промпты 6.6-12K (saturated, не повторять без promp shrink)
 >
-> Open: P3.D (GraceKelly GPT-5.4) and P3.E (Sonnet rephrasing) gated on
+> Cumulative v9 voting bench:
+> - v8 contributors: llama-3.3-70b +2, qwen3-32b +1
+> - v9 contributors: gpt-oss-20b +2 (free tier, lightweight, кэш-friendly)
+> - Negative: mistral-large (TPD-bound + unanimous structural), codestral fewshot=7, gpt-oss-120b (TPM 8K vs critique 10K+), wide-schema (row_count_off ceiling)
+>
+> Open: P3.D (GraceKelly GPT-5.4) и P3.E (Sonnet rephrasing) gated on
 > Chrome profile confirmation; P3.F (custom JOIN-path schema-linker
 > for row_count_off) research-grade; llama-3.3-70b TPD reset retry на
-> 30 unattempted cases (~24h cooldown).
+> ~28 unattempted cases (~24h cooldown).
 >
 > Read `docs/NEXT_SESSION.md` for the action list and historic context
 > in this file below.
