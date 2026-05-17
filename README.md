@@ -20,9 +20,9 @@ Portfolio demo для Senior Data Engineer / Data Analyst. Принимает в
 
 | EN | RU |
 |:--:|:--:|
-| ![NL→SQL UI English hero](docs/ui-2026-05-17-en.png) | ![NL→SQL UI Russian hero](docs/ui-2026-05-17-ru.png) |
+| ![NL→SQL UI English hero (live)](docs/ui-live-en.png) | ![NL→SQL UI Russian hero (live)](docs/ui-live-ru.png) |
 
-Скриншоты сняты на live local Streamlit (`docs/ui-2026-05-17-en.png` / `-ru.png`), 1440×900 viewport, default DB `bird_california_schools`.
+Скриншоты сняты с live HF Space (<https://liovina-nl-sql.hf.space>), 1440×900 viewport, default DB `bird_california_schools`. На обоих видна полная триплет-подпись: 80.5% published / 67.34% Arcwise corrected / +6 audit-catches.
 
 **Что есть кроме eval:**
 - Streamlit UI с modes (Accurate/Fast/Debug), schema explorer, sample questions, show-working trace, confidence labels.
