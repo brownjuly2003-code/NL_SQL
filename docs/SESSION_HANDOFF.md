@@ -1,11 +1,25 @@
-# NL_SQL — Session Handoff (2026-05-17 late-night: 80.0% BIRD + gpt-oss-20b v8 rescue + live HF Space)
+# NL_SQL — Session Handoff (2026-05-17 late-night: 80.0% BIRD + triangulated residue analysis = $0 peak)
 
 > **Tl;dr 2026-05-17 late-night:** P0 closed (live demo on HF Spaces),
 > P2.B closed (+1 selective fewshot rescue → 77.5%), P3 cross-Groq closed
-> (+3 rescues → 79.0%), **gpt-oss-20b voting on v8 residue closed
+> (+3 rescues → 79.0%), gpt-oss-20b voting on v8 residue closed
 > (+2 rescues qids 571 moderate / 1232 challenging → 80.0% n=200, 160/200,
-> simple 91.0 / moderate 76.8 / challenging 67.6)**. Live:
+> simple 91.0 / moderate 76.8 / challenging 67.6). Live:
 > <https://liovina-nl-sql.hf.space>, headline 80.0%.
+>
+> **Sprint post-80% (HEAD `c16e773`):** triangulated v9-residue анализ
+> через CC + Codex gpt-5.5 xhigh + Kimi — три независимых отчёта в
+> `docs/{v9_residue_analysis_quick,codex_v9_residue_analysis,kimi_v9_residue_analysis}.md`.
+> Consensus: **80.0% — реальный $0 peak**; 82% upper edge с luck, 83%+
+> требует P3.F custom schema-linker или paid frontier.
+>
+> Tried in this sprint (all attempts на 40 v9-residue):
+> - Audit rules (LIMIT discipline + aggregation formula) в generate_sql.txt → **0 rescues / 0 regressions** (codestral следует rules мягко, grounded_critique reroutes в свои fixes)
+> - Evidence-hoist (split `Hint:` из question в отдельный prompt block выше schema) → **0 rescues / 0 regressions** (тот же loop dominance)
+> - llama-3.3-70b TPD retry → 95.3K/100K, 1 case processed (SAME), reset ещё ~hr
+> - qid 990 sanity check (Codex insight) → confirmed SQLAlchemy `text()` bind-param bug на `LIKE '_:%:__.___'`, но naive fix = net -1pp (qids 959, 989 regress; qid 990 rescue). Deferred until buffer.
+>
+> Conclusion: critique-retry loop успешно фиксит то что fixable additive prompt-changes, дальнейший lift только через full n=200 rerun с invasive structural changes — risk regression на 160 matches > expected +1-2pp без verification budget.
 >
 > **Sprint 2026-05-17 late-night results** (HEAD `fcd7ec3` → v9):
 > - openai/gpt-oss-20b: +2 rescues (qids 571 ratio aggregation, 1232 date-arith) — lightweight model добивает то, что Mistral family unanimous провалил
