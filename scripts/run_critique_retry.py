@@ -31,6 +31,7 @@ from nl_sql.eval.dataset import load_bird_mini_dev
 from nl_sql.eval.metrics.execution_accuracy import compare_results
 from nl_sql.eval.runner import _compose_question, _execute_gold
 from nl_sql.llm.cache import CachingEmbeddingProvider, CachingLLMProvider
+from nl_sql.llm.providers.groq import GroqProvider
 from nl_sql.llm.providers.mistral import MistralProvider
 from nl_sql.schema_index.indexer import SchemaIndex
 
@@ -55,6 +56,21 @@ def main() -> int:
         help="Mistral gen model id (default codestral-latest = G prod). "
         "Use mistral-large-latest for cross-model voting on residue.",
     )
+    p.add_argument(
+        "--sleep-between",
+        type=float,
+        default=0.0,
+        help="Sleep N seconds between cases — required for mistral-large "
+        "on free tier (rate-limited ~2 req/s).",
+    )
+    p.add_argument(
+        "--provider",
+        type=str,
+        choices=("mistral", "groq"),
+        default="mistral",
+        help="SQL provider: mistral (default, uses --gen-model) or groq "
+        "(uses --gen-model as Groq model id, e.g. qwen/qwen3-32b).",
+    )
     args = p.parse_args()
 
     settings = get_settings()
@@ -66,8 +82,11 @@ def main() -> int:
     examples = {e.question_id: e for e in load_bird_mini_dev(args.bird_root)}
     registry = get_default_registry()
 
-    mistral = MistralProvider(api_key=settings.mistral_api_key, gen_model=args.gen_model)
-    sql_prov = CachingLLMProvider(mistral, cache_dir=settings.llm_cache_dir)
+    if args.provider == "mistral":
+        gen_provider = MistralProvider(api_key=settings.mistral_api_key, gen_model=args.gen_model)
+    else:
+        gen_provider = GroqProvider(api_key=settings.groq_api_key, model=args.gen_model)
+    sql_prov = CachingLLMProvider(gen_provider, cache_dir=settings.llm_cache_dir)
     expl_prov = sql_prov  # same provider for explain
     emb = CachingEmbeddingProvider(
         MistralProvider(api_key=settings.mistral_api_key), cache_dir=settings.llm_cache_dir
@@ -162,6 +181,8 @@ def main() -> int:
             )
         finally:
             engine.dispose()
+        if args.sleep_between > 0:
+            time.sleep(args.sleep_between)
 
     print("\n=== critique-retry summary ===", file=sys.stderr)
     print(f"  cases: {len(records)}", file=sys.stderr)
@@ -173,7 +194,7 @@ def main() -> int:
     args.out.write_text(
         json.dumps(
             {
-                "alt_model": f"{args.gen_model}+grounded_critique+fewshot{args.fewshot_top_k}",
+                "alt_model": f"{args.provider}:{args.gen_model}+grounded_critique+fewshot{args.fewshot_top_k}",
                 "summary": {
                     "voted_better": rescued,
                     "voted_worse": regressed,

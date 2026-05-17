@@ -96,24 +96,24 @@
 
 ### 4.2 Что репортится для каждой конфигурации
 
-Шаблон с реальными числами для финальной shipped конфигурации (G + multi-vote + critique + selfcon + Sonnet bridge + selective fewshot expansion, n=200, seed=0, отчёт 2026-05-17 v7):
+Шаблон с реальными числами для финальной shipped конфигурации (G + multi-vote + critique + selfcon + Sonnet bridge + selective fewshot expansion + cross-Groq voting, n=200, seed=0, отчёт 2026-05-17 night v8):
 
 ```
-Configuration G_hybrid+multi-vote+critique+selfcon+sonnet+fewshot5  (final shipped path)
-  EA (overall):           77.5%   (155/200, +29.7pp vs GPT-4 zero-shot 47.8%)
-  EA (simple):            89.6%   (60/67)
-  EA (moderate):          74.7%   (74/99)
-  EA (challenging):       61.8%   (21/34)
-  EA (SQLite only):       77.5%   (BIRD Mini-Dev is SQLite-only)
-  Voting rescues:         41/200  (frozen-fail directed retry across vote buckets)
+Configuration G_hybrid+multi-vote+critique+selfcon+sonnet+fewshot5+groq3  (final shipped path)
+  EA (overall):           79.0%   (158/200, +31.2pp vs GPT-4 zero-shot 47.8%)
+  EA (simple):            91.0%   (61/67)
+  EA (moderate):          75.8%   (75/99)
+  EA (challenging):       64.7%   (22/34)
+  EA (SQLite only):       79.0%   (BIRD Mini-Dev is SQLite-only)
+  Voting rescues:         44/200  (frozen-fail directed retry across vote buckets)
   Schema Recall@5:        100.0%
   SQL Validity Rate:      100.0%
-  First-pass / Final EA:  47.0 / 77.5   (codestral A baseline → final)
+  First-pass / Final EA:  47.0 / 79.0   (codestral A baseline → final)
   Latency P50 / P95:      ~65 ms cache-hit / dozens of seconds on Sonnet-rescued tier
   Cost per query:         $0    (Mistral free + Groq free + Perplexity Pro browser bridge)
 ```
 
-Per-bucket lifts that compose the 77.5% headline:
+Per-bucket lifts that compose the 79.0% headline:
 
 ```
 A (codestral full_schema)                         47.0%   baseline
@@ -128,6 +128,7 @@ G + Sonnet challenging tier hybrid                57.0%   +0.5pp
 + Mistral self-consistency                        72.5%   +0.5pp
 + Sonnet rescue on frozen-fail tail               77.0%   +4.5pp (9 rescues, 0 regressions)
 + selective fewshot_top_k=5 on residue            77.5%   +0.5pp (1 rescue / 0 regressions, qid=1500)
++ cross-Groq voting on residue (llama3.3-70b+qwen3) 79.0% +1.5pp (3 rescues / 0 regressions, qids 219+352+366)
 ```
 
 **Selective fewshot expansion note:** глобальный `fewshot_top_k=5` (вместо
@@ -307,11 +308,12 @@ Business hints:
 | G + Sonnet challenging hybrid                    | 57.0%       | 71.6%  | 53.5%    | 38.2%       |
 | + multi-vote + grounded-critique + selfcon       | 72.5%       | 86.6%  | 70.7%    | 55.9%       |
 | + Sonnet rescue on frozen-fail tail              | 77.0%       | 88.1%  | 74.7%    | 61.8%       |
-| **+ selective fewshot_top_k=5 on residue (final)** | **77.5%**   | **89.6%** | **74.7%** | **61.8%** |
+| + selective fewshot_top_k=5 on residue           | 77.5%       | 89.6%  | 74.7%    | 61.8%       |
+| **+ cross-Groq llama3.3-70b + qwen3 voting (final)** | **79.0%**   | **91.0%** | **75.8%** | **64.7%** |
 | Reference: GPT-4 zero-shot (BIRD paper)          | 47.8%       | —      | —        | —           |
 | Reference: paid SOTA CHESS/Distillery 2024       | 73–76%      | —      | —        | —           |
 
-Final shipped configuration matches `eval/reports/2026-05-17/hybrid+multi-vote+critique+selfcon+sonnet+fewshot5-v7.json` — see also memory note `project_nl_sql_quality_push`.
+Final shipped configuration matches `eval/reports/2026-05-17/hybrid-vote-critique-selfcon-sonnet-fewshot5-groq3-v8.json` — see also memory note `project_nl_sql_quality_push`.
 
 Config B (BM25 cards) is intentionally absent from the shipped pipeline — dense retrieval (config C) was strictly superior in pilot runs and BM25 would only widen the prompt with no recall lift. `Configuration.B_BM25` enum and `run_config_b` (NotImplementedError) are kept so the A–E ladder reads as documented, but the production path is A → C → D → G → hybrid → voting/critique/selfcon → Sonnet rescue.
 

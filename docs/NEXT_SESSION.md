@@ -6,8 +6,8 @@
 ## Контекст на 2026-05-17 EOS
 
 - HEAD `e0ea5ad` (после 9370070 + P2.B fewshot5-residue lift + HF Dockerfile fix)
-- BIRD Mini-Dev n=200: **77.5% EA** (155/200), per tier 89.6/74.7/61.8 (v7 = v6 + selective fewshot_top_k=5 on residue, +1 rescue qid=1500)
-- **Live demo:** <https://liovina-nl-sql.hf.space> RUNNING, headline 77.5% / 200
+- BIRD Mini-Dev n=200: **79.0% EA** (158/200), per tier 91.0/75.8/64.7 (v8 = v7 + cross-Groq llama-3.3-70b + qwen3-32b voting на residue, +3 rescues qids 219+352+366)
+- **Live demo:** <https://liovina-nl-sql.hf.space> RUNNING, headline 79.0% / 200
 - 270 pytest pass, ruff + mypy strict clean (55 source files)
 - Streamlit UI editorial monochrome + EN/RU (закрыто 2026-05-13)
 - Portfolio screenshots: `docs/ui-2026-05-17-{en,ru}.png` (local Streamlit) + `docs/ui-live-en.png` (live HF)
@@ -22,24 +22,31 @@
    - shot C: EN→RU toggle
    - **Источник: live URL** (`https://liovina-nl-sql.hf.space`), не localhost — memory `feedback_real_product_over_mockup`.
 
-## P2 — quality push past 77.5% ($0 budget)
+## P2/P3 — quality push past 79.0% ($0 budget)
 
-Остаток **45 фейлов** (после fewshot5-residue v7): 22 row_count_off + 14 filter_or_value + 6 order_by_off + 3 errors. Все «потолочные» — codestral + Sonnet согласуются на неверном результате.
+Остаток **42 фейла** (после v8): 22 row_count_off + 13 filter_or_value + 5 order_by_off + 2 errors.
 
 | Эксперимент | Статус | Ожидание |
 |---|---|---|
 | Selective `fewshot_top_k=5` on residue | **✓ done v7** (+0.5pp, qid=1500 simple) | — |
-| Mistral-large voting on residue | **✗ negative** (free tier 429 rate-limit, 7/7 attempted = same; structural failures unanimous across Mistral models) | — |
-| GraceKelly: GPT-5.4 via Perplexity bridge | **OPEN** (P2.A) | +1-3pp ортогональный к Sonnet, $0 wall, ~50 мин. **Гейт:** Chrome profile свободен (memory `feedback_user_chrome_assumption`). |
-| Question rephrasing through Sonnet → re-feed | **OPEN** (P2.C) | +0-3pp BIRD-style формализация. **Гейт:** GraceKelly bridge live. |
-| row_count_off через explicit JOIN-path hint (custom schema-linker) | **research-grade** (P2.D) | +5-10pp ceiling lift, дни-недели работы. |
+| Cross-Groq voting (llama3.3-70b + qwen3) | **✓ done v8** (+1.5pp, qids 219+352+366) | — |
+| Mistral-large voting on residue | **✗ negative** (TPD/TPM limits — 18 attempted, all same; structural failures unanimous across Mistral models) | — |
+| Wide-schema retry on row_count_off | **✗ negative** (0/20 rescues с critique tоо) | — |
+| codestral fewshot_top_k=7 | **✗ negative** (0/45, top_k=5 насыщает) | — |
+| gpt-oss-120b throttled voting | **✗ TPM limits** (0/24 rescues, prompts 8.5K > 8K TPM gives 413; первая попытка с fewshot=5 ранее дала +1 rescue qid=571, но воспроизвести не вышло — fewshot=3 теряет critical context для cases) | — |
+| GraceKelly: GPT-5.4 via Perplexity bridge | **OPEN** (P3.D) | +1-3pp ортогональный к Sonnet. **Гейт:** Chrome profile свободен. |
+| Question rephrasing through Sonnet → re-feed | **OPEN** (P3.E) | +0-3pp. **Гейт:** GraceKelly bridge live. |
+| row_count_off через explicit JOIN-path hint (custom schema-linker) | **research-grade** (P3.F) | +5-10pp ceiling lift, дни-недели работы. |
+| llama-3.3-70b TPD reset retry | **OPEN** | TPD resets ~24h. На v8-residue ещё 30 unattempted; ожидаемо +0-2pp. |
 
 **Не повторять:**
 - Anthropic API direct — out of $0 budget.
-- Wide-schema retry — saturated (0 rescues в 2026-05-13).
+- Wide-schema retry — saturated (повторно подтверждено в 2026-05-17 night).
 - Column-count critique — empirically бесполезен (0/19 mismatch).
 - Same-model self-consistency — plateau.
-- Mistral-large voting — 2026-05-17 EOS зафиксирован negative (rate-limit + structural agreement с codestral).
+- Mistral-large voting — 2026-05-17 EOS+night зафиксирован negative.
+- codestral fewshot_top_k=7 — 0/45 на v7-residue, top_k=5 саtuрated.
+- gpt-oss-120b voting — TPM 8K жёстко режет, prompts с critique=10K+; нужны без-critique runs (но они теряют lift signal).
 
 ## Что НЕ делать
 

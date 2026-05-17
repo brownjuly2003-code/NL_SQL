@@ -1,0 +1,85 @@
+{
+  "alt_model": "groq:qwen/qwen3-32b+grounded_critique+fewshot3",
+  "summary": {
+    "voted_better": 1,
+    "voted_worse": 0,
+    "voted_same": 4
+  },
+  "records": [
+    {
+      "question_id": 219,
+      "db_id": "toxicology",
+      "difficulty": "challenging",
+      "question": "What is the percentage of carcinogenic molecules in triple type bonds?",
+      "gold_sql": "SELECT CAST(COUNT(DISTINCT CASE WHEN T2.label = '+' THEN T2.molecule_id ELSE NULL END) AS REAL) * 100 / COUNT(DISTINCT T2.molecule_id) FROM atom AS T1 INNER JOIN molecule AS T2 ON T1.molecule_id = T2.molecule_id INNER JOIN bond AS T3 ON T2.molecule_id = T3.molecule_id WHERE T3.bond_type = '#'",
+      "baseline_pred": "SELECT CAST(SUM(CASE WHEN b.bond_type = '#' THEN 1 ELSE 0 END) AS REAL) * 100.0 / COUNT(b.bond_id) FROM bond b INNER JOIN atom a ON b.molecule_id = a.molecule_id INNER JOIN molecule m ON a.molecule_id = m.molecule_id WHERE m.label = '+'",
+      "alt_pred": "SELECT (COUNT(DISTINCT CASE WHEN m.label = '+' THEN m.molecule_id END) * 100.0 / COUNT(DISTINCT m.molecule_id)) FROM bond AS b JOIN molecule AS m ON b.molecule_id = m.molecule_id WHERE b.bond_type = '#'",
+      "alt_confidence": 0.95,
+      "baseline_match": false,
+      "alt_match": true,
+      "vote_match": true,
+      "vote_source": "critique-retry",
+      "elapsed_ms": 30143.128100000467
+    },
+    {
+      "question_id": 1247,
+      "db_id": "thrombosis_prediction",
+      "difficulty": "challenging",
+      "question": "Among the male patients who have a normal level of white blood cells, how many of them have an abnormal fibrinogen level?",
+      "gold_sql": "SELECT COUNT(DISTINCT T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.FG <= 150 OR T2.FG >= 450 AND T2.WBC > 3.5 AND T2.WBC < 9.0 AND T1.SEX = 'M'",
+      "baseline_pred": "SELECT COUNT(DISTINCT L.ID) FROM Patient P INNER JOIN Laboratory L ON P.ID = L.ID WHERE P.SEX = 'M' AND L.WBC > 3.5 AND L.WBC < 9.0 AND (L.FG <= 150 OR L.FG >= 450)",
+      "alt_pred": "SELECT COUNT(DISTINCT Patient.ID) FROM Patient JOIN Laboratory ON Patient.ID = Laboratory.ID WHERE Patient.SEX = 'M' AND `WBC` > 3.5 AND `WBC` < 9.0 AND (`FG` <= 150 OR `FG` >= 450)",
+      "alt_confidence": 0.95,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "critique-retry",
+      "elapsed_ms": 53296.70189999888
+    },
+    {
+      "question_id": 1251,
+      "db_id": "thrombosis_prediction",
+      "difficulty": "simple",
+      "question": "How many patients with an Ig G higher than normal?",
+      "gold_sql": "SELECT COUNT(DISTINCT T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID INNER JOIN Examination AS T3 ON T3.ID = T2.ID WHERE T2.IGG >= 2000",
+      "baseline_pred": "SELECT COUNT(DISTINCT ID) FROM Laboratory WHERE IGG >= 2000",
+      "alt_pred": "SELECT COUNT(DISTINCT ID) FROM Laboratory WHERE IGG >= 2000",
+      "alt_confidence": 0.95,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "critique-retry",
+      "elapsed_ms": 38587.686400000166
+    },
+    {
+      "question_id": 1275,
+      "db_id": "thrombosis_prediction",
+      "difficulty": "moderate",
+      "question": "Among the patients who has a normal level of anti-centromere and a normal level of anti-SSB, how many of them are male?",
+      "gold_sql": "SELECT COUNT(DISTINCT T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.CENTROMEA IN ('negative', '0') AND T2.SSB IN ('negative', '0') AND T1.SEX = 'M'",
+      "baseline_pred": "SELECT COUNT(DISTINCT P.ID) FROM Patient P JOIN Examination E ON P.ID = E.ID WHERE E.CENTROMEA IN ('-', '+-') AND E.SSB IN ('-', '+-') AND P.SEX = 'M'",
+      "alt_pred": "SELECT COUNT(DISTINCT T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.CENTROMEA IN ('-', '+-') AND T2.SSB IN ('-', '+-') AND T1.SEX = 'M'",
+      "alt_confidence": 0.95,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "critique-retry",
+      "elapsed_ms": 50812.23180000052
+    },
+    {
+      "question_id": 1399,
+      "db_id": "student_club",
+      "difficulty": "moderate",
+      "question": "Did Maya Mclean attend the 'Women's Soccer' event?",
+      "gold_sql": "SELECT CASE WHEN T3.event_name = 'Women''s Soccer' THEN 'YES' END AS result FROM member AS T1 INNER JOIN attendance AS T2 ON T1.member_id = T2.link_to_member INNER JOIN event AS T3 ON T2.link_to_event = T3.event_id WHERE T1.first_name = 'Maya' AND T1.last_name = 'Mclean'",
+      "baseline_pred": "SELECT COUNT(*) > 0 AS attended FROM attendance AS a JOIN member AS m ON a.link_to_member = m.member_id JOIN event AS e ON a.link_to_event = e.event_id WHERE m.first_name = 'Maya' AND m.last_name = 'Mclean' AND e.event_name = 'Women''s Soccer'",
+      "alt_pred": "SELECT event.event_name FROM member INNER JOIN attendance ON member.member_id = attendance.link_to_member INNER JOIN event ON attendance.link_to_event = event.event_id WHERE member.first_name = 'Maya' AND member.last_name = 'Mclean' AND event.event_name = 'Women''s Soccer'",
+      "alt_confidence": 1.0,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "critique-retry",
+      "elapsed_ms": 42464.109099999405
+    }
+  ]
+}
