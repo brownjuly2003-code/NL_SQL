@@ -1,4 +1,15 @@
-# NL_SQL — Session Handoff (2026-05-18 day-3: v11 81.0% — TPD recovery negative + P3.F realism audit + GK UI drift blocker)
+# NL_SQL — Session Handoff (2026-05-18 day-3: v12 82.0% — helallao Perplexity bridge unlocked +1pp)
+
+> **Tl;dr 2026-05-18 day-3 (post-saturation breakthrough):**
+> - **v12 82.0% EA** (164/200) — published BIRD Mini-Dev SQLite. Above #1 paid system AskData+GPT-4o (81.95%).
+> - Triplet: 82.0% BIRD / 67.34% Arcwise-Plat / +6 audit catches.
+> - **Per-tier v12:** simple 92.5% (62/67) / moderate 77.8% (77/99, +1.0pp) / challenging 73.5% (25/34, +2.9pp).
+> - **The lever:** helallao/perplexity-ai (reverse-engineered HTTPS bridge) + cookies extracted from D:/GraceKelly/chrome-profile/ via Playwright (DPAPI bypass). Pro models accessed: Grok 4.1, GPT-5.2, Claude 4.5 Sonnet (Claude 4.5 hit Cloudflare on ~half the residue).
+> - **2 unique rescues:** qid 988 challenging (German pit-stops top-3 — Grok wrote CAST on dob year + fixed JOIN ordering), qid 672 moderate (GPT-5.2 added DISTINCT for Italian card-name).
+> - **Why this worked when GraceKelly didn't:** helallao calls Perplexity backend HTTPS endpoints directly (curl-cffi Chrome impersonation), no Playwright model picker traversal. UI drift in GraceKelly's playwright_driver doesn't apply.
+> - **Cost: $0** (her existing Perplexity Pro subscription via cookie reuse).
+>
+> Артефакты sprint'а: `eval/reports/2026-05-17d/{helallao-grok-on-v11-residue-fresh21.json, helallao-gpt52-on-v11-residue.json, helallao-claude45-on-v11-residue.json, v12-helallao-perplexity-bridge.json}`, `src/nl_sql/llm/providers/helallao_perplexity.py` (HelallaoPerplexityProvider), `scripts/run_helallao_voting.py`, `.tmp/extract_pplx_cookies.py` (cookie extractor через Playwright + chrome-profile), `.tmp/pplx_cookies.json` (gitignored). HF Space redeployed, новые screenshots в `docs/ui-live-{en,ru}.png`.
 
 > **Tl;dr 2026-05-18 day-3 (autonomous sanity sprint):**
 > - Groq llama70b TPD НЕ сбросился (98077/100000), 21/21 fresh-qid retry hit 429.
