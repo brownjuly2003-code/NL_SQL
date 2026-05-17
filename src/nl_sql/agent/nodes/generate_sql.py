@@ -13,6 +13,7 @@ from collections.abc import Callable
 from nl_sql.agent.nodes._support import (
     parse_generate_sql_output,
     render_fewshot_block,
+    render_m_schema,
     render_schema_block,
 )
 from nl_sql.agent.prompts import load_prompt
@@ -33,10 +34,18 @@ def make_generate_sql_node(
         context = state.get("context")
         plan_raw = (state.get("plan") or "").strip()
         plan_block = plan_raw if plan_raw else "(no plan — generate SQL directly from question)"
+        # Experimental: M-Schema serialization (XiYan-SQL style) — compact
+        # one-line-per-column with inline samples + trailing FK pairs block.
+        # Toggle via env NLSQL_M_SCHEMA=1 to A/B against verbose card layout.
+        import os
+        if os.environ.get("NLSQL_M_SCHEMA") == "1":
+            schema_text = render_m_schema(context)
+        else:
+            schema_text = render_schema_block(context, sort_alphabetically=sort_schema_block)
         prompt = load_prompt(
             "generate_sql",
             dialect=dialect,
-            schema_block=render_schema_block(context, sort_alphabetically=sort_schema_block),
+            schema_block=schema_text,
             fewshot_block=render_fewshot_block(context),
             plan_block=plan_block,
             question=question,

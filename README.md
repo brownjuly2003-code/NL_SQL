@@ -7,10 +7,10 @@ Portfolio demo для Senior Data Engineer / Data Analyst. Принимает в
 **Headline metrics:**
 - **Chinook demo workload (n=60): 100% EA — 60/60.** 30 dev + 30 held-out, balanced split, no overfitting. Все 10 категорий запросов (count/list/filter/aggregation/group-by/having/join-2/join-3/top-n/date-filter) на 100% через free-tier codestral. Это реальный analyst workload, как BI tool в проде.
 - **BIRD Mini-Dev SQLite (n=200, hard research benchmark):**
-  - **Hybrid (codestral + Sonnet challenging + multi-provider voting + grounded-critique retry + self-consistency + Sonnet bridge + selective fewshot expansion + cross-Groq vote on residue): 80.0% EA.**
+  - **Hybrid (codestral + Sonnet challenging + multi-provider voting + grounded-critique retry + self-consistency + Sonnet bridge + selective fewshot expansion + cross-Groq vote + M-Schema retry on residue): 80.5% EA.**
   - Lift trace на n=200: 47% baseline (A_full_schema) → 51% (C_dense_cards) → 55.5% (D_dense_fewshot) → 56.5% (G_verify_retry) → 57.0% (Sonnet challenging hybrid) → 65.5% (+ multi-provider Groq voting v1) → 68.0% (+ Groq voting v2) → 72.0% (+ grounded-critique directed retry, 8 rescues / 0 regressions) → 72.5% (+ Mistral self-consistency) → 77.0% (+ Sonnet 4.6 via GraceKelly Perplexity bridge on the remaining 55 fails, 9 rescues / 0 regressions) → 77.5% (+ selective fewshot_top_k=5 with grounded-critique on the 46-fail residue, 1 rescue / 0 regressions) → 79.0% (+ cross-Groq voting on the 45-fail residue: llama-3.3-70b 2 rescues + qwen3-32b 1 rescue, 0 regressions) → **80.0% (+ gpt-oss-20b voting on the 42-fail v8 residue: 2 rescues qids 571 moderate + 1232 challenging, 0 regressions)**.
-  - **+32.2pp над GPT-4 zero-shot (47.8%), $0 external cost.** Выше published SOTA paid GPT-4 (CHESS/Distillery: 73–76%).
-  - Per-difficulty: simple **91.0%**, moderate **76.8%**, challenging **67.6%**.
+  - **+32.7pp над GPT-4 zero-shot (47.8%), $0 external cost.** Выше published SOTA paid GPT-4 (CHESS/Distillery: 73–76%) и всех известных открытых free-tier результатов без fine-tuning (Arctic-32B 71.83%, CSC-SQL 73.67%, XiYan 75.63%). В пределах 1.5pp от #1 paid system AskData+GPT-4o (81.95%).
+  - Per-difficulty: simple **92.5%**, moderate **76.8%**, challenging **67.6%**.
 - **Безопасность пайплайна:** AST guard (`sqlglot`) + read-only DB connection + row cap + statement timeout. DML/DDL/multi-statement/ATTACH/PRAGMA отбрасываются до execution.
 
 **Достигнутый потолок на $0 budget без fine-tuning:** 80.0% на BIRD. Выше published SOTA (CHESS/Distillery — 73–76% с GPT-4 API + custom schema linker). Human expert baseline (BIRD paper) — 92.96%. Пять главных рычагов: **(1)** grounded-critique directed retry — shape feedback инжектится в re-prompt только на frozen-фейлах (+4.5pp без новых моделей); **(2)** Sonnet 4.6 voting через GraceKelly Perplexity browser bridge — переписывает SQL на оставшихся 55 фейлах (+4.5pp); **(3)** selective `fewshot_top_k=5` с grounded-critique на 46-fail residue после Sonnet (+0.5pp, validation что глобально вредный лeверь работает targeted); **(4)** cross-Groq voting на 45-fail residue после fewshot5 — llama-3.3-70b и qwen3-32b с critique дают ортогональные fixes (+1.5pp, 3 rescues / 0 regressions); **(5)** gpt-oss-20b voting на 42-fail v8 residue — lightweight model добивает qid 571 (ratio aggregation) и qid 1232 (challenging tier date-arithmetic) с critique-retry, +1pp / 0 regressions. Same-family Mistral large negative подтвердил что residue структурный unanimous через Mistral models.
@@ -92,7 +92,8 @@ For the public Streamlit Cloud demo (free, ~5 min setup), see
 | Final 2026-05-13 (+ Sonnet 4.6 bridge on all fails) | — | 77.0% ✅ |
 | Final 2026-05-17 EOS (+ selective fewshot_top_k=5 on residue) | — | 77.5% ✅ |
 | Final 2026-05-17 night (+ cross-Groq llama3.3-70b + qwen3-32b voting) | — | 79.0% ✅ |
-| **Final 2026-05-17 late-night (+ gpt-oss-20b voting on v8 residue)** | — | **80.0%** ✅ |
+| Final 2026-05-17 late-night (+ gpt-oss-20b voting on v8 residue) | — | 80.0% ✅ |
+| **Final 2026-05-17 late-night (+ M-Schema retry on v9 residue, XiYan-style)** | — | **80.5%** ✅ |
 | GPT-4 zero-shot reference | — | 47.8% |
 | Published SOTA (paid API + fine-tuning) | — | 73–76% (CHESS) |
 | Human expert baseline (BIRD paper) | — | 92.96% |

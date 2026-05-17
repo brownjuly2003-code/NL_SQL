@@ -56,6 +56,61 @@ def parse_generate_sql_output(text: str) -> GenerateSQLOutput:
     )
 
 
+_M_COL_RE = re.compile(
+    r"  - (?P<col>[^:]+?):\s+(?P<type>[A-Za-z][A-Za-z0-9_()]*)\s+\[(?P<flags>[^\]]*)\]"
+    r"(?:\s*\|\s*nulls=\d+(?:\s*\([^)]+\))?,\s*distinct=\d+)?"
+    r"(?:\s*\|\s*samples:\s*(?P<samples>.+))?$"
+)
+_M_FK_RE = re.compile(r"  - \(([^)]+)\) -> (\S+?)\(([^)]+)\)")
+
+
+def render_m_schema(context: ContextBundle | None) -> str:
+    """Compact M-Schema rendering (XiYan-SQL style) parsed from chunk text.
+
+    Replaces verbose table-card dump with: ``table.column (type) [samples]``
+    per line plus a trailing FK block. Reduces tokens by ~60% and surfaces
+    FK pairs as first-class signal next to columns instead of buried inside
+    multi-section cards.
+    """
+    if context is None:
+        return "(no schema context)"
+    all_hits = list(context.schema_hits) + list(context.fk_neighbours)
+    all_hits.sort(key=lambda h: h.table_name.lower())
+    if not all_hits:
+        return "(no tables matched)"
+    col_lines: list[str] = []
+    fk_lines: list[str] = []
+    for hit in all_hits:
+        table = hit.table_name
+        for raw_line in hit.text.splitlines():
+            m = _M_COL_RE.match(raw_line)
+            if m:
+                col = m.group("col").strip()
+                col_type = m.group("type")
+                flags = (m.group("flags") or "").strip()
+                samples = (m.group("samples") or "").strip()
+                pk = "PK" in flags.split()
+                parts = [f"{table}.{col} ({col_type})"]
+                if pk:
+                    parts.append("[PK]")
+                if samples:
+                    parts.append(f"[{samples}]")
+                col_lines.append(" ".join(parts))
+                continue
+            fk_m = _M_FK_RE.match(raw_line)
+            if fk_m:
+                local_cols, ref_table, ref_cols = fk_m.groups()
+                fk_lines.append(f"{table}.({local_cols}) -> {ref_table}.({ref_cols})")
+    blocks: list[str] = ["# Columns", *col_lines] if col_lines else ["(no columns parsed)"]
+    if fk_lines:
+        blocks.append("\n# Foreign keys")
+        blocks.extend(fk_lines)
+    appendix = _render_extended_samples_appendix(context.extended_samples)
+    if appendix:
+        blocks.append(appendix)
+    return "\n".join(blocks)
+
+
 def render_schema_block(
     context: ContextBundle | None,
     *,
