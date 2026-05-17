@@ -9,9 +9,9 @@
 > 3. gemini-2.5-flash Google: 10/38, 0 rescues (RPD 10/day hit)
 > 4. gemini-2.5-flash-lite Google: 9/38, 0 rescues (RPD 20/day hit)
 > 5. nvidia/nemotron-3-super-120b:free OpenRouter: 18/38, 0 rescues (50/day account-wide hit)
-> 6. codestral + NLSQL_M_SCHEMA=1 + NLSQL_DAC=1 combined (новый комбо): 13/38, 0 rescues (Mistral RPM-bound)
+> 6. codestral + NLSQL_M_SCHEMA=1 + NLSQL_DAC=1 combined (новый комбо): **38/38 full sweep**, 0 rescues, 0 regressions (после retry с sleep=10s)
 >
-> **Итого 69 уникальных case-attempts, 0 rescues.** v11 saturation подтверждён
+> **Итого 94 уникальных case-attempts, 0 rescues, 0 regressions.** v11 saturation подтверждён
 > definitively. Полная audit-trail + reset times: `docs/v11_saturation_evidence.md`.
 >
 > Дальнейший lift требует Chrome-gated Sonnet/GPT-5.x bridge (P3.A/D/E),

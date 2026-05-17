@@ -17,10 +17,11 @@ retry layers, zero rescues.
 | 3 | `gemini-2.5-flash` | Google AI Studio direct | 10/38 | **0** | Free-tier `generate_content_free_tier_requests` limit 10/day hit at case 11 |
 | 4 | `gemini-2.5-flash-lite` | Google AI Studio direct | 9/38 | **0** | Free-tier 20/day hit at case 10 |
 | 5 | `nvidia/nemotron-3-super-120b-a12b:free` | OpenRouter → Nvidia | 18/38 | **0** | OpenRouter `free-models-per-day` 50/day account-wide cap hit at case 20 |
-| 6 | `codestral-latest` + `NLSQL_M_SCHEMA=1 NLSQL_DAC=1` (combined env-flag retry) | Mistral La Plateforme | 13/38 | **0** | 25 timeout / connection errors (Mistral free-tier RPM bound) |
+| 6 | `codestral-latest` + `NLSQL_M_SCHEMA=1 NLSQL_DAC=1` (combined env-flag retry) | Mistral La Plateforme | **38/38** | **0** | первый прогон 13/38 хитнул timeout; повторный с `sleep_between=10s` дошёл до конца — 38/38 reached, 0 rescues, 0 regressions, 38 same. |
 
-**Total fresh cases probed across the residue:** 69 unique case-attempts with overlaps.
-**Total rescues:** **0**.
+**Total unique case-attempts across the residue: 94** (17 llama70b + 2 gpt-oss-20b + 10 gemini-flash + 9 gemini-flash-lite + 18 nemotron + 38 mistral-combo).
+**Total rescues: 0.**
+**Total regressions: 0.**
 
 A residue that survived multi-provider voting + grounded-critique +
 self-consistency + Sonnet bridge + M-Schema + DAC across the v5→v11 lift

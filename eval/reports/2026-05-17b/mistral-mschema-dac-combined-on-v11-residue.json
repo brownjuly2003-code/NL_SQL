@@ -3,7 +3,7 @@
   "summary": {
     "voted_better": 0,
     "voted_worse": 0,
-    "voted_same": 13
+    "voted_same": 38
   },
   "records": [
     {
@@ -19,7 +19,7 @@
       "alt_match": false,
       "vote_match": false,
       "vote_source": "critique-retry",
-      "elapsed_ms": 17719.27169999981
+      "elapsed_ms": 226.87109999969834
     },
     {
       "question_id": 37,
@@ -34,7 +34,7 @@
       "alt_match": false,
       "vote_match": false,
       "vote_source": "critique-retry",
-      "elapsed_ms": 6973.299100000077
+      "elapsed_ms": 22.08990000144695
     },
     {
       "question_id": 77,
@@ -43,13 +43,13 @@
       "question": "Which schools served a grade span of Kindergarten to 9th grade in the county of Los Angeles and what is its Percent (%) Eligible FRPM (Ages 5-17)?",
       "gold_sql": "SELECT T2.School, T1.`FRPM Count (Ages 5-17)` * 100 / T1.`Enrollment (Ages 5-17)` FROM frpm AS T1 INNER JOIN schools AS T2 ON T1.CDSCode = T2.CDSCode WHERE T2.County = 'Los Angeles' AND T2.GSserved = 'K-9'",
       "baseline_pred": "SELECT f.`School Name`, (f.`FRPM Count (Ages 5-17)` / f.`Enrollment (Ages 5-17)`) * 100 AS `Percent (%) Eligible FRPM (Ages 5-17)` FROM frpm f JOIN schools s ON f.CDSCode = s.CDSCode WHERE f.`County Name` = 'Los Angeles' AND f.`Low Grade` = 'K' AND f.`High Grade` = '9'",
-      "alt_pred": "SELECT T1.\"School Name\", (T1.\"FRPM Count (Ages 5-17)\" / T1.\"Enrollment (Ages 5-17)\") * 100 AS \"Percent (%) Eligible FRPM (Ages 5-17)\" FROM frpm AS T1 INNER JOIN schools AS T2 ON T1.CDSCode = T2.CDSCode WHERE T1.\"County Name\" = 'Los Angeles' AND T1.\"Low Grade\" = 'K' AND T1.\"High Grade\" = '9' AND T2.GSserved = 'K-9'",
+      "alt_pred": "SELECT T1.\"School Name\", T1.\"Percent (%) Eligible FRPM (Ages 5-17)\" FROM frpm AS T1 INNER JOIN schools AS T2 ON T1.CDSCode = T2.CDSCode WHERE T1.\"County Name\" = 'Los Angeles' AND T1.\"Low Grade\" = 'K' AND T1.\"High Grade\" = '9' AND T2.GSserved = 'K-9'",
       "alt_confidence": 1.0,
       "baseline_match": false,
       "alt_match": false,
       "vote_match": false,
       "vote_source": "critique-retry",
-      "elapsed_ms": 5254.963700000189
+      "elapsed_ms": 3679.09359999976
     },
     {
       "question_id": 125,
@@ -64,7 +64,7 @@
       "alt_match": false,
       "vote_match": false,
       "vote_source": "critique-retry",
-      "elapsed_ms": 5187.4557000001005
+      "elapsed_ms": 36.38140000111889
     },
     {
       "question_id": 173,
@@ -79,7 +79,7 @@
       "alt_match": false,
       "vote_match": false,
       "vote_source": "critique-retry",
-      "elapsed_ms": 5893.9705000002505
+      "elapsed_ms": 81.53700000002573
     },
     {
       "question_id": 207,
@@ -94,7 +94,7 @@
       "alt_match": false,
       "vote_match": false,
       "vote_source": "critique-retry",
-      "elapsed_ms": 2748.9291000001685
+      "elapsed_ms": 54.18509999981325
     },
     {
       "question_id": 349,
@@ -109,7 +109,7 @@
       "alt_match": false,
       "vote_match": false,
       "vote_source": "critique-retry",
-      "elapsed_ms": 4131.571199999598
+      "elapsed_ms": 118.39770000005956
     },
     {
       "question_id": 358,
@@ -124,7 +124,7 @@
       "alt_match": false,
       "vote_match": false,
       "vote_source": "critique-retry",
-      "elapsed_ms": 2132.585100000142
+      "elapsed_ms": 154.75770000011835
     },
     {
       "question_id": 407,
@@ -139,7 +139,7 @@
       "alt_match": false,
       "vote_match": false,
       "vote_source": "critique-retry",
-      "elapsed_ms": 6954.053800000111
+      "elapsed_ms": 344.6827999996458
     },
     {
       "question_id": 408,
@@ -154,7 +154,367 @@
       "alt_match": false,
       "vote_match": false,
       "vote_source": "critique-retry",
-      "elapsed_ms": 2471.147299999757
+      "elapsed_ms": 310.78250000064145
+    },
+    {
+      "question_id": 484,
+      "db_id": "card_games",
+      "difficulty": "moderate",
+      "question": "Please list the Italian names of the cards in the set Coldsnap with the highest converted mana cost.",
+      "gold_sql": "SELECT T2.name FROM foreign_data AS T1 INNER JOIN cards AS T2 ON T2.uuid = T1.uuid INNER JOIN sets AS T3 ON T3.code = T2.setCode WHERE T3.name = 'Coldsnap' AND T1.language = 'Italian' ORDER BY T2.convertedManaCost DESC",
+      "baseline_pred": "SELECT fd.name FROM cards AS c JOIN foreign_data AS fd ON c.uuid = fd.uuid JOIN sets AS s ON c.setCode = s.code WHERE s.name = 'Coldsnap' AND fd.language = 'Italian' ORDER BY c.convertedManaCost DESC LIMIT 1",
+      "alt_pred": "SELECT fd.name FROM foreign_data fd INNER JOIN cards c ON fd.uuid = c.uuid WHERE c.setCode = 'CSP' AND fd.language = 'Italian' AND c.convertedManaCost = (SELECT MAX(convertedManaCost) FROM cards WHERE setCode = 'CSP')",
+      "alt_confidence": 0.9,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "critique-retry",
+      "elapsed_ms": 3935.3526000013517
+    },
+    {
+      "question_id": 518,
+      "db_id": "card_games",
+      "difficulty": "moderate",
+      "question": "Which of the play format has the highest number of banned status? Indicate the play format and the names of all the card meet the condition.",
+      "gold_sql": "WITH MaxBanned AS (SELECT format, COUNT(*) AS count_banned FROM legalities WHERE status = 'Banned' GROUP BY format ORDER BY COUNT(*) DESC LIMIT 1) SELECT T2.format, T1.name FROM cards AS T1 INNER JOIN legalities AS T2 ON T2.uuid = T1.uuid INNER JOIN MaxBanned MB ON MB.format = T2.format WHERE T2.status = 'Banned'",
+      "baseline_pred": "SELECT l.format, c.name FROM legalities l JOIN cards c ON l.uuid = c.uuid WHERE l.status = 'Banned' GROUP BY l.format ORDER BY COUNT(l.status) DESC LIMIT 1",
+      "alt_pred": "SELECT (SELECT format FROM legalities WHERE status = 'Banned' GROUP BY format ORDER BY COUNT(*) DESC LIMIT 1) AS play_format, GROUP_CONCAT(cards.name) AS card_names FROM cards INNER JOIN legalities ON cards.uuid = legalities.uuid WHERE legalities.status = 'Banned'",
+      "alt_confidence": 1.0,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "critique-retry",
+      "elapsed_ms": 5954.2801000006875
+    },
+    {
+      "question_id": 584,
+      "db_id": "codebase_community",
+      "difficulty": "moderate",
+      "question": "Write all the comments left by users who edited the post titled 'Why square the difference instead of taking the absolute value in standard deviation?'",
+      "gold_sql": "SELECT T2.Comment FROM posts AS T1 INNER JOIN postHistory AS T2 ON T1.Id = T2.PostId WHERE T1.Title = 'Why square the difference instead of taking the absolute value in standard deviation?'",
+      "baseline_pred": "SELECT comments.Text FROM comments JOIN posts ON comments.PostId = posts.Id WHERE posts.Title = 'Why square the difference instead of taking the absolute value in standard deviation?'",
+      "alt_pred": "SELECT comments.Text FROM comments INNER JOIN postHistory ON comments.UserId = postHistory.UserId WHERE postHistory.PostId = (SELECT Id FROM posts WHERE Title = 'Why square the difference instead of taking the absolute value in standard deviation?')",
+      "alt_confidence": 1.0,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "critique-retry",
+      "elapsed_ms": 10436.759999998685
+    },
+    {
+      "question_id": 595,
+      "db_id": "codebase_community",
+      "difficulty": "moderate",
+      "question": "Which user have only one post history per post and having at least 1000 views?",
+      "gold_sql": "SELECT T2.UserId FROM users AS T1 INNER JOIN postHistory AS T2 ON T1.Id = T2.UserId INNER JOIN posts AS T3 ON T2.PostId = T3.Id WHERE T3.ViewCount >= 1000 GROUP BY T2.UserId HAVING COUNT(DISTINCT T2.PostHistoryTypeId) = 1",
+      "baseline_pred": "SELECT DISTINCT ph.UserId FROM postHistory ph JOIN posts p ON ph.PostId = p.Id WHERE p.ViewCount >= 1000 AND ph.UserId IS NOT NULL GROUP BY ph.UserId, ph.PostId HAVING COUNT(*) = 1",
+      "alt_pred": "SELECT DISTINCT ph.UserId FROM postHistory AS ph INNER JOIN users AS u ON ph.UserId = u.Id WHERE u.Views >= 1000 AND ph.UserId IN (SELECT UserId FROM postHistory GROUP BY PostId HAVING COUNT(*) = 1)",
+      "alt_confidence": 1.0,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "critique-retry",
+      "elapsed_ms": 14704.810100000032
+    },
+    {
+      "question_id": 672,
+      "db_id": "codebase_community",
+      "difficulty": "moderate",
+      "question": "Among the users located in United Kingdom, how many users whose post have a total favorite amount of 4 or more?",
+      "gold_sql": "SELECT COUNT(T1.Id) FROM users AS T1 INNER JOIN posts AS T2 ON T1.Id = T2.OwnerUserId WHERE T1.Location = 'United Kingdom' AND T2.FavoriteCount >= 4",
+      "baseline_pred": "SELECT COUNT(DISTINCT u.Id) FROM users u JOIN posts p ON u.Id = p.OwnerUserId WHERE u.Location = 'United Kingdom' AND p.FavoriteCount >= 4",
+      "alt_pred": "SELECT COUNT(*) FROM (SELECT OwnerUserId, SUM(FavoriteCount) AS TotalFavorites FROM posts GROUP BY OwnerUserId) WHERE TotalFavorites >= 4 AND OwnerUserId IN (SELECT Id FROM users WHERE Location = 'United Kingdom')",
+      "alt_confidence": 1.0,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "critique-retry",
+      "elapsed_ms": 3459.7326000002795
+    },
+    {
+      "question_id": 694,
+      "db_id": "codebase_community",
+      "difficulty": "moderate",
+      "question": "Provide the text of the latest 10 comments to the post with the title 'Analysing wind data with R' and the display name of the user who left it.",
+      "gold_sql": "SELECT T3.Text, T1.DisplayName FROM users AS T1 INNER JOIN posts AS T2 ON T1.Id = T2.OwnerUserId INNER JOIN comments AS T3 ON T2.Id = T3.PostId WHERE T2.Title = 'Analysing wind data with R' ORDER BY T1.CreationDate DESC LIMIT 10",
+      "baseline_pred": "SELECT comments.Text, comments.UserDisplayName FROM comments JOIN posts ON comments.PostId = posts.Id WHERE posts.Title = 'Analysing wind data with R' ORDER BY comments.CreationDate DESC LIMIT 10",
+      "alt_pred": "SELECT Text, UserDisplayName FROM comments WHERE PostId = (SELECT Id FROM posts WHERE Title = 'Analysing wind data with R') ORDER BY CreationDate DESC LIMIT 10",
+      "alt_confidence": 1.0,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "critique-retry",
+      "elapsed_ms": 2535.5180999995355
+    },
+    {
+      "question_id": 743,
+      "db_id": "superhero",
+      "difficulty": "challenging",
+      "question": "What is the percentage of superheroes who act in their own self-interest or make decisions based on their own moral code? Indicate how many of the said superheroes were published by Marvel Comics.",
+      "gold_sql": "SELECT (CAST(COUNT(*) AS REAL) * 100 / (SELECT COUNT(*) FROM superhero)), CAST(SUM(CASE WHEN T2.publisher_name = 'Marvel Comics' THEN 1 ELSE 0 END) AS REAL) FROM superhero AS T1 INNER JOIN publisher AS T2 ON T1.publisher_id = T2.id INNER JOIN alignment AS T3 ON T3.id = T1.alignment_id WHERE T3.alignment = 'Bad'",
+      "baseline_pred": "SELECT CAST(SUM(CASE WHEN a.alignment = 'Bad' THEN 1 ELSE 0 END) AS REAL) * 100 / COUNT(s.id) AS percentage, SUM(CASE WHEN a.alignment = 'Bad' AND p.publisher_name = 'Marvel Comics' THEN 1 ELSE 0 END) FROM superhero s INNER JOIN alignment a ON s.alignment_id = a.id LEFT JOIN publisher p ON s.publisher_id = p.id",
+      "alt_pred": "SELECT (SELECT COUNT(*) FROM superhero WHERE alignment_id = (SELECT id FROM alignment WHERE alignment = 'Bad')) AS total_bad_alignment, (SELECT COUNT(*) FROM superhero WHERE alignment_id = (SELECT id FROM alignment WHERE alignment = 'Bad') AND publisher_id = (SELECT id FROM publisher WHERE publisher_name = 'Marvel Comics')) AS marvel_bad_alignment, (SELECT CAST((SELECT COUNT(*) FROM superhero WHERE alignment_id = (SELECT id FROM alignment WHERE alignment = 'Bad')) AS REAL) * 100 / COUNT(*) FROM superhero) AS percentage_bad_alignment",
+      "alt_confidence": 0.9,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "critique-retry",
+      "elapsed_ms": 4854.183000001285
+    },
+    {
+      "question_id": 866,
+      "db_id": "formula_1",
+      "difficulty": "moderate",
+      "question": "Who was the player that got the lap time of 0:01:27 in the race No. 161? Show his introduction website.",
+      "gold_sql": "SELECT DISTINCT T2.forename, T2.surname, T2.url FROM lapTimes AS T1 INNER JOIN drivers AS T2 ON T2.driverId = T1.driverId WHERE T1.raceId = 161 AND T1.time LIKE '1:27%'",
+      "baseline_pred": "SELECT drivers.url FROM lapTimes JOIN drivers ON lapTimes.driverId = drivers.driverId WHERE lapTimes.raceId = 161 AND lapTimes.time LIKE '1:27%'",
+      "alt_pred": "SELECT url FROM drivers WHERE driverId = (SELECT driverId FROM lapTimes WHERE raceId = 161 AND time LIKE '1:27%')",
+      "alt_confidence": 1.0,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "critique-retry",
+      "elapsed_ms": 2247.9014999989886
+    },
+    {
+      "question_id": 894,
+      "db_id": "formula_1",
+      "difficulty": "moderate",
+      "question": "What is the best lap time recorded? List the driver and race with such recorded lap time.",
+      "gold_sql": "SELECT T2.milliseconds, T1.forename, T1.surname, T3.name FROM drivers AS T1 INNER JOIN lapTimes AS T2 ON T1.driverId = T2.driverId INNER JOIN races AS T3 ON T2.raceId = T3.raceId ORDER BY T2.milliseconds ASC LIMIT 1",
+      "baseline_pred": "SELECT drivers.forename, drivers.surname, races.name FROM lapTimes JOIN drivers ON lapTimes.driverId = drivers.driverId JOIN races ON lapTimes.raceId = races.raceId WHERE lapTimes.milliseconds = (SELECT MIN(milliseconds) FROM lapTimes) LIMIT 1",
+      "alt_pred": "SELECT T2.forename, T2.surname, T3.name FROM (SELECT T1.driverId, T1.raceId, T1.milliseconds FROM lapTimes AS T1 WHERE T1.milliseconds = (SELECT MIN(milliseconds) FROM lapTimes)) AS T4 INNER JOIN drivers AS T2 ON T4.driverId = T2.driverId INNER JOIN races AS T3 ON T4.raceId = T3.raceId",
+      "alt_confidence": 1.0,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "critique-retry",
+      "elapsed_ms": 3516.838999999891
+    },
+    {
+      "question_id": 896,
+      "db_id": "formula_1",
+      "difficulty": "challenging",
+      "question": "Calculate the percentage whereby Hamilton was not at the 1st track of the the f1 circuit since 2010.",
+      "gold_sql": "SELECT CAST(COUNT(CASE WHEN T2.position <> 1 THEN T2.position END) AS REAL) * 100 / COUNT(T2.driverStandingsId) FROM races AS T1 INNER JOIN driverStandings AS T2 ON T2.raceId = T1.raceId INNER JOIN drivers AS T3 ON T3.driverId = T2.driverId WHERE T3.surname = 'Hamilton' AND T1.year >= 2010",
+      "baseline_pred": "SELECT CAST(SUM(CASE WHEN r.positionOrder > 1 THEN 1 ELSE 0 END) AS REAL) * 100.0 / COUNT(*) FROM results r INNER JOIN drivers d ON r.driverId = d.driverId INNER JOIN races ra ON r.raceId = ra.raceId WHERE d.surname = 'Hamilton' AND ra.year >= 2010",
+      "alt_pred": "SELECT CAST((SELECT COUNT(*) FROM results AS T1 INNER JOIN drivers AS T2 ON T1.driverId = T2.driverId INNER JOIN races AS T3 ON T1.raceId = T3.raceId WHERE T2.surname = 'Hamilton' AND T1.position > 1 AND T3.year >= 2010) AS REAL) * 100 / (SELECT COUNT(*) FROM results AS T1 INNER JOIN drivers AS T2 ON T1.driverId = T2.driverId INNER JOIN races AS T3 ON T1.raceId = T3.raceId WHERE T2.surname = 'Hamilton' AND T3.year >= 2010)",
+      "alt_confidence": 0.9,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "critique-retry",
+      "elapsed_ms": 8855.201400001533
+    },
+    {
+      "question_id": 902,
+      "db_id": "formula_1",
+      "difficulty": "simple",
+      "question": "Which race was Alex Yoong in when he was in track number less than 20?",
+      "gold_sql": "SELECT T1.name FROM races AS T1 INNER JOIN driverStandings AS T2 ON T2.raceId = T1.raceId INNER JOIN drivers AS T3 ON T3.driverId = T2.driverId WHERE T3.forename = 'Alex' AND T3.surname = 'Yoong' AND T2.position < 20",
+      "baseline_pred": "SELECT races.name FROM races JOIN results ON races.raceId = results.raceId JOIN drivers ON results.driverId = drivers.driverId WHERE drivers.forename = 'Alex' AND drivers.surname = 'Yoong' AND results.position < 20",
+      "alt_pred": "SELECT races.name FROM results JOIN races ON results.raceId = races.raceId WHERE results.driverId = (SELECT driverId FROM drivers WHERE forename = 'Alex' AND surname = 'Yoong') AND results.position < 20",
+      "alt_confidence": 0.8,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "critique-retry",
+      "elapsed_ms": 3487.3322999992524
+    },
+    {
+      "question_id": 930,
+      "db_id": "formula_1",
+      "difficulty": "simple",
+      "question": "In which Formula_1 race did Lewis Hamilton rank the highest?",
+      "gold_sql": "SELECT name FROM races WHERE raceId IN ( SELECT raceId FROM results WHERE rank = 1 AND driverId = ( SELECT driverId FROM drivers WHERE forename = 'Lewis' AND surname = 'Hamilton' ) )",
+      "baseline_pred": "SELECT races.name FROM races JOIN results ON races.raceId = results.raceId JOIN drivers ON results.driverId = drivers.driverId WHERE drivers.forename = 'Lewis' AND drivers.surname = 'Hamilton' ORDER BY results.rank ASC LIMIT 1",
+      "alt_pred": "SELECT races.name FROM races WHERE raceId = (SELECT raceId FROM results WHERE driverId = (SELECT driverId FROM drivers WHERE forename = 'Lewis' AND surname = 'Hamilton') ORDER BY rank ASC LIMIT 1)",
+      "alt_confidence": 0.9,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "critique-retry",
+      "elapsed_ms": 3118.9525999998295
+    },
+    {
+      "question_id": 988,
+      "db_id": "formula_1",
+      "difficulty": "challenging",
+      "question": "List down top 3 German drivers who has the shortest average pit stop duration and were born between 1980-1985.",
+      "gold_sql": "SELECT T2.forename, T2.surname FROM pitStops AS T1 INNER JOIN drivers AS T2 on T1.driverId = T2.driverId WHERE T2.nationality = 'German' AND STRFTIME('%Y', T2.dob) BETWEEN '1980' AND '1985' GROUP BY T2.forename, T2.surname ORDER BY AVG(T1.duration) LIMIT 3",
+      "baseline_pred": "SELECT d.forename || ' ' || d.surname AS full_name FROM pitStops p JOIN drivers d ON p.driverId = d.driverId WHERE strftime('%Y', d.dob) BETWEEN '1980' AND '1985' AND d.nationality = 'German' GROUP BY d.driverId, d.forename, d.surname ORDER BY AVG(p.milliseconds) ASC LIMIT 3",
+      "alt_pred": "WITH driver_durations AS (SELECT driverId, SUM(milliseconds) / COUNT(milliseconds) AS avg_duration FROM pitStops GROUP BY driverId) SELECT d.forename, d.surname FROM drivers d JOIN driver_durations dd ON d.driverId = dd.driverId WHERE d.nationality = 'German' AND strftime('%Y', d.dob) BETWEEN '1980' AND '1985' ORDER BY dd.avg_duration ASC LIMIT 3",
+      "alt_confidence": 1.0,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "critique-retry",
+      "elapsed_ms": 8393.55550000073
+    },
+    {
+      "question_id": 990,
+      "db_id": "formula_1",
+      "difficulty": "challenging",
+      "question": "What is the constructor reference name of the champion in the 2009 Singapore Grand Prix? Please give its website.",
+      "gold_sql": "SELECT T3.constructorRef, T3.url FROM results AS T1 INNER JOIN races AS T2 on T1.raceId = T2.raceId INNER JOIN constructors AS T3 on T1.constructorId = T3.constructorId WHERE T2.name = 'Singapore Grand Prix' AND T2.year = 2009 AND T1.time LIKE '_:%:__.___'",
+      "baseline_pred": "SELECT constructors.constructorRef, constructors.url FROM results INNER JOIN races ON results.raceId = races.raceId INNER JOIN constructors ON results.constructorId = constructors.constructorId WHERE races.year = 2009 AND races.name = 'Singapore Grand Prix' AND results.positionOrder = 1 ORDER BY results.time DESC LIMIT 1",
+      "alt_pred": "SELECT constructors.constructorRef, constructors.url FROM constructors INNER JOIN results ON constructors.constructorId = results.constructorId WHERE results.driverId = (SELECT driverId FROM results WHERE raceId = (SELECT raceId FROM races WHERE name = 'Singapore Grand Prix' AND year = 2009) ORDER BY milliseconds ASC LIMIT 1)",
+      "alt_confidence": 0.9,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "critique-retry",
+      "elapsed_ms": 3894.4085000002815
+    },
+    {
+      "question_id": 1029,
+      "db_id": "european_football_2",
+      "difficulty": "moderate",
+      "question": "What are the speed in which attacks are put together of the top 4 teams with the highest build Up Play Speed?",
+      "gold_sql": "SELECT t1.buildUpPlaySpeed FROM Team_Attributes AS t1 INNER JOIN Team AS t2 ON t1.team_api_id = t2.team_api_id ORDER BY t1.buildUpPlaySpeed ASC LIMIT 4",
+      "baseline_pred": "SELECT buildUpPlaySpeed FROM Team_Attributes ORDER BY buildUpPlaySpeed DESC LIMIT 4",
+      "alt_pred": "SELECT Team.team_long_name, Team_Attributes.buildUpPlaySpeed FROM Team INNER JOIN Team_Attributes ON Team.team_api_id = Team_Attributes.team_api_id WHERE Team_Attributes.team_api_id IN (SELECT team_api_id FROM Team_Attributes ORDER BY buildUpPlaySpeed DESC LIMIT 4) GROUP BY Team.team_long_name, Team_Attributes.buildUpPlaySpeed",
+      "alt_confidence": 0.9,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "critique-retry",
+      "elapsed_ms": 4824.75279999926
+    },
+    {
+      "question_id": 1094,
+      "db_id": "european_football_2",
+      "difficulty": "challenging",
+      "question": "How much higher in percentage is Ariel Borysiuk's overall rating than that of Paulin Puel?",
+      "gold_sql": "SELECT (SUM(CASE WHEN t1.player_name = 'Ariel Borysiuk' THEN t2.overall_rating ELSE 0 END) * 1.0 - SUM(CASE WHEN t1.player_name = 'Paulin Puel' THEN t2.overall_rating ELSE 0 END)) * 100 / SUM(CASE WHEN t1.player_name = 'Paulin Puel' THEN t2.overall_rating ELSE 0 END) FROM Player AS t1 INNER JOIN Player_Attributes AS t2 ON t1.player_api_id = t2.player_api_id",
+      "baseline_pred": "SELECT CAST((MAX(CASE WHEN p.player_name = 'Ariel Borysiuk' THEN pa.overall_rating END) - MAX(CASE WHEN p.player_name = 'Paulin Puel' THEN pa.overall_rating END)) * 100.0 / MAX(CASE WHEN p.player_name = 'Paulin Puel' THEN pa.overall_rating END) AS REAL) AS percentage_higher FROM Player p INNER JOIN Player_Attributes pa ON p.player_api_id = pa.player_api_id WHERE p.player_name IN ('Ariel Borysiuk', 'Paulin Puel') AND pa.overall_rating IS NOT NULL",
+      "alt_pred": "SELECT (CAST((T1.overall_rating - T2.overall_rating) AS REAL) / T2.overall_rating) * 100 AS percentage_higher FROM (SELECT overall_rating FROM Player_Attributes WHERE player_api_id = (SELECT player_api_id FROM Player WHERE player_name = 'Ariel Borysiuk') ORDER BY date DESC LIMIT 1) AS T1, (SELECT overall_rating FROM Player_Attributes WHERE player_api_id = (SELECT player_api_id FROM Player WHERE player_name = 'Paulin Puel') ORDER BY date DESC LIMIT 1) AS T2",
+      "alt_confidence": 1.0,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "critique-retry",
+      "elapsed_ms": 13901.290599998902
+    },
+    {
+      "question_id": 1144,
+      "db_id": "european_football_2",
+      "difficulty": "simple",
+      "question": "Please state the finishing rate and curve score of the player who has the heaviest weight.",
+      "gold_sql": "SELECT id, finishing, curve FROM Player_Attributes WHERE player_api_id = ( SELECT player_api_id FROM Player ORDER BY weight DESC LIMIT 1 ) LIMIT 1",
+      "baseline_pred": "SELECT finishing, curve FROM Player_Attributes JOIN Player ON Player_Attributes.player_api_id = Player.player_api_id WHERE Player.weight = (SELECT MAX(weight) FROM Player)",
+      "alt_pred": "SELECT finishing, curve FROM Player_Attributes WHERE player_api_id = (SELECT player_api_id FROM Player ORDER BY weight DESC LIMIT 1)",
+      "alt_confidence": 1.0,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "critique-retry",
+      "elapsed_ms": 2555.550900000526
+    },
+    {
+      "question_id": 1168,
+      "db_id": "thrombosis_prediction",
+      "difficulty": "challenging",
+      "question": "The oldest SJS patient's medical laboratory work was completed on what date, and what age was the patient when they initially arrived at the hospital?",
+      "gold_sql": "SELECT T1.Date, STRFTIME('%Y', T2.`First Date`) - STRFTIME('%Y', T2.Birthday),T2.Birthday FROM Laboratory AS T1 INNER JOIN Patient AS T2 ON T1.ID = T2.ID WHERE T2.Diagnosis = 'SJS' AND T2.Birthday IS NOT NULL ORDER BY T2.Birthday ASC LIMIT 1",
+      "baseline_pred": "SELECT L.Date, (strftime('%Y', P.\"First Date\") - strftime('%Y', P.Birthday)) FROM Patient P INNER JOIN Laboratory L ON P.ID = L.ID WHERE P.Diagnosis = 'SJS' AND P.Birthday = (SELECT MIN(Birthday) FROM Patient WHERE Diagnosis = 'SJS') ORDER BY L.Date ASC LIMIT 1",
+      "alt_pred": "SELECT (SELECT Date FROM Laboratory WHERE ID = (SELECT ID FROM Patient WHERE Diagnosis = 'SJS' ORDER BY Birthday DESC LIMIT 1)) AS Laboratory_Date, (SELECT (strftime('%Y', `First Date`) - strftime('%Y', Birthday)) FROM Patient WHERE Diagnosis = 'SJS' ORDER BY Birthday DESC LIMIT 1) AS Initial_Age",
+      "alt_confidence": 1.0,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "critique-retry",
+      "elapsed_ms": 5127.594900000986
+    },
+    {
+      "question_id": 1205,
+      "db_id": "thrombosis_prediction",
+      "difficulty": "moderate",
+      "question": "Was the patient with the number 57266's uric acid within a normal range?",
+      "gold_sql": "SELECT CASE WHEN (T1.SEX = 'F' AND T2.UA > 6.5) OR (T1.SEX = 'M' AND T2.UA > 8.0) THEN true ELSE false END FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T1.ID = 57266",
+      "baseline_pred": "SELECT CASE WHEN (T1.UA > 8.0 AND T2.SEX = 'M') OR (T1.UA > 6.5 AND T2.SEX = 'F') THEN 'Yes' ELSE 'No' END AS is_normal FROM Laboratory AS T1 INNER JOIN Patient AS T2 ON T1.ID = T2.ID WHERE T1.ID = 57266 LIMIT 1",
+      "alt_pred": "SELECT CASE WHEN (T1.UA > 8.0 AND T2.SEX = 'M') OR (T1.UA > 6.5 AND T2.SEX = 'F') THEN 'Yes' ELSE 'No' END AS is_normal FROM (SELECT UA FROM Laboratory WHERE ID = 57266) AS T1, (SELECT SEX FROM Patient WHERE ID = 57266) AS T2",
+      "alt_confidence": 1.0,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "critique-retry",
+      "elapsed_ms": 4600.562899999204
+    },
+    {
+      "question_id": 1235,
+      "db_id": "thrombosis_prediction",
+      "difficulty": "moderate",
+      "question": "What are the patient's diagnosis for those who has lower red blood blood cell? State their ID and age.",
+      "gold_sql": "SELECT DISTINCT T1.Diagnosis, T1.ID , STRFTIME('%Y', CURRENT_TIMESTAMP) -STRFTIME('%Y', T1.Birthday) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.RBC < 3.5",
+      "baseline_pred": "SELECT P.ID, (strftime('%Y', 'now') - strftime('%Y', P.Birthday)) AS age, P.Diagnosis FROM Patient AS P JOIN Laboratory AS L ON P.ID = L.ID WHERE L.RBC < 3.5",
+      "alt_pred": "SELECT T1.ID, (strftime('%Y', 'now') - strftime('%Y', T2.Birthday)) AS Age, T1.Diagnosis FROM (SELECT ID, Diagnosis FROM Examination WHERE ID IN (SELECT ID FROM Laboratory WHERE RBC < 3.5)) T1 INNER JOIN (SELECT ID, Birthday FROM Patient) T2 ON T1.ID = T2.ID",
+      "alt_confidence": 0.9,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "critique-retry",
+      "elapsed_ms": 4740.193999999974
+    },
+    {
+      "question_id": 1247,
+      "db_id": "thrombosis_prediction",
+      "difficulty": "challenging",
+      "question": "Among the male patients who have a normal level of white blood cells, how many of them have an abnormal fibrinogen level?",
+      "gold_sql": "SELECT COUNT(DISTINCT T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.FG <= 150 OR T2.FG >= 450 AND T2.WBC > 3.5 AND T2.WBC < 9.0 AND T1.SEX = 'M'",
+      "baseline_pred": "SELECT COUNT(DISTINCT L.ID) FROM Patient P INNER JOIN Laboratory L ON P.ID = L.ID WHERE P.SEX = 'M' AND L.WBC > 3.5 AND L.WBC < 9.0 AND (L.FG <= 150 OR L.FG >= 450)",
+      "alt_pred": "SELECT COUNT(*) FROM Laboratory WHERE ID IN (SELECT DISTINCT ID FROM Patient WHERE Sex = 'M') AND (WBC > 3.5 AND WBC < 9.0) AND (FG <= 150 OR FG >= 450)",
+      "alt_confidence": 0.9,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "critique-retry",
+      "elapsed_ms": 2968.6674999993556
+    },
+    {
+      "question_id": 1251,
+      "db_id": "thrombosis_prediction",
+      "difficulty": "simple",
+      "question": "How many patients with an Ig G higher than normal?",
+      "gold_sql": "SELECT COUNT(DISTINCT T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID INNER JOIN Examination AS T3 ON T3.ID = T2.ID WHERE T2.IGG >= 2000",
+      "baseline_pred": "SELECT COUNT(DISTINCT ID) FROM Laboratory WHERE IGG >= 2000",
+      "alt_pred": "SELECT COUNT(DISTINCT T1.ID) FROM Laboratory AS T1 WHERE T1.IGG >= 2000",
+      "alt_confidence": 1.0,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "critique-retry",
+      "elapsed_ms": 3649.731999999858
+    },
+    {
+      "question_id": 1254,
+      "db_id": "thrombosis_prediction",
+      "difficulty": "moderate",
+      "question": "How many patients with a normal Ig A level came to the hospital after 1990/1/1?",
+      "gold_sql": "SELECT COUNT(T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.IGA BETWEEN 80 AND 500 AND  strftime('%Y',  T1.`First Date`) > '1990'",
+      "baseline_pred": "SELECT COUNT(DISTINCT P.ID) FROM Patient P JOIN Laboratory L ON P.ID = L.ID WHERE L.IGA > 80 AND L.IGA < 500 AND P.`First Date` >= '1990-01-01'",
+      "alt_pred": "SELECT COUNT(DISTINCT T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.IGA > 80 AND T2.IGA < 500 AND T1.`First Date` >= '1990-01-01'",
+      "alt_confidence": 1.0,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "critique-retry",
+      "elapsed_ms": 3301.0240999992675
+    },
+    {
+      "question_id": 1275,
+      "db_id": "thrombosis_prediction",
+      "difficulty": "moderate",
+      "question": "Among the patients who has a normal level of anti-centromere and a normal level of anti-SSB, how many of them are male?",
+      "gold_sql": "SELECT COUNT(DISTINCT T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.CENTROMEA IN ('negative', '0') AND T2.SSB IN ('negative', '0') AND T1.SEX = 'M'",
+      "baseline_pred": "SELECT COUNT(DISTINCT P.ID) FROM Patient P JOIN Examination E ON P.ID = E.ID WHERE E.CENTROMEA IN ('-', '+-') AND E.SSB IN ('-', '+-') AND P.SEX = 'M'",
+      "alt_pred": "SELECT COUNT(DISTINCT T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.CENTROMEA IN('-', '+-') AND T2.SSB IN('-', '+-') AND T1.Sex = 'M'",
+      "alt_confidence": 1.0,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "critique-retry",
+      "elapsed_ms": 3950.662799999918
     },
     {
       "question_id": 1399,
@@ -169,7 +529,7 @@
       "alt_match": false,
       "vote_match": false,
       "vote_source": "critique-retry",
-      "elapsed_ms": 23266.520000000128
+      "elapsed_ms": 19.023099999685655
     },
     {
       "question_id": 1404,
@@ -184,7 +544,7 @@
       "alt_match": false,
       "vote_match": false,
       "vote_source": "critique-retry",
-      "elapsed_ms": 15963.949400000274
+      "elapsed_ms": 19.85180000156106
     },
     {
       "question_id": 1529,
@@ -199,7 +559,22 @@
       "alt_match": false,
       "vote_match": false,
       "vote_source": "critique-retry",
-      "elapsed_ms": 28435.91109999943
+      "elapsed_ms": 13.010800001211464
+    },
+    {
+      "question_id": 1531,
+      "db_id": "debit_card_specializing",
+      "difficulty": "moderate",
+      "question": "Who is the top spending customer and how much is the average price per single item purchased by this customer? What currency was being used?",
+      "gold_sql": "SELECT T2.CustomerID, SUM(T2.Price / T2.Amount), T1.Currency FROM customers AS T1 INNER JOIN transactions_1k AS T2 ON T1.CustomerID = T2.CustomerID WHERE T2.CustomerID = ( SELECT CustomerID FROM yearmonth ORDER BY Consumption DESC LIMIT 1 ) GROUP BY T2.CustomerID, T1.Currency",
+      "baseline_pred": "SELECT customers.CustomerID, SUM(transactions_1k.Price) / SUM(transactions_1k.Amount) AS avg_price_per_item, customers.Currency FROM transactions_1k JOIN customers ON transactions_1k.CustomerID = customers.CustomerID GROUP BY transactions_1k.CustomerID, customers.Currency ORDER BY SUM(transactions_1k.Price) DESC LIMIT 1",
+      "alt_pred": "SELECT c.CustomerID, t.AvgPricePerItem, c.Currency FROM (SELECT CustomerID, SUM(Price) / SUM(Amount) AS AvgPricePerItem FROM transactions_1k GROUP BY CustomerID) AS t INNER JOIN customers AS c ON t.CustomerID = c.CustomerID WHERE t.CustomerID = (SELECT CustomerID FROM transactions_1k GROUP BY CustomerID ORDER BY SUM(Price * Amount) DESC LIMIT 1)",
+      "alt_confidence": 0.9,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "critique-retry",
+      "elapsed_ms": 3669.960800001718
     }
   ]
 }
