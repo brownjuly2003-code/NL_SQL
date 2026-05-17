@@ -3,6 +3,45 @@
 > Один лист, без воды. Берёшь, делаешь, обновляешь `SESSION_HANDOFF.md`,
 > удаляешь этот файл (или переписываешь под следующий sprint).
 
+## 2026-05-18 update — Groq TPD recovery sanity check + P3.F realism audit
+
+**Sanity check executed автономно перед стартом любой новой работы:**
+
+1. **Groq llama70b TPD НЕ сбросился** (HEAD `d6303ff` post-EXTENDED, day-3).
+   Ping 38-token prompt → 200 OK, но `run_critique_retry` на 21 unattempted
+   v11-residue qid (filtered baseline: `eval/reports/2026-05-17c/v11-residue-fresh21.json`)
+   дал 21/21 hit 429. Headroom 98077/100000, real prompts (2500–11000 ток.) перебирают cap.
+   Reset windows из 429 message: 8m–2h10m, **rolling not midnight-aligned**.
+   Operational rule добавлено в SESSION_HANDOFF: для TPD recovery — ping
+   real-sized prompt (≥3000 токенов), не 5-token "pong".
+   Артефакты: `eval/reports/2026-05-17c/{v11-residue-fresh21.json, groq-llama70b-on-v11-residue-fresh21.json, llama70b-fresh21.log}`.
+
+2. **GraceKelly hybrid bridge port 8011 DOWN.** Chrome-gated P3.A/D/E
+   недоступны без user-initiated GraceKelly start.
+
+3. **P3.F realism audit** (`docs/p3f_design.md`). Memory обещал P3.F +5–10pp
+   на row_count_off bucket. Per-qid аудит 20-case row_count_off показал:
+   - 4 distinct_diff_only (бидирекциональные — простое prompt rule регрессирует половину)
+   - 5 missing/extra-table (schema linking edge cases)
+   - 10 same_tables_diff_join — но из этих **только ~2 чистых JOIN-path FK-choice** (qid 207, 1404).
+     Остальное — query-structure mis-interpretations (LIMIT/subquery/CASE shape), не JOIN-path.
+   - **Realistic P3.F ceiling: +0.5–1pp** на n=200 EA, не +5–10pp. Не строить speculatively.
+
+**Закрытый портфолио-deliverable итог:** v11 81.0% / 67.34% Arcwise-Plat / +6 audit
+catches триплет окончательный для $0/chrome-free бюджета. Live HF Space live.
+Video docs/ui-live-demo.mp4 готов. README hero обновлён.
+
+**Что делать в следующей сессии (после явного user mandate):**
+
+| Цель | Стратегия | Ожидание |
+|---|---|---|
+| Past 81% chrome-free $0 | Wait 24h+ → real-sized ping → llama70b retry 21 fresh qids | ≤1 rescue, +0–0.5pp |
+| Past 81% chrome-free $0 | Try `gemini-2.5-pro` (RPD ≥100, 10× higher than flash) на residue | +0–1 rescue, +0–0.5pp |
+| Past 81% chrome-free $1 | OpenRouter $1 top-up unlocks 1000/day free-model requests | re-test nemotron + ortogonal free models, +0–1pp |
+| Past 81% chrome-gated | Поднять GraceKelly + GPT-5.x bridge на residue (P3.A) | +1–3pp ортогонально к Sonnet 4.6 |
+| Past 81% paid $1–3 | Anthropic Sonnet API sweep 38-case | +1–3pp, наивысший $/pp |
+| Research-grade | P3.F JOIN-path linker + CSC-SQL (см. `docs/p3f_design.md`) | +2–4pp combined, multi-day |
+
 ## Контекст на 2026-05-17 next-day-2 EXTENDED (six-model saturation sprint)
 
 - HEAD post-`bf26e91` + this sprint's commits (см. SESSION_HANDOFF.md и `docs/v11_saturation_evidence.md`)

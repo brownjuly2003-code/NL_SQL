@@ -77,3 +77,34 @@ $0-budget chrome-free constraint as of 2026-05-17 next-day-2. The
 **67.34% / 199** corrected-gold (Arcwise-Plat) noise-floor is unchanged.
 The **+6 audit-catches** triplet stands. Live HF Space and live screenshots
 remain accurate.
+
+## 2026-05-18 — TPD-reset retry on 21 unattempted v11 residue: 21/21 still 429
+
+Day-3 sanity check. Ping `llama-3.3-70b-versatile` (38-token prompt) → 200 OK
+suggested TPD might have reset. Real retry on the 21 v11-residue qids not
+attempted in the 17-case prior run (`groq-llama70b-on-v11-residue.json`):
+**21/21 hit 429**, Groq TPD still at **98077/100000** (Used + Requested > Limit).
+
+| Reset window for hit qids | Count |
+|---|---:|
+| 8–10 min | 2 |
+| 27–60 min | 8 |
+| 1h–2h10m | 11 |
+
+Conclusion: **Groq TPD daily reset is fully-rolling, not midnight-aligned**.
+A 38-token ping consumes ~38 tokens and passes when residual headroom > 38,
+but the real `run_critique_retry` calls are 2,500–11,000 tokens each — they
+hit the daily cap on the next request.
+
+**Operational rule (added to `docs/SESSION_HANDOFF.md`):** for Groq TPD
+recovery, ping a real-sized prompt (≥3000 tokens), not a 5-token "pong",
+before launching a retry sweep.
+
+Artefacts:
+- `eval/reports/2026-05-17c/v11-residue-fresh21.json` (filtered baseline, 21 qids)
+- `eval/reports/2026-05-17c/groq-llama70b-on-v11-residue-fresh21.json` (final report: cases=0, 0 reached)
+- `eval/reports/2026-05-17c/llama70b-fresh21.log` (full 429 transcript)
+
+No update to the headline. v11 81.0% / 200 unchanged. Residue still 38/200,
+22 of which are `row_count_off` structural failures — the bucket P3.F
+targets.

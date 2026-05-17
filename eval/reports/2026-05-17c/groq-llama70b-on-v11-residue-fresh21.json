@@ -1,0 +1,9 @@
+{
+  "alt_model": "groq:llama-3.3-70b-versatile+grounded_critique+fewshot3",
+  "summary": {
+    "voted_better": 0,
+    "voted_worse": 0,
+    "voted_same": 0
+  },
+  "records": []
+}
