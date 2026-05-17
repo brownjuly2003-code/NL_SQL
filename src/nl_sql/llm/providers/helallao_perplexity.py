@@ -29,12 +29,25 @@ from nl_sql.llm.providers.perplexity import _ANSI_RE, _unwrap_sql_json
 
 DEFAULT_COOKIE_PATH = Path("D:/NL_SQL/.tmp/pplx_cookies.json")
 
+_REASONING_MODELS = frozenset(
+    {
+        "grok-4.1-reasoning",
+        "gpt-5.2-thinking",
+        "claude-4.5-sonnet-thinking",
+        "gemini-3.0-pro",
+        "kimi-k2-thinking",
+    }
+)
+
 
 class HelallaoPerplexityProvider:
     """LLMProvider that calls Perplexity Pro via helallao/perplexity-ai library.
 
     The model param routes to Perplexity's Pro model picker. Valid values:
-    sonar / gpt-5.2 / claude-4.5-sonnet / grok-4.1 (+ -thinking / -reasoning).
+    - pro mode: sonar / gpt-5.2 / claude-4.5-sonnet / grok-4.1
+    - reasoning mode: grok-4.1-reasoning / gpt-5.2-thinking /
+      claude-4.5-sonnet-thinking / gemini-3.0-pro / kimi-k2-thinking
+    Mode auto-detected from model name; explicit `mode` arg wins.
     """
 
     name: str = "helallao-perplexity"
@@ -45,6 +58,7 @@ class HelallaoPerplexityProvider:
         model: str = "grok-4.1",
         cookies_path: Path | str = DEFAULT_COOKIE_PATH,
         timeout_seconds: float = 180.0,
+        mode: str | None = None,
     ) -> None:
         if not model.strip():
             raise ProviderError("HelallaoPerplexityProvider requires non-empty model")
@@ -65,6 +79,7 @@ class HelallaoPerplexityProvider:
         cookies_dict = {c["name"]: c["value"] for c in cookies_list}
         self._client = _pplx.Client(cookies_dict)
         self.model = model
+        self.mode = mode if mode else ("reasoning" if model in _REASONING_MODELS else "pro")
         self._timeout = timeout_seconds
 
     def generate(self, req: GenerateRequest) -> GenerateResponse:
@@ -73,7 +88,7 @@ class HelallaoPerplexityProvider:
             prompt = f"{req.system}\n\n{prompt}"
         t0 = time.perf_counter()
         try:
-            resp = self._client.search(prompt, mode="pro", model=self.model)
+            resp = self._client.search(prompt, mode=self.mode, model=self.model)
         except Exception as exc:
             raise ProviderError(
                 f"helallao perplexity.search failed for model={self.model}: {exc!r}"

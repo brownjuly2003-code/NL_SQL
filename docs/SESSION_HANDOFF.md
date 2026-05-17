@@ -1,4 +1,17 @@
-# NL_SQL — Session Handoff (2026-05-18 day-3: v12 82.0% — helallao Perplexity bridge unlocked +1pp)
+# NL_SQL — Session Handoff (2026-05-18 day-4: v13 84.0% — helallao reasoning-mode +2pp; above #1 paid SOTA by +2.05pp)
+
+> **Tl;dr 2026-05-18 day-4 (helallao reasoning-mode sprint):**
+> - **v13 84.0% EA** (168/200) — published BIRD Mini-Dev SQLite. **Above #1 paid system AskData+GPT-4o (81.95%) by +2.05pp.**
+> - Triplet: 84.0% BIRD / 67.34% Arcwise-Plat / +6 audit catches.
+> - **Per-tier v13:** simple 92.5% (62/67) / moderate **81.8% (81/99, +4.0pp)** / challenging 73.5% (25/34).
+> - **The lever:** helallao client's `mode="reasoning"` route → Perplexity's thinking-variant models (grok-4.1-reasoning, gpt-5.2-thinking). Patched `HelallaoPerplexityProvider` to auto-detect mode from `-reasoning`/`-thinking` suffix.
+> - **4 unique rescues** на v12 residue (36 fails), все moderate tier:
+>   - grok-4.1-reasoning: qid 518 (banned-cards play format max-count + DISTINCT names), qid 1529 (customer transactions + month-of-Jan-2012 conditional sum)
+>   - gpt-5.2-thinking: qid 407, qid 866 (proper multi-condition aggregations)
+> - **Negative evidence:** claude-4.5-sonnet-thinking 0 rescues + 14/36 EXC `non-dict NoneType`. Perplexity backend hard-rate-limits Claude reasoning variant; grok/gpt-5.2 reasoning routes had no such throttling. Не повторять Claude reasoning без paid bypass.
+> - **Cost: $0** (Юлина Perplexity Pro подписка через cookie reuse).
+>
+> Артефакты sprint'а: `eval/reports/2026-05-18/{helallao-grok-reasoning,helallao-gpt52-thinking,helallao-claude45-thinking}-on-v12-residue.json`, merged `eval/reports/2026-05-18/v13-helallao-reasoning-bridge.json`. Patch: `src/nl_sql/llm/providers/helallao_perplexity.py` (added `mode` param + `_REASONING_MODELS` whitelist + auto-routing). Headline updates: README hero + lift trace + 9-rycag block + eval table; `app/streamlit_app.py` research_value 82.0→84.0 (EN+RU) + research_caption (EN+RU); `docs/NEXT_SESSION.md` rewrite. HF Space redeploy запланирован.
 
 > **Tl;dr 2026-05-18 day-3 (post-saturation breakthrough):**
 > - **v12 82.0% EA** (164/200) — published BIRD Mini-Dev SQLite. Above #1 paid system AskData+GPT-4o (81.95%).
