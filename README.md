@@ -109,6 +109,7 @@ For the public Streamlit Cloud demo (free, ~5 min setup), see
 | Final 2026-05-18 day-5 night (+ DAC×reasoning combo on v15 residue: `NLSQL_DAC=1` + kimi-k2-thinking + grok-4.1-reasoning оба нашли rescue qid 77 moderate FRPM-Percent; gpt-5.2-thinking 4/30 rate-limited) | — | 85.5% (pre-audit, multiset scoring) |
 | **Final 2026-05-18 day-5 evening v16-audit-2 (BIRD-official set scoring + `_execute_gold` bind-bug fix; net 0 vs pre-audit, но verified row-by-row via `scripts/audit_rescore.py`)** | — | **85.5%** ✅ |
 | Final 2026-05-18 day-5 afternoon v17-attempts (triple-cross-validate saturation on v16 residue: claude-4.5-sonnet-thinking+DAC 0/26 + 3 EXC, gemini-3.0-pro+DAC 0/29, grok-4.1-reasoning+M-Schema 0/25 + 4 EXC — все 29 residue qids resilient к ortogonal reasoning×prompt-format levers) | — | **85.5%** (saturation ceiling confirmed) |
+| Final 2026-05-18 day-5 afternoon v17-extended (Groq gpt-oss-120b 0/29 — RU geo-block HTTP 403 на ВСЕХ модельных запросах, новая deprecation; Mistral codestral self-consistency T=[0.2/0.4/0.6/0.8/1.0] × 29 cases 0/29 same — same-model-vote plateau подтверждён) | — | **85.5%** (quintuple-saturation; past 85.5% требует first-pass model swap, VPN+Groq, или paid API top-up) |
 | GPT-4 zero-shot reference | — | 47.8% |
 | Published SOTA (paid API + fine-tuning) | — | 73–76% (CHESS) |
 | Human expert baseline (BIRD paper) | — | 92.96% |
