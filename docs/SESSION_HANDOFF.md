@@ -1,4 +1,18 @@
-# NL_SQL — Session Handoff (2026-05-18 day-5 evening v16-audit-2: v16 85.5% honest under BIRD-official set scoring; above #1 paid SOTA by +3.55pp)
+# NL_SQL — Session Handoff (2026-05-18 day-5 evening v17-extended-2: mistral-large rotated × 3 keys × 29 v16-residue qids → 0 rescues, same-family plateau verified; headline v16 85.5% unchanged)
+
+> **Tl;dr 2026-05-18 day-5 evening v17-extended-2 (mistral-large × 3-key rotation):**
+> - Прошлый v17-extended single-key mistral-large = 0/29 reached (429 на qid 2). Пользователь добавила 2 свежих Mistral key в `D:/TXT/Free API Keys.txt`.
+> - `scripts/run_selfcon_retry.py` расширен: новый `RotatingMistralProvider` (round-robin с retry-on-429 → next key) + CLI `--api-keys` CSV.
+> - **mistral-large-latest self-consistency T=[0.2, 0.5, 0.8] × 3 keys на v16 residue: 29/29 reached, 0 rescues, 0 regressions.** Чистый прогон, 0 × 429 за весь sweep (~25s/qid средне). T_win: 26×0.2 / 3×0.5.
+> - Закрывает same-Mistral-family voting plateau как lever — verified, не повторять без модификации prompt.
+> - Headline v16 85.5% EA verified unchanged. Live HF Space по-прежнему ждёт redeploy под v16.
+> - 272 pytest pass до прогона (теста на RotatingMistralProvider пока нет — добавить если этот lever пойдёт в постоянное использование, сейчас scoped to scripts/).
+>
+> Артефакты: `eval/reports/2026-05-18b/mistral-large-rotated-on-v16-residue.json`, `mistral-large-rotated.log`. Patch: `scripts/run_selfcon_retry.py` (+RotatingMistralProvider class + --api-keys arg + dynamic alt_model label). Saturation row добавлена в `docs/v11_saturation_evidence.md § 2026-05-18 day-5 evening`. NEXT_SESSION "не делать" обновлён.
+
+---
+
+# Previous: 2026-05-18 day-5 evening v16-audit-2 (v16 85.5% honest under BIRD-official set scoring; above #1 paid SOTA by +3.55pp)
 
 > **Tl;dr 2026-05-18 day-5 evening v16-audit-2 (двойной audit — bind-bug + set-семантика, итог 171/200 verified row-by-row):**
 > - **v16 85.5% EA** (171/200) — published BIRD Mini-Dev SQLite, **BIRD-official set scoring** (`bird-bench/mini_dev/evaluation_ex.py`). **Above #1 paid system AskData+GPT-4o (81.95%) by +3.55pp.** Числовое значение совпало с pre-audit заявкой, но теперь каждая ячейка верифицирована через `scripts/audit_rescore.py` (0 mismatches на v16 + baseline).

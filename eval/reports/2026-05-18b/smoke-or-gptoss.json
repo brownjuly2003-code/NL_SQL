@@ -1,0 +1,25 @@
+{
+  "alt_model": "openrouter:openai/gpt-oss-120b:free",
+  "summary": {
+    "voted_better": 0,
+    "voted_worse": 0,
+    "voted_same": 1
+  },
+  "records": [
+    {
+      "question_id": 25,
+      "db_id": "california_schools",
+      "difficulty": "moderate",
+      "question": "Name schools in Riverside which the average of average math score for SAT is grater than 400, what is the funding type of these schools?",
+      "gold_sql": "SELECT T1.sname, T2.`Charter Funding Type` FROM satscores AS T1 INNER JOIN frpm AS T2 ON T1.cds = T2.CDSCode WHERE T2.`District Name` LIKE 'Riverside%' GROUP BY T1.sname, T2.`Charter Funding Type` HAVING CAST(SUM(T1.AvgScrMath) AS REAL) / COUNT(T1.cds) > 400",
+      "baseline_pred": "SELECT s.FundingType FROM schools AS s JOIN satscores AS t ON s.CDSCode = t.cds WHERE s.City = 'Riverside' AND t.AvgScrMath > 400 GROUP BY s.FundingType HAVING AVG(t.AvgScrMath) > 400",
+      "alt_pred": "SELECT schools.School, schools.FundingType FROM schools JOIN satscores ON schools.CDSCode = satscores.cds WHERE schools.County = 'Riverside' GROUP BY schools.CDSCode HAVING AVG(satscores.AvgScrMath) > 400",
+      "alt_confidence": 0.93,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "openrouter:openai/gpt-oss-120b:free",
+      "elapsed_ms": 75331.67030000186
+    }
+  ]
+}

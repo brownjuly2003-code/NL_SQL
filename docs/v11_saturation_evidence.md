@@ -166,3 +166,22 @@ Open для следующего sprint'а:
 - grok-4.1-reasoning / gpt-5.2-thinking / claude-4.5-sonnet-thinking — reasoning variants могут дать ещё rescues
 - Cloudflare cooldown ~30 min, потом claude-4.5 на second half доступен
 - Cookies expire (next-auth session): тогда повторно запустить `.tmp/extract_pplx_cookies.py`
+
+## 2026-05-18 day-5 evening — mistral-large rotated × 3 keys × 3 temps on v16 residue: 0/29
+
+После v17-extended (single-key mistral-large hit 429 на 2-м qid → 0/29 reached) и добавления 2 новых Mistral ключей в `D:/TXT/Free API Keys.txt` (всего 3) — повтор того же эксперимента с round-robin ротацией + retry-on-429-to-next-key (`scripts/run_selfcon_retry.py --api-keys CSV`).
+
+| Model | Provider | Reached | Rescues | Regressions | Notes |
+|---|---|---:|---:|---:|---|
+| `mistral-large-latest` self-consistency T=[0.2, 0.5, 0.8] | Mistral La Plateforme × 3 keys round-robin | **29/29** | **0** | **0** | Чистый прогон, 0 × 429 errors за весь sweep. T_win distribution: 26×0.2 / 3×0.5. ~25s/qid средне. |
+
+Это **закрытие mistral-large self-consistency как lever** — ранее 429-bounded test был неполной evidence (только 2 reached), теперь полная saturation подтверждена на полном v16 residue. Same-Mistral-family voting плато: ни large, ни codestral не могут rescue codestral-residue qids независимо от temperature schedule.
+
+**Operational rule (added):** Single-key Mistral free-tier с ≥3 calls/qid hit 429 in <60s. Для full sweep mistral-large нужно ≥3 ключей в ротации (или paid La Plateforme top-up).
+
+Artefacts:
+- `eval/reports/2026-05-18b/mistral-large-rotated-on-v16-residue.json` (cases=29, 0 rescues)
+- `eval/reports/2026-05-18b/mistral-large-rotated.log` (full 29/29 transcript, 0 × 429)
+- Patch: `scripts/run_selfcon_retry.py` (+ `RotatingMistralProvider` + `--api-keys` CSV arg)
+
+No update to headline. v16 85.5% verified остаётся ceiling под $0 chrome-free + helallao constraint. **Не повторять:** mistral-large (любая temp schedule, любая ротация ≥3 keys) на v16 residue без модификации prompt (DAC, M-Schema, fewshot diversification).

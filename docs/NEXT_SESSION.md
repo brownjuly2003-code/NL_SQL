@@ -28,6 +28,12 @@
 - **Perplexity backend coalesces reasoning quota по аккаунту, не по модели.** Полный kimi sprint (21/30) → следующие 2 reasoning models получили 4/30 reached каждый. **Не запускать reasoning triplet back-to-back.** Cooldown 10-15 мин между sprint'ами.
 - gpt-5.2-thinking + DAC при rate-limit показал 0/4 same — partial coverage недостаточна для negative determination.
 
+**Day-5 evening v17-extended-2 (mistral-large rotated × 3 keys):**
+- `scripts/run_selfcon_retry.py` расширен `RotatingMistralProvider` + `--api-keys` CSV → round-robin с retry-on-429-to-next-key.
+- `mistral-large-latest` self-consistency `T=[0.2, 0.5, 0.8]` на v16 residue (29 fails) через 3 ключа (`.env` + 2 новых из `D:/TXT/Free API Keys.txt`): **29/29 reached, 0 rescues, 0 regressions**. Чистый прогон, 0 × 429 за весь sweep. T_win distribution: 26×0.2 / 3×0.5.
+- Закрывает single-key v17-extended неполноту (там был 0/29 reached от 429 на qid 2) → теперь **same-Mistral-family voting plateau на v16 residue verified**.
+- Artefacts: `eval/reports/2026-05-18b/mistral-large-rotated-on-v16-residue.json`, `mistral-large-rotated.log`. Detailed: `docs/v11_saturation_evidence.md § 2026-05-18 day-5 evening`.
+
 ## Что делать в следующей сессии (после явного user mandate)
 
 | Цель | Стратегия | Ожидание |
@@ -62,6 +68,7 @@
 - Не повторять claude-4.5-sonnet (ни pro, ни thinking) через helallao без 24h+ cooldown ИЛИ paid Anthropic bypass.
 - Не повторять gemini-3.0-pro на текущем prompt стеке (0/30 saturation подтверждена day-5).
 - Не повторять grok-4.1 Pro / reasoning на v14-v16 residue identical pipeline без modified prompt (DAC, M-Schema injection, новые few-shot).
+- **Не повторять mistral-large self-consistency на v16 residue** (day-5 evening: 3-key rotation × 3 temps × 29 qids → 0 rescues, same-family plateau подтверждён).
 
 ## Quick start если хочется быстрого win
 

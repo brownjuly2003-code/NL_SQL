@@ -31,8 +31,70 @@ from nl_sql.eval.runner import _compose_question, _execute_gold
 from nl_sql.eval.self_consistency import Candidate, vote
 from nl_sql.execution.runner import execute_validated
 from nl_sql.llm.cache import CachingEmbeddingProvider, CachingLLMProvider
+from nl_sql.llm.providers.base import (
+    EmbedRequest,
+    EmbedResponse,
+    GenerateRequest,
+    GenerateResponse,
+    ProviderError,
+)
 from nl_sql.llm.providers.mistral import MistralProvider
 from nl_sql.schema_index.indexer import SchemaIndex
+
+
+class RotatingMistralProvider:
+    """Round-robin wrapper across N MistralProvider instances (different API keys).
+
+    On a 429 / rate-limit error, advances to the next key and retries. After a
+    full rotation without success, applies escalating backoff (5s * extra-attempts)
+    and keeps trying up to 2*N attempts before surrendering.
+    """
+
+    name = "mistral"
+
+    def __init__(self, providers: list[MistralProvider]) -> None:
+        if not providers:
+            raise ProviderError("RotatingMistralProvider requires >=1 provider")
+        self._providers = providers
+        self._idx = 0
+        self.model = providers[0].model
+        self.embed_model = providers[0].embed_model
+
+    def _is_rate_limit(self, err: Exception) -> bool:
+        msg = str(err)
+        return "429" in msg or "Rate limit" in msg or "rate_limited" in msg
+
+    def _advance(self) -> None:
+        self._idx = (self._idx + 1) % len(self._providers)
+
+    def generate(self, req: GenerateRequest) -> GenerateResponse:
+        n = len(self._providers)
+        last_err: Exception | None = None
+        for attempt in range(n * 2):
+            prov = self._providers[self._idx]
+            try:
+                return prov.generate(req)
+            except ProviderError as exc:
+                if not self._is_rate_limit(exc):
+                    raise
+                last_err = exc
+                self._advance()
+                if attempt >= n - 1:
+                    time.sleep(5.0 * (attempt - n + 2))
+        raise ProviderError(f"all {n} keys rate-limited: {last_err}")
+
+    def embed(self, req: EmbedRequest) -> EmbedResponse:
+        n = len(self._providers)
+        last_err: Exception | None = None
+        for _ in range(n):
+            try:
+                return self._providers[self._idx].embed(req)
+            except ProviderError as exc:
+                if not self._is_rate_limit(exc):
+                    raise
+                last_err = exc
+                self._advance()
+        raise ProviderError(f"all {n} keys rate-limited for embed: {last_err}")
 
 
 def main() -> int:
@@ -42,21 +104,37 @@ def main() -> int:
     p.add_argument("--temperatures", nargs="+", type=float, default=[0.2, 0.4, 0.6, 0.8])
     p.add_argument("--gen-model", default="codestral-latest", help="Mistral model id")
     p.add_argument("--sleep-between", type=float, default=0.0, help="seconds between pipeline calls (use for mistral-large rate limits)")
+    p.add_argument(
+        "--api-keys",
+        default=None,
+        help="CSV of Mistral API keys for round-robin rotation. Default: settings.mistral_api_key.",
+    )
     p.add_argument("--out", type=Path, required=True)
     args = p.parse_args()
 
     settings = get_settings()
+    if args.api_keys:
+        keys = [k.strip() for k in args.api_keys.split(",") if k.strip()]
+    else:
+        keys = [settings.mistral_api_key]
+    if not keys or not keys[0]:
+        print("[error] no Mistral API keys provided", file=sys.stderr)
+        return 1
     baseline = json.loads(args.baseline.read_text(encoding="utf-8"))
     fails = [r for r in baseline["records"] if not r.get("match")]
-    print(f"[info] {len(fails)} failures, temps={args.temperatures}, model={args.gen_model}", file=sys.stderr)
+    print(
+        f"[info] {len(fails)} failures, temps={args.temperatures}, model={args.gen_model}, keys={len(keys)}",
+        file=sys.stderr,
+    )
 
     examples = {e.question_id: e for e in load_bird_mini_dev(args.bird_root)}
     registry = get_default_registry()
-    mistral = MistralProvider(api_key=settings.mistral_api_key, gen_model=args.gen_model)
+    gen_providers = [MistralProvider(api_key=k, gen_model=args.gen_model) for k in keys]
+    mistral = RotatingMistralProvider(gen_providers) if len(keys) > 1 else gen_providers[0]
     sql_prov = CachingLLMProvider(mistral, cache_dir=settings.llm_cache_dir)
-    emb = CachingEmbeddingProvider(
-        MistralProvider(api_key=settings.mistral_api_key), cache_dir=settings.llm_cache_dir
-    )
+    embed_providers = [MistralProvider(api_key=k) for k in keys]
+    emb_base = RotatingMistralProvider(embed_providers) if len(keys) > 1 else embed_providers[0]
+    emb = CachingEmbeddingProvider(emb_base, cache_dir=settings.llm_cache_dir)
     idx = SchemaIndex(persist_dir="chroma_data", embedder=emb)
 
     pipelines = [
@@ -175,7 +253,7 @@ def main() -> int:
     args.out.write_text(
         json.dumps(
             {
-                "alt_model": "codestral+self-consistency",
+                "alt_model": f"{args.gen_model}+self-consistency",
                 "temperatures": list(args.temperatures),
                 "summary": {"voted_better": rescued, "voted_worse": regressed, "voted_same": same},
                 "records": records,
