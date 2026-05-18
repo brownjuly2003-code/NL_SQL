@@ -18,19 +18,30 @@ class TestCompareResults:
         assert c.gold_rows == 2
         assert c.pred_rows == 2
 
-    def test_row_count_mismatch_fails(self) -> None:
+    def test_set_size_mismatch_fails(self) -> None:
+        # gold has 2 unique rows, pred has 1 — sets differ, no match.
         gold = [(1,), (2,)]
         pred = [(1,)]
         c = compare_results(gold, pred)
         assert not c.match
-        assert "row count mismatch" in c.reason
+        assert "set mismatch" in c.reason
 
-    def test_set_eq_with_duplicates_uses_multiset(self) -> None:
-        # If gold has 2 copies and pred has 1, that's NOT a match.
+    def test_duplicate_in_gold_with_extra_value_in_pred(self) -> None:
+        # gold = {1}, pred = {1, 2} → sets differ → not a match.
+        # BIRD-official set semantics: dedup before comparing.
         gold = [(1,), (1,)]
         pred = [(1,), (2,)]
         c = compare_results(gold, pred)
         assert not c.match
+
+    def test_distinct_vs_non_distinct_is_match_under_bird_set(self) -> None:
+        # Real-world case (BIRD qid 407): gold returns rows with duplicates,
+        # pred has SELECT DISTINCT. Underlying unique row sets are equal.
+        # BIRD's official scoring counts this as a match.
+        gold = [(1, "a"), (1, "a"), (2, "b"), (1, "a")]
+        pred = [(1, "a"), (2, "b")]
+        c = compare_results(gold, pred)
+        assert c.match
 
     def test_order_sensitive_when_gold_has_order_by(self) -> None:
         gold = [(1,), (2,), (3,)]

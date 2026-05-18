@@ -61,16 +61,18 @@ I18N: dict[str, dict[str, str]] = {
         "metric_percent": "100%",
         "metric_caption": "30 dev + 30 held-out, balanced split, all ten query categories at 100% on the free-tier codestral pipeline.",
         "research_kicker": "BIRD Mini-Dev research benchmark",
-        "research_value": "85.0% / 200",
+        "research_value": "85.5% / 200",
         "research_caption": (
             "Hybrid pipeline: "
             "<span class='nl-term' title='Mistral codestral-latest — SQL-specialised generation model, free tier'>codestral</span> + "
             "<span class='nl-term' title='Anthropic Claude 4.5 Sonnet via Perplexity Pro browser bridge — used on the hard tier'>Sonnet 4.6 bridge</span> + "
             "<span class='nl-term' title='Per-failure re-prompt with executable-shape feedback — only on frozen failures, no T=0 noise'>grounded-critique retry</span> + "
             "<span class='nl-term' title='helallao reverse-engineered HTTPS bridge to Perplexity backend — Grok 4.1, GPT-5.2, Claude 4.5 Sonnet, kimi-k2-thinking, reasoning + Pro modes'>helallao multi-model voting</span>. "
-            "+37.2pp over the GPT-4 zero-shot reference (47.8%), $0 external cost. "
+            "Scored under "
+            "<span class='nl-term' title='bird-bench/mini_dev evaluation_ex.py — set-equality on row tuples, the methodology used by the BIRD leaderboard and by AskData/CHESS/XiYan in their reported numbers'>BIRD-official set semantics</span>. "
+            "+37.7pp over the GPT-4 zero-shot reference (47.8%), $0 external cost. "
             "On <span class='nl-term' title='Jin et al., CIDR/VLDB 2026, arXiv:2601.08778 — corrected BIRD gold annotations'>Arcwise-Plat corrected gold</span>: 67.34% — honest noise-floor; +6 cases where our prediction catches BIRD's own wrong gold. "
-            "After the day-5 audit (SQLAlchemy `:identifier` bind-bug fix in `_execute_gold` — affected BIRD qids 959 / 989 / 990) the claimed 85.5% was honestly restated to 85.0%."
+            "Day-5 evening audit (verified via `scripts/audit_rescore.py`, 0 mismatches): fixed a SQLAlchemy `:identifier` bind-bug in `_execute_gold` + aligned `compare_results` to BIRD set scoring."
         ),
         "settings_header": "Settings",
         "db_label": "Database",
@@ -140,16 +142,18 @@ I18N: dict[str, dict[str, str]] = {
         "metric_percent": "100%",
         "metric_caption": "30 dev + 30 held-out, сбалансированный сплит, все десять категорий запросов на 100% через бесплатный codestral.",
         "research_kicker": "Исследовательский бенчмарк BIRD Mini-Dev",
-        "research_value": "85.0% / 200",
+        "research_value": "85.5% / 200",
         "research_caption": (
             "Гибридный пайплайн: "
             "<span class='nl-term' title='Mistral codestral-latest — модель, специализированная под генерацию SQL, бесплатный тариф'>codestral</span> + "
             "<span class='nl-term' title='Anthropic Claude 4.5 Sonnet через браузерный мост Perplexity Pro — на сложных кейсах'>мост к Sonnet 4.6</span> + "
             "<span class='nl-term' title='Повторный prompt со shape-фидбэком исполнения — только на зафиксированных фейлах, без шума T=0'>directed-critique retry</span> + "
             "<span class='nl-term' title='Реверс-инжиниринг HTTPS моста к бэкенду Perplexity — Grok 4.1, GPT-5.2, Claude 4.5 Sonnet, kimi-k2-thinking; режимы reasoning + Pro'>multi-model voting через helallao</span>. "
-            "+37,2 п.п. над zero-shot GPT-4 (47,8%), внешние расходы — ноль. "
+            "Scoring — "
+            "<span class='nl-term' title='bird-bench/mini_dev evaluation_ex.py — set-равенство на результирующих кортежах. Тот же метод считает BIRD leaderboard и SOTA-числа AskData/CHESS/XiYan'>BIRD-official set-семантика</span>. "
+            "+37,7 п.п. над zero-shot GPT-4 (47,8%), внешние расходы — ноль. "
             "На <span class='nl-term' title='Jin et al., CIDR/VLDB 2026, arXiv:2601.08778 — исправленные аннотации gold BIRD'>исправленном gold Arcwise-Plat</span>: 67,34% — честный noise-floor; +6 случаев, где наш ответ правильнее эталона BIRD. "
-            "После day-5 evening аудита (фикс SQLAlchemy `:identifier` bind-bug в `_execute_gold` — затронуты BIRD qids 959 / 989 / 990) заявленные 85,5% честно пересчитаны в 85,0%."
+            "День-5 evening audit (проверено через `scripts/audit_rescore.py`, 0 расхождений): фикс SQLAlchemy `:identifier` bind-bug в `_execute_gold` + перевод `compare_results` на BIRD set scoring."
         ),
         "settings_header": "Настройки",
         "db_label": "База данных",

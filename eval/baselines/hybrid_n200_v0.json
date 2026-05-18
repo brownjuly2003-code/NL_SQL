@@ -3,7 +3,7 @@
   "sql_model": "claude-sonnet-4-6 + codestral-latest",
   "overall": {
     "n": 200,
-    "ea": 0.57,
+    "ea": 0.605,
     "validity_rate": 1.0,
     "schema_recall_at_k": 1.0,
     "repair_success_rate": 0.2608695652173913,
@@ -13,23 +13,23 @@
     "latency_p95_ms": 61440.507390015366,
     "tokens_p50": 4700.5,
     "tokens_p95": 11537.0,
-    "matched": 114
+    "matched": 121
   },
   "per_difficulty": {
     "simple": {
-      "matched": 47,
+      "matched": 51,
       "n": 67,
-      "ea": 0.701493
+      "ea": 0.761194
     },
     "moderate": {
-      "matched": 53,
+      "matched": 55,
       "n": 99,
-      "ea": 0.535354
+      "ea": 0.555556
     },
     "challenging": {
-      "matched": 14,
+      "matched": 15,
       "n": 34,
-      "ea": 0.411765
+      "ea": 0.441176
     }
   },
   "records": [
@@ -1430,7 +1430,7 @@
       "question": "What is the border color of card \"Ancestor's Chosen\"?",
       "gold_sql": "SELECT DISTINCT borderColor FROM cards WHERE name = 'Ancestor''s Chosen'",
       "pred_sql": "SELECT borderColor FROM cards WHERE name = 'Ancestor''s Chosen'",
-      "match": false,
+      "match": true,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
@@ -1452,7 +1452,8 @@
       ],
       "pred_row_count": 4,
       "gold_row_count": 1,
-      "comparison_reason": "row count mismatch: gold=1, pred=4"
+      "comparison_reason": "row count mismatch: gold=1, pred=4",
+      "audit_note": "BIRD-official set-semantics audit (compare_results Counter→set, see commit notes)"
     },
     {
       "question_id": 366,
@@ -1560,7 +1561,7 @@
       "question": "Lists all types of cards in German.",
       "gold_sql": "SELECT T1.subtypes, T1.supertypes FROM cards AS T1 INNER JOIN foreign_data AS T2 ON T1.uuid = T2.uuid WHERE T2.language = 'German' AND T1.subtypes IS NOT NULL AND T1.supertypes IS NOT NULL",
       "pred_sql": "SELECT DISTINCT T1.subtypes, T1.supertypes FROM cards AS T1 INNER JOIN foreign_data AS T2 ON T1.uuid = T2.uuid WHERE T2.language = 'German' AND T1.subtypes IS NOT NULL AND T1.supertypes IS NOT NULL",
-      "match": false,
+      "match": true,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
@@ -1583,7 +1584,8 @@
       ],
       "pred_row_count": 408,
       "gold_row_count": 1693,
-      "comparison_reason": "row count mismatch: gold=1693, pred=408"
+      "comparison_reason": "row count mismatch: gold=1693, pred=408",
+      "audit_note": "BIRD-official set-semantics audit (compare_results Counter→set, see commit notes)"
     },
     {
       "question_id": 408,
@@ -4423,7 +4425,7 @@
       "question": "List the long name of teams with above-average build-up play passing in 2012.",
       "gold_sql": "SELECT DISTINCT t4.team_long_name FROM Team_Attributes AS t3 INNER JOIN Team AS t4 ON t3.team_api_id = t4.team_api_id WHERE SUBSTR(t3.`date`, 1, 4) = '2012' AND t3.buildUpPlayPassing > ( SELECT CAST(SUM(t2.buildUpPlayPassing) AS REAL) / COUNT(t1.id) FROM Team AS t1 INNER JOIN Team_Attributes AS t2 ON t1.team_api_id = t2.team_api_id WHERE STRFTIME('%Y',t2.`date`) = '2012')",
       "pred_sql": "SELECT T1.team_long_name FROM Team AS T1 INNER JOIN Team_Attributes AS T2 ON T1.team_api_id = T2.team_api_id WHERE strftime('%Y', T2.date) = '2012' AND T2.buildUpPlayPassing > (SELECT AVG(buildUpPlayPassing) FROM Team_Attributes WHERE buildUpPlayPassing IS NOT NULL AND strftime('%Y', date) = '2012')",
-      "match": false,
+      "match": true,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
@@ -4446,7 +4448,8 @@
       ],
       "pred_row_count": 129,
       "gold_row_count": 128,
-      "comparison_reason": "row count mismatch: gold=128, pred=129"
+      "comparison_reason": "row count mismatch: gold=128, pred=129",
+      "audit_note": "BIRD-official set-semantics audit (compare_results Counter→set, see commit notes)"
     },
     {
       "question_id": 1037,
@@ -4991,7 +4994,7 @@
       "question": "Please name one player whose overall strength is the greatest.",
       "gold_sql": "SELECT DISTINCT t1.player_name FROM Player AS t1 INNER JOIN Player_Attributes AS t2 ON t1.player_api_id = t2.player_api_id WHERE t2.overall_rating = ( SELECT MAX(overall_rating) FROM Player_Attributes)",
       "pred_sql": "SELECT P.player_name FROM Player P JOIN Player_Attributes PA ON P.player_api_id = PA.player_api_id WHERE PA.overall_rating = (SELECT MAX(overall_rating) FROM Player_Attributes)",
-      "match": false,
+      "match": true,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
@@ -5014,7 +5017,8 @@
       ],
       "pred_row_count": 12,
       "gold_row_count": 1,
-      "comparison_reason": "row count mismatch: gold=1, pred=12"
+      "comparison_reason": "row count mismatch: gold=1, pred=12",
+      "audit_note": "BIRD-official set-semantics audit (compare_results Counter→set, see commit notes)"
     },
     {
       "question_id": 1152,
@@ -5262,7 +5266,7 @@
       "question": "Provide all ID, sex and birthday of patients whose urea nitrogen (UN) just within the borderline of passing?",
       "gold_sql": "SELECT DISTINCT T1.ID, T1.SEX, T1.Birthday FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.UN = 29",
       "pred_sql": "SELECT Patient.ID, Patient.SEX, Patient.Birthday FROM Patient JOIN Laboratory ON Patient.ID = Laboratory.ID WHERE Laboratory.UN = 29",
-      "match": false,
+      "match": true,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
@@ -5282,7 +5286,8 @@
       ],
       "pred_row_count": 44,
       "gold_row_count": 20,
-      "comparison_reason": "row count mismatch: gold=20, pred=44"
+      "comparison_reason": "row count mismatch: gold=20, pred=44",
+      "audit_note": "BIRD-official set-semantics audit (compare_results Counter→set, see commit notes)"
     },
     {
       "question_id": 1227,
@@ -6536,7 +6541,7 @@
       "question": "Please list the product description of the products consumed in September, 2013.",
       "gold_sql": "SELECT T3.Description FROM transactions_1k AS T1 INNER JOIN yearmonth AS T2 ON T1.CustomerID = T2.CustomerID INNER JOIN products AS T3 ON T1.ProductID = T3.ProductID WHERE T2.Date = '201309'",
       "pred_sql": "SELECT DISTINCT p.Description FROM yearmonth ym JOIN transactions_1k t ON ym.CustomerID = t.CustomerID JOIN products p ON t.ProductID = p.ProductID WHERE ym.Date = '201309'",
-      "match": false,
+      "match": true,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
@@ -6559,7 +6564,8 @@
       ],
       "pred_row_count": 27,
       "gold_row_count": 976,
-      "comparison_reason": "row count mismatch: gold=976, pred=27"
+      "comparison_reason": "row count mismatch: gold=976, pred=27",
+      "audit_note": "BIRD-official set-semantics audit (compare_results Counter→set, see commit notes)"
     },
     {
       "question_id": 1501,
@@ -6602,7 +6608,7 @@
       "question": "Please list the product descriptions of the transactions taken place in the gas stations in the Czech Republic.",
       "gold_sql": "SELECT DISTINCT T3.Description FROM transactions_1k AS T1 INNER JOIN gasstations AS T2 ON T1.GasStationID = T2.GasStationID INNER JOIN products AS T3 ON T1.ProductID = T3.ProductID WHERE T2.Country = 'CZE'",
       "pred_sql": "SELECT products.Description FROM transactions_1k INNER JOIN gasstations ON transactions_1k.GasStationID = gasstations.GasStationID INNER JOIN products ON transactions_1k.ProductID = products.ProductID WHERE gasstations.Country = 'CZE'",
-      "match": false,
+      "match": true,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
@@ -6625,7 +6631,8 @@
       ],
       "pred_row_count": 933,
       "gold_row_count": 21,
-      "comparison_reason": "row count mismatch: gold=21, pred=933"
+      "comparison_reason": "row count mismatch: gold=21, pred=933",
+      "audit_note": "BIRD-official set-semantics audit (compare_results Counter→set, see commit notes)"
     },
     {
       "question_id": 1515,

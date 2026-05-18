@@ -2,9 +2,9 @@
   "configuration": "G_hybrid+multi-vote+merged+merged+merged+merged+merged+merged+merged+merged+merged+merged+merged+merged+merged",
   "sql_model": "codestral+Sonnet challenging+gpt-oss-120b/20b voting+llama4-scout voting + meta-llama/llama-4-scout-17b-16e-instruct + qwen/qwen3-32b + codestral+grounded_critique + codestral+self-consistency + perplexity:claude-sonnet-4-6 + codestral+grounded_critique + groq:llama-3.3-70b-versatile+grounded_critique+fewshot3 + groq:qwen/qwen3-32b+grounded_critique+fewshot3 + openai/gpt-oss-20b + mistral:codestral-latest+grounded_critique+fewshot3 + mistral:codestral-latest+grounded_critique+fewshot3 + helallao:gpt-5.2 + helallao:grok-4.1 + helallao:gpt-5.2-thinking + helallao:grok-4.1-reasoning + helallao:kimi-k2-thinking + helallao:gpt-5.2 + helallao:kimi-k2-thinking",
   "overall": {
-    "ea": 0.85,
+    "ea": 0.855,
     "n": 200,
-    "matched": 170,
+    "matched": 171,
     "rescued_via_voting": 57
   },
   "records": [
@@ -1425,7 +1425,7 @@
       "question": "What is the border color of card \"Ancestor's Chosen\"?",
       "gold_sql": "SELECT DISTINCT borderColor FROM cards WHERE name = 'Ancestor''s Chosen'",
       "pred_sql": "SELECT borderColor FROM cards WHERE name = 'Ancestor''s Chosen'",
-      "match": false,
+      "match": true,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
@@ -1447,7 +1447,8 @@
       ],
       "pred_row_count": 4,
       "gold_row_count": 1,
-      "comparison_reason": "row count mismatch: gold=1, pred=4"
+      "comparison_reason": "row count mismatch: gold=1, pred=4",
+      "audit_note": "BIRD-official set-semantics audit (compare_results Counter→set, see commit notes)"
     },
     {
       "question_id": 366,
@@ -6889,9 +6890,9 @@
   ],
   "per_difficulty": {
     "simple": {
-      "matched": 61,
+      "matched": 62,
       "n": 67,
-      "ea": 0.910448
+      "ea": 0.925373
     },
     "moderate": {
       "matched": 82,

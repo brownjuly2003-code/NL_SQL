@@ -21,7 +21,6 @@ into a percentage.
 from __future__ import annotations
 
 import re
-from collections import Counter
 from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Any
@@ -52,49 +51,61 @@ def compare_results(
 ) -> ResultComparison:
     """Compare two result sets BIRD-style with two extensions.
 
+    Default — BIRD-official set-equality on row tuples (so reported EA stays
+    apples-to-apples with the BIRD Mini-Dev leaderboard, AskData+GPT-4o,
+    CHESS, XiYan, etc.). A pred with ``DISTINCT`` over a gold without one is
+    still a match if the underlying unique rows agree — which is exactly how
+    the official `bird-bench/mini_dev/evaluation_ex.py` script scores it.
+
+    Extensions on top of vanilla BIRD:
+
     - Float tolerance: ``abs(a - b) <= 1e-6``.
     - Order-sensitive iff ``gold_sql`` contains ``ORDER BY`` (case-insensitive).
       Pass ``gold_sql=None`` to force set-equality (matches stock BIRD).
-    """
-    g_count = len(gold_rows)
-    p_count = len(pred_rows)
-    if g_count != p_count:
-        return ResultComparison(
-            match=False,
-            reason=f"row count mismatch: gold={g_count}, pred={p_count}",
-            gold_rows=g_count,
-            pred_rows=p_count,
-        )
 
+    Earlier revisions of this function used multiset (``collections.Counter``)
+    equality. That was strictly more conservative than BIRD's own scoring and
+    silently penalised pred SQLs that legitimately deduplicated, making
+    reported numbers incomparable to the leaderboard. Use the dedicated
+    multiset helper below if you ever need strict-duplicate semantics.
+    """
     gold_norm = [_normalise_row(r) for r in gold_rows]
     pred_norm = [_normalise_row(r) for r in pred_rows]
 
     order_sensitive = gold_sql is not None and bool(_ORDER_BY_RE.search(gold_sql))
 
     if order_sensitive:
+        if len(gold_norm) != len(pred_norm):
+            return ResultComparison(
+                match=False,
+                reason=f"ordered row count mismatch: gold={len(gold_norm)}, pred={len(pred_norm)}",
+                gold_rows=len(gold_norm),
+                pred_rows=len(pred_norm),
+            )
         for i, (g, p) in enumerate(zip(gold_norm, pred_norm, strict=True)):
             if not _row_equal(g, p):
                 return ResultComparison(
                     match=False,
                     reason=f"ordered row {i} mismatch: gold={g!r}, pred={p!r}",
-                    gold_rows=g_count,
-                    pred_rows=p_count,
+                    gold_rows=len(gold_norm),
+                    pred_rows=len(pred_norm),
                 )
-        return ResultComparison(match=True, gold_rows=g_count, pred_rows=p_count)
+        return ResultComparison(
+            match=True, gold_rows=len(gold_norm), pred_rows=len(pred_norm)
+        )
 
-    # Set-style comparison with multiplicity (multiset). BIRD's official script
-    # uses `set(...)`, but multiset is strictly more correct — duplicate rows
-    # in gold should be matched by duplicate rows in pred.
-    gold_bag = Counter(_hashable(g) for g in gold_norm)
-    pred_bag = Counter(_hashable(p) for p in pred_norm)
-    if gold_bag != pred_bag:
+    gold_set = {_hashable(g) for g in gold_norm}
+    pred_set = {_hashable(p) for p in pred_norm}
+    if gold_set != pred_set:
         return ResultComparison(
             match=False,
-            reason="set mismatch (rows differ ignoring order)",
-            gold_rows=g_count,
-            pred_rows=p_count,
+            reason=f"set mismatch (unique rows differ): |gold|={len(gold_set)}, |pred|={len(pred_set)}",
+            gold_rows=len(gold_norm),
+            pred_rows=len(pred_norm),
         )
-    return ResultComparison(match=True, gold_rows=g_count, pred_rows=p_count)
+    return ResultComparison(
+        match=True, gold_rows=len(gold_norm), pred_rows=len(pred_norm)
+    )
 
 
 def execution_accuracy(matches: Sequence[bool]) -> float:
