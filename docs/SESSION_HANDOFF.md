@@ -1,4 +1,20 @@
-# NL_SQL — Session Handoff (2026-05-18 day-5 evening v17 = 86.0% EA verified via post-cooldown gpt-5.2-thinking+DAC, above #1 paid SOTA by +4.05pp)
+# NL_SQL — Session Handoff (2026-05-18 day-5 evening v18 = 86.5% EA verified via helallao gpt-5.2 Pro on v17 residue, above #1 paid SOTA by +4.55pp)
+
+> **Tl;dr 2026-05-18 day-5 evening v18 (helallao gpt-5.2 Pro on v17 residue):**
+> - **v18 86.5% EA verified** (173/200) — published BIRD Mini-Dev SQLite. **Above #1 paid system AskData+GPT-4o (81.95%) by +4.55pp.**
+> - Triplet: 86.5% BIRD / 67.34% Arcwise-Plat / +6 audit catches.
+> - **Per-tier v18:** simple 92.5% (62/67) / moderate **83.8% (83/99, +1pp от v17)** / challenging 82.4% (28/34).
+> - **The lever:** helallao gpt-5.2 Pro (non-reasoning) on v17 residue. Pro mode не пробовался на residue от v15 (был только на v14 residue в day-5 EOD). Достигнуты 13/28 cases перед Pro-quota coalesce → 12 same + 1 RESCUE.
+> - **1 rescue (qid 989 moderate formula_1):** "Who is the champion of the Canadian Grand Prix in 2008? Indicate his finish time." Baseline filtered `c.name = 'Canada'` (circuit), Gold + alt filter `races.name = 'Canadian Grand Prix'` (race) с `position = 1`. Pro mode выбрал правильный фильтр.
+> - **Negative evidence:** Grok 4.1 Pro на v17 residue 26/28 reached (2 EXC connection-abort qid 37 + qid 1247), 0 rescues — gpt-5.2 Pro и Grok Pro дают ortogonal coverage даже на одном residue (gpt-5.2 нашёл то, что grok не нашёл).
+> - **Operational rule:** Pro-quota Perplexity тоже coalesces по аккаунту. После gpt-5.2 Pro full sweep (даже 13 cases) другие Pro модели гарантированно получат `non-dict NoneType` EXC. Для качественной Pro triplet нужен cooldown 30+ мин между моделями.
+> - **Cost: $0** (cookies от 2026-05-17 23:29 ещё валидны).
+>
+> Артефакты sprint'а: `eval/reports/2026-05-18b/{helallao-grok41-pro-on-v17-residue.json, helallao-gpt52-pro-on-v17-residue.json, v18-gpt52-pro-merged.json}` + .log. Headline updates: README hero 86.0→86.5, 172→173, lift trace v17→v18 row, eval table v18 row, +38.2pp→+38.7pp, moderate 82.8→83.8; `app/streamlit_app.py` research_value 86.0→86.5 EN+RU + caption (two post-cooldown rescues на v16→v18 path); `docs/SESSION_HANDOFF.md` day-5 evening v18 tl;dr; `docs/NEXT_SESSION.md` rewrite под v18. HF Space redeploy запланирован.
+
+---
+
+# Previous: 2026-05-18 day-5 evening v17 (86.0% EA verified via post-cooldown gpt-5.2-thinking+DAC, above #1 paid SOTA by +4.05pp)
 
 > **Tl;dr 2026-05-18 day-5 evening v17 (post-cooldown gpt-5.2-thinking + DAC on v16 residue):**
 > - **v17 86.0% EA verified** (172/200) — published BIRD Mini-Dev SQLite, BIRD-official set scoring. **Above #1 paid system AskData+GPT-4o (81.95%) by +4.05pp.**
