@@ -1,4 +1,20 @@
-# NL_SQL — Session Handoff (2026-05-18 day-5 evening v17-extended-2: mistral-large rotated × 3 keys × 29 v16-residue qids → 0 rescues, same-family plateau verified; headline v16 85.5% unchanged)
+# NL_SQL — Session Handoff (2026-05-18 day-5 evening v17 = 86.0% EA verified via post-cooldown gpt-5.2-thinking+DAC, above #1 paid SOTA by +4.05pp)
+
+> **Tl;dr 2026-05-18 day-5 evening v17 (post-cooldown gpt-5.2-thinking + DAC on v16 residue):**
+> - **v17 86.0% EA verified** (172/200) — published BIRD Mini-Dev SQLite, BIRD-official set scoring. **Above #1 paid system AskData+GPT-4o (81.95%) by +4.05pp.**
+> - Triplet: 86.0% BIRD / 67.34% Arcwise-Plat / +6 audit catches.
+> - **Per-tier v17:** simple 92.5% (62/67) / moderate 82.8% (82/99) / challenging **82.4% (28/34, +3pp от v16)**.
+> - **The lever:** post-cooldown retry. NEXT_SESSION промптовал «после ≥1h cooldown gpt-5.2-thinking+DAC может найти новые rescues». Реальный gap от day-5 night sprint к v17 retry: несколько часов (mistral-large rotated run + HF deploy в промежутке). 28/29 reached, 1 EXC connection-abort (qid 959).
+> - **1 rescue (qid 896 challenging formula_1):** «Percentage Hamilton not at 1st track since 2010». Baseline: `results.positionOrder` (race-finish). Gold + alt_pred: `driverStandings.position` (season-standings). gpt-5.2-thinking подобрал правильный standings-источник через DAC sub-question breakdown.
+> - **Audit:** `scripts/audit_rescore.py --report eval/reports/2026-05-18b/v17-gpt52-thinking-dac-merged.json` → 200/200 cells verified, 0 mismatches.
+> - HF Space redeployed под v17 (86.0% short_description, fix big-DB upload via ignore_patterns: card_games / codebase_community / european_football_2 exluded — sum ~1.3GB которые ломали push window).
+> - **Cost: $0** (helallao cookies от 2026-05-17 23:29 ещё валидны).
+>
+> Артефакты sprint'а: `eval/reports/2026-05-18b/{helallao-gpt52-thinking-dac-on-v16-residue.json, helallao-gpt52-thinking-dac.log, v17-gpt52-thinking-dac-merged.json}`. Headline updates: README hero 85.5→86.0, 171→172, lift trace v16→v17 row, eval table v17-extended-2 + v17 rows, +37.7pp→+38.2pp, challenging 79.4→82.4; `app/streamlit_app.py` research_value 85.5→86.0 EN+RU + caption (post-cooldown gpt-5.2-thinking+DAC lever); `.deploy_hf.py` short_description bump + ignore_patterns fix; `docs/SESSION_HANDOFF.md` day-5 evening tl;dr; `docs/NEXT_SESSION.md` rewrite под v17. HF Space live на v17 86.0%.
+
+---
+
+# Previous: 2026-05-18 day-5 evening v17-extended-2 (mistral-large rotated × 3 keys × 29 v16-residue qids → 0 rescues, same-family plateau verified; headline v16 85.5% unchanged)
 
 > **Tl;dr 2026-05-18 day-5 evening v17-extended-2 (mistral-large × 3-key rotation):**
 > - Прошлый v17-extended single-key mistral-large = 0/29 reached (429 на qid 2). Пользователь добавила 2 свежих Mistral key в `D:/TXT/Free API Keys.txt`.

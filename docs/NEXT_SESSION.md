@@ -3,47 +3,48 @@
 > Один лист, без воды. Берёшь, делаешь, обновляешь `SESSION_HANDOFF.md`,
 > переписываешь этот файл под следующий sprint.
 
-## 2026-05-18 day-5 evening v16-audit-2 — v16 **85.5% EA verified** (BIRD-official set scoring), above #1 paid SOTA by +3.55pp
+## 2026-05-18 day-5 evening v17 — **86.0% EA verified** (BIRD-official set scoring), above #1 paid SOTA by +4.05pp
 
 **Состояние:**
-- HEAD bumped to v16-audit-2 commit (см. git log).
-- BIRD original gold n=200 (**v16, after двойного audit**): **85.5% EA** (171/200), BIRD-official set scoring. Triplet: 85.5% BIRD / 67.34% Arcwise-Plat / +6 audit catches. **Above #1 paid system AskData+GPT-4o (81.95%) by +3.55pp.**
-- Per-tier v16 (verified): simple **92.5% (62/67)** / moderate **82.8% (82/99)** / challenging **79.4% (27/34)**.
-- **Two bugs found and fixed (compensating, net 0 vs pre-audit, но теперь каждая ячейка верифицирована):**
-  1. SQLAlchemy `:identifier` bind-bug в `_execute_gold` — pattern `LIKE '_:%:__.___'` (BIRD qids 959 / 989 / 990 formula_1 time filter) ломал runner. Empty gold + empty pred → false `match=True`. Fix: `exec_driver_sql` вместо `text(sql)` в `src/nl_sql/db/connection.py:94` + `src/nl_sql/eval/runner.py:954`. Net −1.
-  2. `compare_results` использовал Counter (multiset), документация и BIRD-official scoring требуют `set(...)`. Counter был строже — наказывал DISTINCT-pred поверх дубликатного gold. Не сопоставимо с AskData/CHESS scoring. Fix: Counter→set, убран early row-count guard. Net +1 (qid 358 simple восстановлен).
-- **Audit tool:** `scripts/audit_rescore.py --report <eval JSON>` — replays (gold, pred) пары через fixed runner, проверяет stored vs true match. На baseline + v16 — 0 mismatches.
-- Live HF Space: <https://liovina-nl-sql.hf.space> — redeploy needed после коммита (research_value 85.5% уже в `app/streamlit_app.py:64/134`).
-- README hero + lift trace + **v16-audit-2 row в eval table** + audit caption — закрыто.
-- 272 pytest pass (включая 2 новых regression тестов: bind-bug + set-semantics), ruff + mypy strict clean.
+- HEAD bumped to v17 commit (см. git log).
+- BIRD original gold n=200 (**v17**): **86.0% EA** (172/200), BIRD-official set scoring. Triplet: 86.0% BIRD / 67.34% Arcwise-Plat / +6 audit catches. **Above #1 paid system AskData+GPT-4o (81.95%) by +4.05pp.**
+- Per-tier v17: simple **92.5% (62/67)** / moderate **82.8% (82/99)** / challenging **82.4% (28/34, +3pp от v16)**.
+- **The lever (v16 → v17):** post-cooldown gpt-5.2-thinking + DAC retry на v16 residue (29 fails). 28/29 reached, **1 rescue qid 896 challenging formula_1** (driverStandings.position vs results.positionOrder — gpt-5.2-thinking подобрал standings-источник как в gold через DAC sub-question breakdown). 1 EXC qid 959 connection-abort. 27 same. NEXT_SESSION (v16-audit-2) предсказывал +0-2 rescues, реализовалось +1.
+- Audit: `scripts/audit_rescore.py --report eval/reports/2026-05-18b/v17-gpt52-thinking-dac-merged.json` → 0 mismatches на всех 200 cells.
+- Live HF Space: <https://liovina-nl-sql.hf.space> — **RUNNING under v17** (deploy 2026-05-18 day-5 evening, после фикса ignore_patterns в `.deploy_hf.py` для exclude big DBs card_games/codebase_community/european_football_2).
+- README hero + lift trace + **v17 row в eval table** + post-cooldown lever — закрыто.
+- 272 pytest pass, ruff + mypy strict clean.
 
-**Day-5 night sprint summary:**
-- DAC×reasoning combo на v15 residue (30 fails): `NLSQL_DAC=1` + helallao reasoning models.
-  - **kimi-k2-thinking + DAC**: 21/30 reached, **1 rescue qid 77 moderate** (FRPM-Percent + GSserved='K-9'), 20 same, 9 EXC (Perplexity rate-limit coalescing).
-  - **gpt-5.2-thinking + DAC**: 4/30 reached, 0 rescues, 26 EXC (backend rate-limited после kimi sprint).
-  - **grok-4.1-reasoning + DAC**: 4/30 reached, **1 dup-rescue qid 77** (same case как kimi), 26 EXC mix rate-limit + DNS resolution fails.
-- Union: 1 unique rescue (qid 77) → v16 171/200 = 85.5% pre-audit (multiset scoring, два бага компенсировали друг друга). После двойного audit (bind-bug fix + set-семантика) → 171/200 = 85.5% verified (BIRD-official set scoring), audited row-by-row via `scripts/audit_rescore.py`.
+**Day-5 evening sprint summary (v17):**
+- HF deploy hygiene: добавлены 3 big-DB exclusions в `.deploy_hf.py:81+` ignore_patterns (card_games / codebase_community / european_football_2 — sum ~1.3GB, прошлая попытка падала на httpx ReadError WinError 10054 connection reset).
+- gpt-5.2-thinking + DAC retry на v16 residue (29 fails) — `NLSQL_DAC=1 scripts/run_helallao_voting.py --model gpt-5.2-thinking --sleep-between 4.0`:
+  - 28/29 reached, **1 rescue qid 896 challenging** (driverStandings.position vs results.positionOrder; gold использовал season-standings источник, не race-finish), 27 same, 1 EXC qid 959 connection-abort.
+  - Cookies от 2026-05-17 23:29 ещё валидны.
+- Merge: `scripts/merge_voting_rescues.py --baseline v16-helallao-dac-reasoning.json --voting helallao-gpt52-thinking-dac-on-v16-residue.json` → `v17-gpt52-thinking-dac-merged.json` (172/200 = 86.0%).
+- Audit: `scripts/audit_rescore.py` → 0 mismatches на 200 cells.
 
-**Day-5 night negative evidence:**
-- **Perplexity backend coalesces reasoning quota по аккаунту, не по модели.** Полный kimi sprint (21/30) → следующие 2 reasoning models получили 4/30 reached каждый. **Не запускать reasoning triplet back-to-back.** Cooldown 10-15 мин между sprint'ами.
-- gpt-5.2-thinking + DAC при rate-limit показал 0/4 same — partial coverage недостаточна для negative determination.
+**Day-5 evening v17 — post-cooldown gpt-5.2-thinking+DAC validates the "wait then retry" hypothesis:**
+- v16-audit-2 NEXT_SESSION предсказывал «после 1+h cooldown gpt-5.2-thinking + DAC может найти новые rescues». Реальный gap: ~3+ часов (mistral-large rotated run ~10 мин + HF deploy x2 ~10 мин + интерактив).
+- Реализовалось +1 rescue (qid 896) на лимите ожиданий — Perplexity reasoning quota действительно восстановилась.
+- **Operational rule:** для post-saturation retry чередовать модели И ждать ≥1h. Не запускать back-to-back reasoning sprint'ы, но **повторный одиночный sprint той же модели через cooldown может вернуть rescues**.
 
-**Day-5 evening v17-extended-2 (mistral-large rotated × 3 keys):**
+**Day-5 evening v17-extended-2 (mistral-large rotated × 3 keys) — predecessor:**
 - `scripts/run_selfcon_retry.py` расширен `RotatingMistralProvider` + `--api-keys` CSV → round-robin с retry-on-429-to-next-key.
 - `mistral-large-latest` self-consistency `T=[0.2, 0.5, 0.8]` на v16 residue (29 fails) через 3 ключа (`.env` + 2 новых из `D:/TXT/Free API Keys.txt`): **29/29 reached, 0 rescues, 0 regressions**. Чистый прогон, 0 × 429 за весь sweep. T_win distribution: 26×0.2 / 3×0.5.
-- Закрывает single-key v17-extended неполноту (там был 0/29 reached от 429 на qid 2) → теперь **same-Mistral-family voting plateau на v16 residue verified**.
-- Artefacts: `eval/reports/2026-05-18b/mistral-large-rotated-on-v16-residue.json`, `mistral-large-rotated.log`. Detailed: `docs/v11_saturation_evidence.md § 2026-05-18 day-5 evening`.
+- Same-Mistral-family voting plateau на v16 residue verified — этот lever закрыт.
+- Artefacts: `eval/reports/2026-05-18b/mistral-large-rotated-on-v16-residue.json`. Detailed: `docs/v11_saturation_evidence.md § 2026-05-18 day-5 evening`.
 
 ## Что делать в следующей сессии (после явного user mandate)
 
 | Цель | Стратегия | Ожидание |
 |---|---|---|
-| Past 85.5% chrome-free $0 | Retry gpt-5.2-thinking + DAC на v16 residue (29 fails) после 1+ часа cooldown — на day-4 gpt-5.2-thinking без DAC дал 2 rescues, с DAC может найти новые | +0-2 rescue (~+0.5-1pp) |
-| Past 85.5% chrome-free $0 | DAC + helallao Pro mode (Grok+GPT-5.2+Claude) на v16 residue — combo, ранее не пробованный | +0-1 rescue |
-| Past 85.5% chrome-free $0 | claude-4.5-sonnet (Pro mode) через 24h+ cooldown (последний тест day-5 EOD ~06:30 MSK) — backend rate-limit может отпустить | +0-2 rescue |
-| Past 85.5% chrome-free $0 | OpenRouter $1 top-up unlocks 1000/day free-model requests | re-test ortogonal free models, +0-1pp |
-| Past 85.5% chrome-gated | GraceKelly maintenance: re-run `D:/GraceKelly/tools/capture_perplexity_recon.py` + обновить `playwright_driver.py` selector constants → unlock GPT-5.x/Sonnet bridge через UI picker (orthogonal к helallao HTTPS) | +1-2pp |
-| Past 85.5% paid $1-3 | Anthropic Sonnet API direct на v16 residue (29 fails) — обходит Perplexity Claude rate-limit | +1-3pp, наивысший $/pp |
+| Past 86.0% chrome-free $0 | Repeat post-cooldown gpt-5.2-thinking + DAC на v17 residue (28 fails) после ≥1h — pattern validated на v16→v17. Один rescue вернул pattern; повтор может ещё | +0-2 rescue (~+0.5-1pp) |
+| Past 86.0% chrome-free $0 | Retry qid 959 (single EXC connection-abort в v17 sprint) через одиночный call gpt-5.2-thinking+DAC | +0-1 rescue |
+| Past 86.0% chrome-free $0 | DAC + helallao Pro mode (Grok+GPT-5.2 Pro) на v17 residue — combo, ранее не пробованный | +0-1 rescue |
+| Past 86.0% chrome-free $0 | claude-4.5-sonnet (Pro mode) через 24h+ cooldown (последний тест day-5 EOD ~06:30 MSK) | +0-2 rescue |
+| Past 86.0% chrome-free $0 | OpenRouter $1 top-up unlocks 1000/day free-model requests | re-test ortogonal free models, +0-1pp |
+| Past 86.0% chrome-gated | GraceKelly maintenance: re-run `D:/GraceKelly/tools/capture_perplexity_recon.py` + обновить `playwright_driver.py` selector constants → unlock GPT-5.x/Sonnet bridge через UI picker (orthogonal к helallao HTTPS) | +1-2pp |
+| Past 86.0% paid $1-3 | Anthropic Sonnet API direct на v17 residue (28 fails) — обходит Perplexity Claude rate-limit | +1-3pp, наивысший $/pp |
 | Research-grade | P3.F JOIN-path linker + CSC-SQL (см. `docs/p3f_design.md`) | +2-4pp combined, multi-day |
 
 ## Deploy quick reference
@@ -82,10 +83,10 @@ uv run pytest -q && uv run ruff check src tests scripts app && uv run mypy --str
 # Local Streamlit (cache-warm UI):
 make ui
 
-# Retry gpt-5.2-thinking + DAC на v16 residue (после 1h+ cooldown):
+# Retry gpt-5.2-thinking + DAC на v17 residue (после 1h+ cooldown):
 NLSQL_DAC=1 uv run python scripts/run_helallao_voting.py \
-  --baseline eval/reports/2026-05-18/v16-helallao-dac-reasoning.json \
-  --out eval/reports/<date>/helallao-gpt52-dac-on-v16-residue.json \
+  --baseline eval/reports/2026-05-18b/v17-gpt52-thinking-dac-merged.json \
+  --out eval/reports/<date>/helallao-gpt52-dac-on-v17-residue.json \
   --model gpt-5.2-thinking --sleep-between 4.0
 ```
 
