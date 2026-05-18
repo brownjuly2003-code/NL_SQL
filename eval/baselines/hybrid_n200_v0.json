@@ -12,47 +12,24 @@
     "latency_p50_ms": 65.28609999804758,
     "latency_p95_ms": 61440.507390015366,
     "tokens_p50": 4700.5,
-    "tokens_p95": 11537.0
+    "tokens_p95": 11537.0,
+    "matched": 114
   },
   "per_difficulty": {
     "simple": {
+      "matched": 47,
       "n": 67,
-      "ea": 0.7164179104477612,
-      "validity_rate": 1.0,
-      "schema_recall_at_k": 1.0,
-      "repair_success_rate": 0.3333333333333333,
-      "first_pass_ea": 0.7014925373134329,
-      "empty_result_rate": 0.029850746268656716,
-      "latency_p50_ms": 29.982200008817017,
-      "latency_p95_ms": 1597.7672599721639,
-      "tokens_p50": 4824.0,
-      "tokens_p95": 11512.3
+      "ea": 0.701493
     },
     "moderate": {
+      "matched": 53,
       "n": 99,
-      "ea": 0.5353535353535354,
-      "validity_rate": 1.0,
-      "schema_recall_at_k": 1.0,
-      "repair_success_rate": 0.15384615384615385,
-      "first_pass_ea": 0.5151515151515151,
-      "empty_result_rate": 0.020202020202020204,
-      "latency_p50_ms": 57.986200030427426,
-      "latency_p95_ms": 3506.193769967647,
-      "tokens_p50": 6216.0,
-      "tokens_p95": 11570.0
+      "ea": 0.535354
     },
     "challenging": {
+      "matched": 14,
       "n": 34,
-      "ea": 0.38235294117647056,
-      "validity_rate": 1.0,
-      "schema_recall_at_k": 1.0,
-      "repair_success_rate": 0.42857142857142855,
-      "first_pass_ea": 0.29411764705882354,
-      "empty_result_rate": 0.0,
-      "latency_p50_ms": 54833.221200009575,
-      "latency_p95_ms": 88654.44353501662,
-      "tokens_p50": 2081.5,
-      "tokens_p95": 4066.8
+      "ea": 0.411765
     }
   },
   "records": [
@@ -4075,7 +4052,7 @@
       "question": "What is the fastest lap number of the champion in 2009?",
       "gold_sql": "SELECT T1.fastestLap FROM results AS T1 INNER JOIN races AS T2 on T1.raceId = T2.raceId WHERE T2.year = 2009 AND T1.time LIKE '_:%:__.___'",
       "pred_sql": "SELECT lapTimes.lap FROM lapTimes JOIN races ON lapTimes.raceId = races.raceId JOIN results ON lapTimes.raceId = results.raceId AND lapTimes.driverId = results.driverId WHERE races.year = 2009 AND results.positionOrder = 1 AND lapTimes.time LIKE '%:%:%' ORDER BY lapTimes.milliseconds ASC LIMIT 1",
-      "match": true,
+      "match": false,
       "schema_recall": true,
       "error_kind": "empty_result",
       "error_message": "query returned 0 rows",
@@ -4104,7 +4081,8 @@
       ],
       "pred_row_count": 0,
       "gold_row_count": 0,
-      "comparison_reason": ""
+      "comparison_reason": "",
+      "audit_note": "gold-runner colon bind-param hazard (BIRD `:__` pattern); see eval-runner-audit-2026-05-18"
     },
     {
       "question_id": 971,
@@ -4269,7 +4247,7 @@
       "question": "What is the constructor reference name of the champion in the 2009 Singapore Grand Prix? Please give its website.",
       "gold_sql": "SELECT T3.constructorRef, T3.url FROM results AS T1 INNER JOIN races AS T2 on T1.raceId = T2.raceId INNER JOIN constructors AS T3 on T1.constructorId = T3.constructorId WHERE T2.name = 'Singapore Grand Prix' AND T2.year = 2009 AND T1.time LIKE '_:%:__.___'",
       "pred_sql": "SELECT constructors.constructorRef, constructors.url FROM results INNER JOIN races ON results.raceId = races.raceId INNER JOIN constructors ON results.constructorId = constructors.constructorId WHERE races.year = 2009 AND races.name = 'Singapore Grand Prix' AND results.positionOrder = 1 ORDER BY results.time DESC LIMIT 1",
-      "match": false,
+      "match": true,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
@@ -4299,7 +4277,8 @@
       ],
       "pred_row_count": 1,
       "gold_row_count": 0,
-      "comparison_reason": "row count mismatch: gold=0, pred=1"
+      "comparison_reason": "row count mismatch: gold=0, pred=1",
+      "audit_note": "gold-runner colon bind-param hazard (BIRD `:__` pattern); see eval-runner-audit-2026-05-18"
     },
     {
       "question_id": 1028,

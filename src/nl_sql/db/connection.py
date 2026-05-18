@@ -91,7 +91,10 @@ def execute_readonly(
     started = time.perf_counter()
     with engine.connect() as conn:
         _apply_runtime_limits(conn, statement_timeout_ms)
-        cursor = conn.execute(text(sql))
+        # exec_driver_sql bypasses SQLAlchemy's :name bind-parameter parsing,
+        # which would otherwise misinterpret colons inside string literals such
+        # as `LIKE '_:%:__.___'` (BIRD qids 959 / 989 / 990 — formula_1 time patterns).
+        cursor = conn.exec_driver_sql(sql)
         columns = list(cursor.keys())
         rows = cursor.fetchmany(row_cap + 1)
         cursor.close()  # drain any remaining rows so SQLite/Postgres release resources

@@ -81,6 +81,17 @@ def test_execute_readonly_caps_rows(engine: Engine) -> None:
         assert result.truncated is True
 
 
+def test_execute_readonly_handles_colons_in_string_literal(engine: Engine) -> None:
+    """Regression: SQLAlchemy `text()` parses `:ident` as bind parameters, which
+    breaks BIRD gold like `LIKE '_:%:__.___'` (qids 959 / 989 / 990 — formula_1
+    time patterns). `execute_readonly` must run the statement via
+    `exec_driver_sql` so colons inside string literals reach the DBAPI verbatim.
+    """
+    sql = "SELECT name FROM Artists WHERE name LIKE '_:%:__.___' OR name = 'Queen' ORDER BY id"
+    with execute_readonly(engine, sql) as result:
+        assert result.rows == [("Queen",)]
+
+
 def test_execute_readonly_rejects_writes(engine: Engine) -> None:
     """The engine itself rejects DML even when caller bypasses the AST guard."""
     with engine.connect() as conn, pytest.raises(Exception, match=r"(?i)readonly|read.only"):

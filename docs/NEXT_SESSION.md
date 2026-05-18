@@ -3,22 +3,23 @@
 > Один лист, без воды. Берёшь, делаешь, обновляешь `SESSION_HANDOFF.md`,
 > переписываешь этот файл под следующий sprint.
 
-## 2026-05-18 day-5 night EOD — v16 85.5% EA shipped, above #1 paid SOTA by +3.55pp
+## 2026-05-18 day-5 evening v16-audit — v16 85.0% EA (corrected from claimed 85.5%), above #1 paid SOTA by +3.05pp
 
 **Состояние:**
-- HEAD bumped to v16 commit (см. git log).
-- BIRD original gold n=200 (**v16**): **85.5% EA** (171/200). Triplet: 85.5% BIRD / 67.34% Arcwise-Plat / +6 audit catches. **Above #1 paid system AskData+GPT-4o (81.95%) by +3.55pp.**
-- Per-tier v16: simple 92.5% (62/67) / moderate **83.8% (83/99, +1.0pp от v15)** / challenging 76.5% (26/34).
-- Live HF Space: <https://liovina-nl-sql.hf.space> — redeploy needed после коммита (research_value 85.5% уже в `app/streamlit_app.py:64/134`).
-- README hero + lift trace + **11-рычаговый блок** + eval table — закрыто.
-- 270+ pytest pass, ruff + mypy strict clean.
+- HEAD bumped to v16-audit commit (см. git log).
+- BIRD original gold n=200 (**v16, after audit**): **85.0% EA** (170/200). Triplet: 85.0% BIRD / 67.34% Arcwise-Plat / +6 audit catches. **Above #1 paid system AskData+GPT-4o (81.95%) by +3.05pp.**
+- Per-tier v16 (after audit): simple **91.0% (61/67, −1)** / moderate **82.8% (82/99, −1)** / challenging **79.4% (27/34, +1)**.
+- **Bug найден и исправлен:** SQLAlchemy `:identifier` bind-parameter parsing в `_execute_gold` ломал BIRD gold с pattern `LIKE '_:%:__.___'` (qids 959 simple, 989 moderate, 990 challenging — formula_1 time-format filter). Empty gold + empty pred давал false `match=True`. Фикс: `exec_driver_sql` вместо `text(sql)` в `src/nl_sql/db/connection.py:94` и `src/nl_sql/eval/runner.py:954`. Регрессионный тест в `tests/test_db_connection.py`.
+- Live HF Space: <https://liovina-nl-sql.hf.space> — redeploy needed после коммита (research_value 85.0% уже в `app/streamlit_app.py:64/134`).
+- README hero + lift trace + **v16-audit row в eval table** — закрыто.
+- 270+ pytest pass (включая новый regression test), ruff + mypy strict clean.
 
 **Day-5 night sprint summary:**
 - DAC×reasoning combo на v15 residue (30 fails): `NLSQL_DAC=1` + helallao reasoning models.
   - **kimi-k2-thinking + DAC**: 21/30 reached, **1 rescue qid 77 moderate** (FRPM-Percent + GSserved='K-9'), 20 same, 9 EXC (Perplexity rate-limit coalescing).
   - **gpt-5.2-thinking + DAC**: 4/30 reached, 0 rescues, 26 EXC (backend rate-limited после kimi sprint).
   - **grok-4.1-reasoning + DAC**: 4/30 reached, **1 dup-rescue qid 77** (same case как kimi), 26 EXC mix rate-limit + DNS resolution fails.
-- Union: 1 unique rescue (qid 77) → v16 171/200 = 85.5%.
+- Union: 1 unique rescue (qid 77) → v16 171/200 = 85.5% pre-audit; после `_execute_gold` bind-bug фикса → 170/200 = 85.0% honest.
 
 **Day-5 night negative evidence:**
 - **Perplexity backend coalesces reasoning quota по аккаунту, не по модели.** Полный kimi sprint (21/30) → следующие 2 reasoning models получили 4/30 reached каждый. **Не запускать reasoning triplet back-to-back.** Cooldown 10-15 мин между sprint'ами.
@@ -28,12 +29,12 @@
 
 | Цель | Стратегия | Ожидание |
 |---|---|---|
-| Past 85.5% chrome-free $0 | Retry gpt-5.2-thinking + DAC на v16 residue (29 fails) после 1+ часа cooldown — на day-4 gpt-5.2-thinking без DAC дал 2 rescues, с DAC может найти новые | +0-2 rescue (~+0.5-1pp) |
-| Past 85.5% chrome-free $0 | DAC + helallao Pro mode (Grok+GPT-5.2+Claude) на v16 residue — combo, ранее не пробованный | +0-1 rescue |
-| Past 85.5% chrome-free $0 | claude-4.5-sonnet (Pro mode) через 24h+ cooldown (последний тест day-5 EOD ~06:30 MSK) — backend rate-limit может отпустить | +0-2 rescue |
-| Past 85.5% chrome-free $0 | OpenRouter $1 top-up unlocks 1000/day free-model requests | re-test ortogonal free models, +0-1pp |
-| Past 85.5% chrome-gated | GraceKelly maintenance: re-run `D:/GraceKelly/tools/capture_perplexity_recon.py` + обновить `playwright_driver.py` selector constants → unlock GPT-5.x/Sonnet bridge через UI picker (orthogonal к helallao HTTPS) | +1-2pp |
-| Past 85.5% paid $1-3 | Anthropic Sonnet API direct на v16 residue (29 fails) — обходит Perplexity Claude rate-limit | +1-3pp, наивысший $/pp |
+| Past 85.0% chrome-free $0 | Retry gpt-5.2-thinking + DAC на v16 residue (29 fails) после 1+ часа cooldown — на day-4 gpt-5.2-thinking без DAC дал 2 rescues, с DAC может найти новые | +0-2 rescue (~+0.5-1pp) |
+| Past 85.0% chrome-free $0 | DAC + helallao Pro mode (Grok+GPT-5.2+Claude) на v16 residue — combo, ранее не пробованный | +0-1 rescue |
+| Past 85.0% chrome-free $0 | claude-4.5-sonnet (Pro mode) через 24h+ cooldown (последний тест day-5 EOD ~06:30 MSK) — backend rate-limit может отпустить | +0-2 rescue |
+| Past 85.0% chrome-free $0 | OpenRouter $1 top-up unlocks 1000/day free-model requests | re-test ortogonal free models, +0-1pp |
+| Past 85.0% chrome-gated | GraceKelly maintenance: re-run `D:/GraceKelly/tools/capture_perplexity_recon.py` + обновить `playwright_driver.py` selector constants → unlock GPT-5.x/Sonnet bridge через UI picker (orthogonal к helallao HTTPS) | +1-2pp |
+| Past 85.0% paid $1-3 | Anthropic Sonnet API direct на v16 residue (29 fails) — обходит Perplexity Claude rate-limit | +1-3pp, наивысший $/pp |
 | Research-grade | P3.F JOIN-path linker + CSC-SQL (см. `docs/p3f_design.md`) | +2-4pp combined, multi-day |
 
 ## Deploy quick reference

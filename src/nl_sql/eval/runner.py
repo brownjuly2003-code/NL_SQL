@@ -23,7 +23,7 @@ from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import Any
 
-from sqlalchemy import Engine, text
+from sqlalchemy import Engine
 from sqlalchemy.exc import SQLAlchemyError
 
 from nl_sql.agent import PipelineConfig, build_pipeline, run_pipeline
@@ -951,7 +951,7 @@ def _execute_gold(
         # gold-failure rather than pred-failure.
         try:
             with engine.connect() as conn:
-                cursor = conn.execute(text(sql))
+                cursor = conn.exec_driver_sql(sql)
                 cols = list(cursor.keys())
                 rows = [tuple(r) for r in cursor.fetchmany(row_cap)]
                 cursor.close()

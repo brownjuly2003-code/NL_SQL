@@ -2,9 +2,9 @@
   "configuration": "G_hybrid+multi-vote+merged+merged+merged+merged+merged+merged+merged+merged+merged+merged+merged+merged+merged",
   "sql_model": "codestral+Sonnet challenging+gpt-oss-120b/20b voting+llama4-scout voting + meta-llama/llama-4-scout-17b-16e-instruct + qwen/qwen3-32b + codestral+grounded_critique + codestral+self-consistency + perplexity:claude-sonnet-4-6 + codestral+grounded_critique + groq:llama-3.3-70b-versatile+grounded_critique+fewshot3 + groq:qwen/qwen3-32b+grounded_critique+fewshot3 + openai/gpt-oss-20b + mistral:codestral-latest+grounded_critique+fewshot3 + mistral:codestral-latest+grounded_critique+fewshot3 + helallao:gpt-5.2 + helallao:grok-4.1 + helallao:gpt-5.2-thinking + helallao:grok-4.1-reasoning + helallao:kimi-k2-thinking + helallao:gpt-5.2 + helallao:kimi-k2-thinking",
   "overall": {
-    "ea": 0.855,
+    "ea": 0.85,
     "n": 200,
-    "matched": 171,
+    "matched": 170,
     "rescued_via_voting": 57
   },
   "records": [
@@ -4061,7 +4061,7 @@
       "question": "What is the fastest lap number of the champion in 2009?",
       "gold_sql": "SELECT T1.fastestLap FROM results AS T1 INNER JOIN races AS T2 on T1.raceId = T2.raceId WHERE T2.year = 2009 AND T1.time LIKE '_:%:__.___'",
       "pred_sql": "SELECT lapTimes.lap FROM lapTimes JOIN races ON lapTimes.raceId = races.raceId JOIN results ON lapTimes.raceId = results.raceId AND lapTimes.driverId = results.driverId WHERE races.year = 2009 AND results.positionOrder = 1 AND lapTimes.time LIKE '%:%:%' ORDER BY lapTimes.milliseconds ASC LIMIT 1",
-      "match": true,
+      "match": false,
       "schema_recall": true,
       "error_kind": "empty_result",
       "error_message": "query returned 0 rows",
@@ -4090,7 +4090,8 @@
       ],
       "pred_row_count": 0,
       "gold_row_count": 0,
-      "comparison_reason": ""
+      "comparison_reason": "",
+      "audit_note": "gold-runner colon bind-param hazard (BIRD `:__` pattern); see eval-runner-audit-2026-05-18"
     },
     {
       "question_id": 971,
@@ -4217,7 +4218,7 @@
       "question": "Who is the champion of the Canadian Grand Prix in 2008? Indicate his finish time.",
       "gold_sql": "SELECT T1.time FROM results AS T1 INNER JOIN races AS T2 ON T1.raceId = T2.raceId WHERE T2.name = 'Canadian Grand Prix' AND T2.year = 2008 AND T1.time LIKE '_:%:__.___'",
       "pred_sql": "SELECT d.forename, d.surname, r.time FROM results r JOIN drivers d ON r.driverId = d.driverId JOIN races ra ON r.raceId = ra.raceId JOIN circuits c ON ra.circuitId = c.circuitId WHERE c.name = 'Canada' AND ra.year = 2008 AND r.positionOrder = 1",
-      "match": true,
+      "match": false,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
@@ -4247,7 +4248,8 @@
       "pred_row_count": 1,
       "gold_row_count": 0,
       "comparison_reason": "row count mismatch: gold=0, pred=1",
-      "voted_by": "codestral+grounded_critique"
+      "voted_by": "codestral+grounded_critique",
+      "audit_note": "gold-runner colon bind-param hazard (BIRD `:__` pattern); see eval-runner-audit-2026-05-18"
     },
     {
       "question_id": 990,
@@ -4257,7 +4259,7 @@
       "question": "What is the constructor reference name of the champion in the 2009 Singapore Grand Prix? Please give its website.",
       "gold_sql": "SELECT T3.constructorRef, T3.url FROM results AS T1 INNER JOIN races AS T2 on T1.raceId = T2.raceId INNER JOIN constructors AS T3 on T1.constructorId = T3.constructorId WHERE T2.name = 'Singapore Grand Prix' AND T2.year = 2009 AND T1.time LIKE '_:%:__.___'",
       "pred_sql": "SELECT constructors.constructorRef, constructors.url FROM results INNER JOIN races ON results.raceId = races.raceId INNER JOIN constructors ON results.constructorId = constructors.constructorId WHERE races.year = 2009 AND races.name = 'Singapore Grand Prix' AND results.positionOrder = 1 ORDER BY results.time DESC LIMIT 1",
-      "match": false,
+      "match": true,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
@@ -4287,7 +4289,8 @@
       ],
       "pred_row_count": 1,
       "gold_row_count": 0,
-      "comparison_reason": "row count mismatch: gold=0, pred=1"
+      "comparison_reason": "row count mismatch: gold=0, pred=1",
+      "audit_note": "gold-runner colon bind-param hazard (BIRD `:__` pattern); see eval-runner-audit-2026-05-18"
     },
     {
       "question_id": 1028,
@@ -6886,19 +6889,19 @@
   ],
   "per_difficulty": {
     "simple": {
-      "ea": 0.9253731343283582,
-      "matched": 62,
-      "n": 67
+      "matched": 61,
+      "n": 67,
+      "ea": 0.910448
     },
     "moderate": {
-      "ea": 0.8383838383838383,
-      "matched": 83,
-      "n": 99
+      "matched": 82,
+      "n": 99,
+      "ea": 0.828283
     },
     "challenging": {
-      "ea": 0.7647058823529411,
-      "matched": 26,
-      "n": 34
+      "matched": 27,
+      "n": 34,
+      "ea": 0.794118
     }
   }
 }
