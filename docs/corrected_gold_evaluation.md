@@ -1,4 +1,19 @@
-# Corrected-Gold Evaluation — v10 on Arcwise-Plat
+# Corrected-Gold Evaluation — v10 → v18 on Arcwise-Plat
+
+> **2026-05-18 day-5 night update (v18 rescore):** Re-ran `scripts/rescore_arcwise.py` on v18 merged predictions (`eval/reports/2026-05-18b/v18-gpt52-pro-merged.json`). Updated portfolio triplet below. v10 sections retained for historical reference. Details in `docs/v18_residue_audit.md` § Cross-reference.
+>
+> | Variant | v10 | v18 | Δ |
+> |---|---:|---:|---:|
+> | BIRD original | 80.5% (161/200) | **86.5% (173/200)** | **+6.0pp** |
+> | Arcwise-Plat-SQL | 67.34% (134/199) | **72.36% (144/199)** | **+5.0pp** |
+> | Arcwise-Plat (full) | 61.81% (123/199) | **66.33% (132/199)** | **+4.5pp** |
+> | Audit catches (gained vs BIRD) | +6 | **+5** | **-1** |
+>
+> Catches dropped to 5 (non-monotonic with improvement): **qid 672 (moderate codebase_community)** was a v10 catch where BIRD's gold missed `COUNT(DISTINCT ...)`; v18 system now matches BIRD original, so qid 672 is no longer a catch. The other 5 catches (qids 1029, 1144, 1247, 1251, 1254) remain valid at v18. Artefact: `eval/reports/2026-05-18b/v18_arcwise_rescored.json`.
+
+---
+
+## v10 historical reference (2026-05-17)
 
 **Date:** 2026-05-17
 **Question being answered:** how much of our 80.5% BIRD Mini-Dev score is *real* and how much is BIRD's own annotation noise?

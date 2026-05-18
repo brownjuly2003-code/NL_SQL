@@ -2,7 +2,7 @@
 
 > **Tl;dr 2026-05-18 day-5 evening v18 (helallao gpt-5.2 Pro on v17 residue):**
 > - **v18 86.5% EA verified** (173/200) — published BIRD Mini-Dev SQLite. **Above #1 paid system AskData+GPT-4o (81.95%) by +4.55pp.**
-> - Triplet: 86.5% BIRD / 67.34% Arcwise-Plat / +6 audit catches.
+> - **v18 triplet (rescore 2026-05-18 day-5 night): 86.5% BIRD / 72.36% Arcwise-Plat-SQL (144/199) / +5 audit catches** (was 67.34% / +6 at v10; qid 672 now BIRD-correct after Pro sprints, +5pp Arcwise gain). See `docs/v18_residue_audit.md` § Cross-reference.
 > - **Per-tier v18:** simple 92.5% (62/67) / moderate **83.8% (83/99, +1pp от v17)** / challenging 82.4% (28/34).
 > - **The lever:** helallao gpt-5.2 Pro (non-reasoning) on v17 residue. Pro mode не пробовался на residue от v15 (был только на v14 residue в day-5 EOD). Достигнуты 13/28 cases перед Pro-quota coalesce → 12 same + 1 RESCUE.
 > - **1 rescue (qid 989 moderate formula_1):** "Who is the champion of the Canadian Grand Prix in 2008? Indicate his finish time." Baseline filtered `c.name = 'Canada'` (circuit), Gold + alt filter `races.name = 'Canadian Grand Prix'` (race) с `position = 1`. Pro mode выбрал правильный фильтр.

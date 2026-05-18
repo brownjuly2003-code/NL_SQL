@@ -7,7 +7,7 @@
 
 **Состояние:**
 - HEAD bumped to v18 commit (см. git log).
-- BIRD original gold n=200 (**v18**): **86.5% EA** (173/200), BIRD-official set scoring. Triplet: 86.5% BIRD / 67.34% Arcwise-Plat / +6 audit catches. **Above #1 paid system AskData+GPT-4o (81.95%) by +4.55pp.**
+- BIRD original gold n=200 (**v18**): **86.5% EA** (173/200), BIRD-official set scoring. **v18 triplet: 86.5% BIRD / 72.36% Arcwise-Plat-SQL / +5 audit catches** (v10 was 80.5 / 67.34 / +6 — Δ +6pp / +5pp / -1, catches non-monotonic because qid 672 now BIRD-correct). **Above #1 paid system AskData+GPT-4o (81.95%) by +4.55pp.**
 - Per-tier v18: simple **92.5% (62/67)** / moderate **83.8% (83/99, +1pp от v17)** / challenging **82.4% (28/34)**.
 - **Path v16 → v18 (+1pp в текущей сессии):**
   - **v16 → v17:** post-cooldown gpt-5.2-thinking + DAC retry на v16 residue (29 fails). 28/29 reached, +1 rescue qid 896 challenging formula_1 (driverStandings.position).

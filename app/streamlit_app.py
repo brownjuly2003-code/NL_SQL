@@ -71,7 +71,7 @@ I18N: dict[str, dict[str, str]] = {
             "Scored under "
             "<span class='nl-term' title='bird-bench/mini_dev evaluation_ex.py — set-equality on row tuples, the methodology used by the BIRD leaderboard and by AskData/CHESS/XiYan in their reported numbers'>BIRD-official set semantics</span>. "
             "+38.7pp over the GPT-4 zero-shot reference (47.8%), $0 external cost. "
-            "On <span class='nl-term' title='Jin et al., CIDR/VLDB 2026, arXiv:2601.08778 — corrected BIRD gold annotations'>Arcwise-Plat corrected gold</span>: 67.34% — honest noise-floor; +6 cases where our prediction catches BIRD's own wrong gold. "
+            "On <span class='nl-term' title='Jin et al., CIDR/VLDB 2026, arXiv:2601.08778 — corrected BIRD gold annotations'>Arcwise-Plat corrected gold</span>: 72.36% — honest noise-floor; +5 cases where our prediction catches BIRD's own wrong gold. "
             "Two post-cooldown rescues found on v16→v18 path: qid 896 (driverStandings.position via gpt-5.2-thinking+DAC), qid 989 (Canadian GP 2008 winner time via gpt-5.2 Pro)."
         ),
         "settings_header": "Settings",
@@ -152,7 +152,7 @@ I18N: dict[str, dict[str, str]] = {
             "Scoring — "
             "<span class='nl-term' title='bird-bench/mini_dev evaluation_ex.py — set-равенство на результирующих кортежах. Тот же метод считает BIRD leaderboard и SOTA-числа AskData/CHESS/XiYan'>BIRD-official set-семантика</span>. "
             "+38,7 п.п. над zero-shot GPT-4 (47,8%), внешние расходы — ноль. "
-            "На <span class='nl-term' title='Jin et al., CIDR/VLDB 2026, arXiv:2601.08778 — исправленные аннотации gold BIRD'>исправленном gold Arcwise-Plat</span>: 67,34% — честный noise-floor; +6 случаев, где наш ответ правильнее эталона BIRD. "
+            "На <span class='nl-term' title='Jin et al., CIDR/VLDB 2026, arXiv:2601.08778 — исправленные аннотации gold BIRD'>исправленном gold Arcwise-Plat</span>: 72,36% — честный noise-floor; +5 случаев, где наш ответ правильнее эталона BIRD. "
             "Два post-cooldown rescue на пути v16→v18: qid 896 (driverStandings.position через gpt-5.2-thinking+DAC), qid 989 (Canadian GP 2008 winner time через gpt-5.2 Pro)."
         ),
         "settings_header": "Настройки",
