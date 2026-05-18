@@ -254,3 +254,32 @@ Artefacts:
 Artefacts:
 - `eval/reports/2026-05-18b/helallao-gpt52-pro-dac-on-v18-residue.json` (cases=15, 0 rescues)
 - `eval/reports/2026-05-18b/helallao-gpt52-pro-dac.log`
+
+## 2026-05-18 day-5 night — kimi+DAC+M-Schema combo refines quota model
+
+Через ~20 мин после Pro+DAC sprint (commit 861d562, 23:00-23:35) запущен `NLSQL_DAC=1 NLSQL_M_SCHEMA=1 --model kimi-k2-thinking --sleep-between 4.0` на v18 residue (reasoning route + DAC prompt + M-Schema serialization combo, ранее не пробованный).
+
+| # | Model + combo | Cooldown от Pro+DAC sprint | Reached | Rescues | EXC pattern |
+|---|---|---|---:|---:|---|
+| 1 | kimi-k2-thinking + DAC + M-Schema (sleep=4.0) | ~20 мин | **6/27** | **0** | 21 EXC `non-dict NoneType` (qid 484..1531) — coalesce на 7-м call |
+
+**Quota model refined (v3 → v4):**
+Earlier hypothesis (commit 055292d): reasoning route и Pro mode имеют отдельные quotas. Empirically partially refuted:
+
+| Sequence | Reasoning capacity at the moment |
+|---|---:|
+| ~4h после Pro sprint (no recent reasoning) | **26/27** (kimi+DAC alone, commit 702d1fb) |
+| ~20 мин после Pro+DAC sprint (just burned 15 Pro cases) | **6/27** (kimi+DAC+M-Schema, this run) |
+
+**Conclusion:** Reasoning quota — это **не строго отдельный pool**, а скорее **shared account budget с разным rate-limiting profile**. Pro burst быстро drain'ит reasoning тоже на коротком timeframe. Для clean reasoning sprint после Pro sprint требуется ≥3-4h cooldown.
+
+**Operational rule v4:**
+- ≥6-8h cooldown между Pro sprint'ами (capacity 27 case)
+- ≥3-4h cooldown между Pro и reasoning sprint'ами (capacity 25+ case)
+- Reasoning сразу после Pro = ~5-7 case capacity (burnt quota)
+
+**Combo result:** kimi+DAC+M-Schema на 6 reached → 0 rescues, 6 same. Lever family ещё раз saturated, как и kimi+DAC alone — M-Schema prompt format не флипает kimi's verdict с "same" на "better" даже на reachable cases.
+
+Artefacts:
+- `eval/reports/2026-05-18b/helallao-kimi-thinking-dac-mschema-on-v18-residue.json` (cases=6, 0 rescues)
+- `eval/reports/2026-05-18b/helallao-kimi-thinking-dac-mschema.log`

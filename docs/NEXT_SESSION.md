@@ -87,6 +87,8 @@
 - **Не запускать claude-4.5-sonnet-thinking раньше 2026-05-19 19:02 MSK** (24h-rule empirically подтверждён повторно: попытка через ~12h в 19:02 day-5 вечером дала 2/27 reached + 25 EXC `non-dict NoneType`).
 - **Не повторять gpt-5.2 Pro + DAC combo на v18 residue** (day-5 night ~4h cooldown: 15/27 reached, 0 rescues, 15 same. DAC prompt switch на Pro models не открывает rescue paths поверх Pro-only sprint'а — same lever, не orthogonal).
 - **Pro-mode 27-case sprint < 6h cooldown = wasted quota.** Empirical recovery curve: 30 мин → 4 cases / 4h → 15-16 cases. Full residue (27 cases) требует ≥6-8h.
+- **Не запускать reasoning sprint < 3h после Pro sprint** (day-5 night kimi+DAC+M-Schema через ~20 мин после Pro+DAC: 6/27 reached + 21 EXC `non-dict NoneType`. Reasoning route quota NOT строго отдельный pool — Pro burst drain'ит reasoning тоже на коротком timeframe; см. v11_saturation_evidence.md § quota model v4).
+- **Не повторять kimi+DAC+M-Schema combo на v18 residue.** Combo combo lever family ещё раз saturated: M-Schema prompt format не флипает kimi verdict с "same" на "better" даже на reachable cases.
 
 ## Quick start если хочется быстрого win
 
