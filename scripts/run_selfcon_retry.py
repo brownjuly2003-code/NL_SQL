@@ -40,17 +40,19 @@ def main() -> int:
     p.add_argument("--baseline", type=Path, required=True)
     p.add_argument("--bird-root", type=Path, default=Path("data/bird_mini_dev/MINIDEV"))
     p.add_argument("--temperatures", nargs="+", type=float, default=[0.2, 0.4, 0.6, 0.8])
+    p.add_argument("--gen-model", default="codestral-latest", help="Mistral model id")
+    p.add_argument("--sleep-between", type=float, default=0.0, help="seconds between pipeline calls (use for mistral-large rate limits)")
     p.add_argument("--out", type=Path, required=True)
     args = p.parse_args()
 
     settings = get_settings()
     baseline = json.loads(args.baseline.read_text(encoding="utf-8"))
     fails = [r for r in baseline["records"] if not r.get("match")]
-    print(f"[info] {len(fails)} failures, temps={args.temperatures}", file=sys.stderr)
+    print(f"[info] {len(fails)} failures, temps={args.temperatures}, model={args.gen_model}", file=sys.stderr)
 
     examples = {e.question_id: e for e in load_bird_mini_dev(args.bird_root)}
     registry = get_default_registry()
-    mistral = MistralProvider(api_key=settings.mistral_api_key, gen_model="codestral-latest")
+    mistral = MistralProvider(api_key=settings.mistral_api_key, gen_model=args.gen_model)
     sql_prov = CachingLLMProvider(mistral, cache_dir=settings.llm_cache_dir)
     emb = CachingEmbeddingProvider(
         MistralProvider(api_key=settings.mistral_api_key), cache_dir=settings.llm_cache_dir
@@ -99,6 +101,8 @@ def main() -> int:
                     candidates.append(Candidate(result=r, temperature=temp))
                 except Exception as exc:
                     print(f"[{i:3d}/{len(fails)}] qid={qid} T={temp} EXC: {exc}", file=sys.stderr)
+                if args.sleep_between > 0:
+                    time.sleep(args.sleep_between)
             if not candidates:
                 continue
 
