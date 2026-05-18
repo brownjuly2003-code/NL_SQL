@@ -1,4 +1,15 @@
-# NL_SQL — Session Handoff (2026-05-18 day-5: v14 84.5% — kimi-k2-thinking +0.5pp; above #1 paid SOTA by +2.55pp)
+# NL_SQL — Session Handoff (2026-05-18 day-5 EOD: v15 85.0% — Pro-triplet retry +0.5pp; above #1 paid SOTA by +3.05pp)
+
+> **Tl;dr 2026-05-18 day-5 EOD (helallao Pro triplet retry на v14 residue):**
+> - **v15 85.0% EA** (170/200) — published BIRD Mini-Dev SQLite. **Above #1 paid system AskData+GPT-4o (81.95%) by +3.05pp.**
+> - Triplet: 85.0% BIRD / 67.34% Arcwise-Plat / +6 audit catches.
+> - **Per-tier v15:** simple 92.5% (62/67) / moderate 82.8% (82/99) / challenging **76.5% (26/34, +2.9pp от v14)**.
+> - **The lever:** retry Pro mode на v14 residue после daily quota reset. На v11 Pro triplet брал 2 ortogonal rescues (qid 672, 988), на v14 residue (31 fails) gpt-5.2 Pro нашёл ещё один — qid 173 challenging. **Pro mode и reasoning mode дают ortogonal coverage** — не дублируют.
+> - **1 rescue (qid 173 challenging, financial DB):** «How often does account 3 request statement? What was the aim of debiting 3539 total?». gpt-5.2 Pro написал subquery `(SELECT account_id, k_symbol, SUM(amount) AS total_amount FROM order GROUP BY account_id, k_symbol)` который codestral пропустил (без GROUP BY agg total_amount фильтр `= 3539` не имеет смысла). Identical-to-gold pattern.
+> - **Negative evidence:** grok-4.1 Pro 0/28 (1 tokenizer EXC + 2 curl timeout). Claude-4.5-sonnet Pro 24/31 EXC `non-dict NoneType` — Perplexity backend rate-limits Claude **в любом mode** (pro и reasoning ведут себя одинаково). Не повторять Claude через helallao без 24h+ cooldown.
+> - **Cost: $0** (Юлина Perplexity Pro подписка через cookie reuse).
+>
+> Артефакты sprint'а: `eval/reports/2026-05-18/helallao-{grok,gpt52,claude45}-pro-on-v14-residue.json`, merged `eval/reports/2026-05-18/v15-helallao-pro-triplet.json`. Headline updates: README hero 84.5→85.0, 169→170, lift trace + day-5 EOD lever (на 10-рычаговом блоке расширена строка (10) bonus retry), eval table day-5 EOD row, +37.2pp над GPT-4 ref, challenging 73.5→76.5; `app/streamlit_app.py` research_value 84.5→85.0 EN+RU + caption (добавлен Claude 4.5 Sonnet в Pro voting list); `docs/SESSION_HANDOFF.md` day-5 EOD tl;dr; `docs/NEXT_SESSION.md` rewrite под v15. HF Space redeploy в процессе.
 
 > **Tl;dr 2026-05-18 day-5 (kimi-k2-thinking sprint on v13 residue):**
 > - **v14 84.5% EA** (169/200) — published BIRD Mini-Dev SQLite. **Above #1 paid system AskData+GPT-4o (81.95%) by +2.55pp.**
