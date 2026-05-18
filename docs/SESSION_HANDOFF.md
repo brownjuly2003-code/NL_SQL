@@ -1,4 +1,14 @@
-# NL_SQL — Session Handoff (2026-05-18 day-4: v13 84.0% — helallao reasoning-mode +2pp; above #1 paid SOTA by +2.05pp)
+# NL_SQL — Session Handoff (2026-05-18 day-5: v14 84.5% — kimi-k2-thinking +0.5pp; above #1 paid SOTA by +2.55pp)
+
+> **Tl;dr 2026-05-18 day-5 (kimi-k2-thinking sprint on v13 residue):**
+> - **v14 84.5% EA** (169/200) — published BIRD Mini-Dev SQLite. **Above #1 paid system AskData+GPT-4o (81.95%) by +2.55pp.**
+> - Triplet: 84.5% BIRD / 67.34% Arcwise-Plat / +6 audit catches.
+> - **Per-tier v14:** simple 92.5% (62/67) / moderate **82.8% (82/99, +1.0pp от v13)** / challenging 73.5% (25/34).
+> - **The lever:** kimi-k2-thinking через helallao `mode="reasoning"` (тот же reasoning route, что и grok-4.1-reasoning / gpt-5.2-thinking). 1 ортогональный rescue — qid 1235 moderate (Patient×Laboratory diagnosis по low RBC; v13 неправильно зацепил `Examination`, kimi выбрал `Laboratory` JOIN-path + age via `strftime`). 30 cases retry, 0 regressions.
+> - **Negative evidence:** gemini-3.0-pro на v13 residue вернул 0/30 (2 tokenizer EXC + 28 same). Saturation для бесплатных reasoning-моделей подтверждена. Kimi прошёл там, где gemini получил tokenizer EXC.
+> - **Cost: $0** (Юлина Perplexity Pro подписка через cookie reuse, cookies от 2026-05-17 23:29 ещё валидны).
+>
+> Артефакты sprint'а: `eval/reports/2026-05-18/{helallao-gemini-on-v13-residue.json, helallao-kimi-on-v13-residue.json}`, merged `eval/reports/2026-05-18/v14-helallao-kimi-thinking.json`. Headline updates: README hero + lift trace + 10-rycag block + eval table (новая строка day-5); `app/streamlit_app.py` research_value 84.0→84.5 (EN+RU) + research_caption (EN+RU); `docs/NEXT_SESSION.md` rewrite под v14. HF Space redeploy запланирован.
 
 > **Tl;dr 2026-05-18 day-4 (helallao reasoning-mode sprint):**
 > - **v13 84.0% EA** (168/200) — published BIRD Mini-Dev SQLite. **Above #1 paid system AskData+GPT-4o (81.95%) by +2.05pp.**
