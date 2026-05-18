@@ -1,0 +1,70 @@
+{
+  "alt_model": "helallao:gpt-5.2-thinking",
+  "summary": {
+    "voted_better": 0,
+    "voted_worse": 0,
+    "voted_same": 4
+  },
+  "records": [
+    {
+      "question_id": 25,
+      "db_id": "california_schools",
+      "difficulty": "moderate",
+      "question": "Name schools in Riverside which the average of average math score for SAT is grater than 400, what is the funding type of these schools?",
+      "gold_sql": "SELECT T1.sname, T2.`Charter Funding Type` FROM satscores AS T1 INNER JOIN frpm AS T2 ON T1.cds = T2.CDSCode WHERE T2.`District Name` LIKE 'Riverside%' GROUP BY T1.sname, T2.`Charter Funding Type` HAVING CAST(SUM(T1.AvgScrMath) AS REAL) / COUNT(T1.cds) > 400",
+      "baseline_pred": "SELECT s.FundingType FROM schools AS s JOIN satscores AS t ON s.CDSCode = t.cds WHERE s.City = 'Riverside' AND t.AvgScrMath > 400 GROUP BY s.FundingType HAVING AVG(t.AvgScrMath) > 400",
+      "alt_pred": "WITH riverside_schools AS (SELECT s.\"School\" AS school_name, s.\"FundingType\" AS funding_type, sat.\"AvgScrMath\" AS avg_math FROM schools AS s INNER JOIN satscores AS sat ON s.\"CDSCode\" = sat.\"cds\" WHERE s.\"County\" = 'Riverside' AND sat.\"rtype\" = 'S'), avg_riverside AS (SELECT AVG(avg_math) AS avg_of_avg_math FROM riverside_schools) SELECT DISTINCT rs.school_name, rs.funding_type FROM riverside_schools AS rs CROSS JOIN avg_riverside AS a WHERE a.avg_of_avg_math > 400",
+      "alt_confidence": 0.95,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "helallao:gpt-5.2-thinking",
+      "elapsed_ms": 30974.441799990018
+    },
+    {
+      "question_id": 408,
+      "db_id": "card_games",
+      "difficulty": "moderate",
+      "question": "How many unknown power cards contain info about the triggered ability",
+      "gold_sql": "SELECT Count(DISTINCT T1.id) FROM cards AS T1 INNER JOIN rulings AS T2 ON T1.uuid = T2.uuid WHERE (T1.power IS NULL OR T1.power = '*') AND T2.text LIKE '%triggered ability%'",
+      "baseline_pred": "SELECT COUNT(*) FROM cards WHERE (power IS NULL OR power = '*') AND text LIKE '%triggered ability%'",
+      "alt_pred": "SELECT COUNT(*) FROM cards WHERE (power IS NULL OR power = '*') AND text LIKE '%triggered ability%'",
+      "alt_confidence": 0.0,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "helallao:gpt-5.2-thinking",
+      "elapsed_ms": 7301.421899988782
+    },
+    {
+      "question_id": 894,
+      "db_id": "formula_1",
+      "difficulty": "moderate",
+      "question": "What is the best lap time recorded? List the driver and race with such recorded lap time.",
+      "gold_sql": "SELECT T2.milliseconds, T1.forename, T1.surname, T3.name FROM drivers AS T1 INNER JOIN lapTimes AS T2 ON T1.driverId = T2.driverId INNER JOIN races AS T3 ON T2.raceId = T3.raceId ORDER BY T2.milliseconds ASC LIMIT 1",
+      "baseline_pred": "SELECT drivers.forename, drivers.surname, races.name FROM lapTimes JOIN drivers ON lapTimes.driverId = drivers.driverId JOIN races ON lapTimes.raceId = races.raceId WHERE lapTimes.milliseconds = (SELECT MIN(milliseconds) FROM lapTimes) LIMIT 1",
+      "alt_pred": "SELECT d.forename, d.surname, r.name FROM lapTimes AS lt INNER JOIN drivers AS d ON lt.driverId = d.driverId INNER JOIN races AS r ON lt.raceId = r.raceId WHERE lt.milliseconds = (SELECT MIN(milliseconds) FROM lapTimes)",
+      "alt_confidence": 0.0,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "helallao:gpt-5.2-thinking",
+      "elapsed_ms": 14297.170999998343
+    },
+    {
+      "question_id": 1247,
+      "db_id": "thrombosis_prediction",
+      "difficulty": "challenging",
+      "question": "Among the male patients who have a normal level of white blood cells, how many of them have an abnormal fibrinogen level?",
+      "gold_sql": "SELECT COUNT(DISTINCT T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.FG <= 150 OR T2.FG >= 450 AND T2.WBC > 3.5 AND T2.WBC < 9.0 AND T1.SEX = 'M'",
+      "baseline_pred": "SELECT COUNT(DISTINCT L.ID) FROM Patient P INNER JOIN Laboratory L ON P.ID = L.ID WHERE P.SEX = 'M' AND L.WBC > 3.5 AND L.WBC < 9.0 AND (L.FG <= 150 OR L.FG >= 450)",
+      "alt_pred": "SELECT COUNT(*) FROM Patient AS P INNER JOIN Laboratory AS L ON P.ID = L.ID WHERE P.SEX = 'M' AND L.WBC > 3.5 AND L.WBC < 9.0 AND (L.FG <= 150 OR L.FG >= 450)",
+      "alt_confidence": 0.95,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "helallao:gpt-5.2-thinking",
+      "elapsed_ms": 7087.59869998903
+    }
+  ]
+}

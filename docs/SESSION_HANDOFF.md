@@ -1,4 +1,15 @@
-# NL_SQL — Session Handoff (2026-05-18 day-5 EOD: v15 85.0% — Pro-triplet retry +0.5pp; above #1 paid SOTA by +3.05pp)
+# NL_SQL — Session Handoff (2026-05-18 day-5 night: v16 85.5% — DAC×reasoning combo +0.5pp; above #1 paid SOTA by +3.55pp)
+
+> **Tl;dr 2026-05-18 day-5 night (DAC×reasoning combo на v15 residue):**
+> - **v16 85.5% EA** (171/200) — published BIRD Mini-Dev SQLite. **Above #1 paid system AskData+GPT-4o (81.95%) by +3.55pp.**
+> - Triplet: 85.5% BIRD / 67.34% Arcwise-Plat / +6 audit catches.
+> - **Per-tier v16:** simple 92.5% (62/67) / moderate **83.8% (83/99, +1.0pp от v15)** / challenging 76.5% (26/34).
+> - **The lever:** `NLSQL_DAC=1` (CHASE-SQL divide-and-conquer prompt) подан как primary через helallao reasoning models. Это **новый lever combination** — DAC раньше работал только на codestral residue (день 3, v11 81%), reasoning models — на plain prompt. Combo: reasoning model **получает** DAC-decomposed prompt с обязательным sub-question breakdown.
+> - **1 rescue (qid 77 moderate california_schools):** «Schools served K-9 in LA county and Percent (%) Eligible FRPM (Ages 5-17)?». **Оба** kimi-k2-thinking и grok-4.1-reasoning независимо нашли тот же rescue: `f."FRPM Count (Ages 5-17)" * 100.0 / f."Enrollment (Ages 5-17)"` с CAST на REAL для precision + правильный `s.GSserved = 'K-9'` filter — codestral терял GSserved filter и identifier-typing. Strong cross-validation signal.
+> - **Negative evidence (operational):** Perplexity backend coalesces reasoning quota по аккаунту, не по модели. После полного kimi sprint (21/30 reached) сразу gpt-5.2-thinking получил 4/30 reached (24 EXC `non-dict NoneType`), grok-4.1-reasoning 4/30 reached (26 EXC, в т.ч. DNS resolution fails). **Не запускать reasoning model triplet back-to-back** — нужен cooldown между sprint'ами (10-15 мин минимум для restore reasoning quota).
+> - **Cost: $0** (Юлина Perplexity Pro подписка через cookie reuse).
+>
+> Артефакты sprint'а: `eval/reports/2026-05-18/helallao-{kimi,gpt52,grok}-dac-on-v15-residue.json`, merged `eval/reports/2026-05-18/v16-helallao-dac-reasoning.json`. Headline updates: README hero 85.0→85.5, 170→171, lift trace + day-5 night lever, 10→11 рычагов, eval table day-5 night row, +37.2→+37.7pp, moderate 82.8→83.8; `app/streamlit_app.py` research_value 85.0→85.5 EN+RU + caption (+«DAC×reasoning combo»); `docs/SESSION_HANDOFF.md` day-5 night tl;dr; `docs/NEXT_SESSION.md` rewrite под v16. HF Space redeploy в процессе.
 
 > **Tl;dr 2026-05-18 day-5 EOD (helallao Pro triplet retry на v14 residue):**
 > - **v15 85.0% EA** (170/200) — published BIRD Mini-Dev SQLite. **Above #1 paid system AskData+GPT-4o (81.95%) by +3.05pp.**

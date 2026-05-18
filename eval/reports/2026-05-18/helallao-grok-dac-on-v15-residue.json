@@ -1,0 +1,70 @@
+{
+  "alt_model": "helallao:grok-4.1-reasoning",
+  "summary": {
+    "voted_better": 1,
+    "voted_worse": 0,
+    "voted_same": 3
+  },
+  "records": [
+    {
+      "question_id": 25,
+      "db_id": "california_schools",
+      "difficulty": "moderate",
+      "question": "Name schools in Riverside which the average of average math score for SAT is grater than 400, what is the funding type of these schools?",
+      "gold_sql": "SELECT T1.sname, T2.`Charter Funding Type` FROM satscores AS T1 INNER JOIN frpm AS T2 ON T1.cds = T2.CDSCode WHERE T2.`District Name` LIKE 'Riverside%' GROUP BY T1.sname, T2.`Charter Funding Type` HAVING CAST(SUM(T1.AvgScrMath) AS REAL) / COUNT(T1.cds) > 400",
+      "baseline_pred": "SELECT s.FundingType FROM schools AS s JOIN satscores AS t ON s.CDSCode = t.cds WHERE s.City = 'Riverside' AND t.AvgScrMath > 400 GROUP BY s.FundingType HAVING AVG(t.AvgScrMath) > 400",
+      "alt_pred": "SELECT DISTINCT T1.School, T1.FundingType FROM schools AS T1 INNER JOIN (\n  SELECT T3.CDSCode FROM satscores AS T4 INNER JOIN schools AS T3 ON T4.cds = T3.CDSCode \n  WHERE T3.County = 'Riverside' AND T4.AvgScrMath IS NOT NULL\n  GROUP BY T3.CDSCode HAVING AVG(T4.AvgScrMath) > 400\n) AS T2 ON T1.CDSCode = T2.CDSCode",
+      "alt_confidence": 0.0,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "helallao:grok-4.1-reasoning",
+      "elapsed_ms": 12786.261799992644
+    },
+    {
+      "question_id": 77,
+      "db_id": "california_schools",
+      "difficulty": "moderate",
+      "question": "Which schools served a grade span of Kindergarten to 9th grade in the county of Los Angeles and what is its Percent (%) Eligible FRPM (Ages 5-17)?",
+      "gold_sql": "SELECT T2.School, T1.`FRPM Count (Ages 5-17)` * 100 / T1.`Enrollment (Ages 5-17)` FROM frpm AS T1 INNER JOIN schools AS T2 ON T1.CDSCode = T2.CDSCode WHERE T2.County = 'Los Angeles' AND T2.GSserved = 'K-9'",
+      "baseline_pred": "SELECT f.`School Name`, (f.`FRPM Count (Ages 5-17)` / f.`Enrollment (Ages 5-17)`) * 100 AS `Percent (%) Eligible FRPM (Ages 5-17)` FROM frpm f JOIN schools s ON f.CDSCode = s.CDSCode WHERE f.`County Name` = 'Los Angeles' AND f.`Low Grade` = 'K' AND f.`High Grade` = '9'",
+      "alt_pred": "SELECT s.School, (f.\"FRPM Count (Ages 5-17)\" * 100.0) / f.\"Enrollment (Ages 5-17)\" AS \"Percent (%) Eligible FRPM (Ages 5-17)\" FROM schools AS s INNER JOIN frpm AS f ON s.CDSCode = f.CDSCode WHERE s.County = 'Los Angeles' AND s.GSserved LIKE 'K-9' AND f.\"Enrollment (Ages 5-17)\" > 0",
+      "alt_confidence": 0.0,
+      "baseline_match": false,
+      "alt_match": true,
+      "vote_match": true,
+      "vote_source": "helallao:grok-4.1-reasoning",
+      "elapsed_ms": 10426.591099996585
+    },
+    {
+      "question_id": 484,
+      "db_id": "card_games",
+      "difficulty": "moderate",
+      "question": "Please list the Italian names of the cards in the set Coldsnap with the highest converted mana cost.",
+      "gold_sql": "SELECT T2.name FROM foreign_data AS T1 INNER JOIN cards AS T2 ON T2.uuid = T1.uuid INNER JOIN sets AS T3 ON T3.code = T2.setCode WHERE T3.name = 'Coldsnap' AND T1.language = 'Italian' ORDER BY T2.convertedManaCost DESC",
+      "baseline_pred": "SELECT fd.name FROM cards AS c JOIN foreign_data AS fd ON c.uuid = fd.uuid JOIN sets AS s ON c.setCode = s.code WHERE s.name = 'Coldsnap' AND fd.language = 'Italian' ORDER BY c.convertedManaCost DESC LIMIT 1",
+      "alt_pred": "SELECT DISTINCT c.name FROM cards c WHERE c.name = 'Coldsnap' AND c.convertedManaCost = (SELECT MAX(c2.convertedManaCost) FROM cards c2 WHERE c2.name = 'Coldsnap') AND EXISTS (SELECT 1 FROM foreign_data f WHERE f.uuid = c.uuid AND f.language = 'Italian')",
+      "alt_confidence": 0.0,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "helallao:grok-4.1-reasoning",
+      "elapsed_ms": 15449.908200011123
+    },
+    {
+      "question_id": 694,
+      "db_id": "codebase_community",
+      "difficulty": "moderate",
+      "question": "Provide the text of the latest 10 comments to the post with the title 'Analysing wind data with R' and the display name of the user who left it.",
+      "gold_sql": "SELECT T3.Text, T1.DisplayName FROM users AS T1 INNER JOIN posts AS T2 ON T1.Id = T2.OwnerUserId INNER JOIN comments AS T3 ON T2.Id = T3.PostId WHERE T2.Title = 'Analysing wind data with R' ORDER BY T1.CreationDate DESC LIMIT 10",
+      "baseline_pred": "SELECT comments.Text, comments.UserDisplayName FROM comments JOIN posts ON comments.PostId = posts.Id WHERE posts.Title = 'Analysing wind data with R' ORDER BY comments.CreationDate DESC LIMIT 10",
+      "alt_pred": "SELECT T2.Text, T1.DisplayName FROM users AS T1 INNER JOIN comments AS T2 ON T2.UserId = T1.Id WHERE T2.PostId = (SELECT Id FROM posts WHERE Title = 'Analysing wind data with R') ORDER BY T2.CreationDate DESC LIMIT 10",
+      "alt_confidence": 0.95,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "helallao:grok-4.1-reasoning",
+      "elapsed_ms": 8054.297700000461
+    }
+  ]
+}
