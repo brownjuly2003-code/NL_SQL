@@ -1,0 +1,70 @@
+{
+  "alt_model": "helallao:grok-4.1",
+  "summary": {
+    "voted_better": 0,
+    "voted_worse": 0,
+    "voted_same": 4
+  },
+  "records": [
+    {
+      "question_id": 25,
+      "db_id": "california_schools",
+      "difficulty": "moderate",
+      "question": "Name schools in Riverside which the average of average math score for SAT is grater than 400, what is the funding type of these schools?",
+      "gold_sql": "SELECT T1.sname, T2.`Charter Funding Type` FROM satscores AS T1 INNER JOIN frpm AS T2 ON T1.cds = T2.CDSCode WHERE T2.`District Name` LIKE 'Riverside%' GROUP BY T1.sname, T2.`Charter Funding Type` HAVING CAST(SUM(T1.AvgScrMath) AS REAL) / COUNT(T1.cds) > 400",
+      "baseline_pred": "SELECT s.FundingType FROM schools AS s JOIN satscores AS t ON s.CDSCode = t.cds WHERE s.City = 'Riverside' AND t.AvgScrMath > 400 GROUP BY s.FundingType HAVING AVG(t.AvgScrMath) > 400",
+      "alt_pred": "SELECT DISTINCT f.`School Name`, s.`FundingType`\nFROM frpm AS f\nJOIN schools AS s\n  ON f.CDSCode = s.CDSCode\nWHERE f.`County Name` = 'Riverside'\n  AND s.FundingType IS NOT NULL\nGROUP BY f.`School Name`, s.`FundingType`\nHAVING AVG((SELECT AVG(CASE WHEN ss.AvgScrMath IS NOT NULL THEN ss.AvgScrMath END) FROM satscores AS ss WHERE ss.dname = f.`District Name` AND ss.rtype = 'D')) > 400",
+      "alt_confidence": 0.0,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "helallao:grok-4.1",
+      "elapsed_ms": 20274.612099994556
+    },
+    {
+      "question_id": 37,
+      "db_id": "california_schools",
+      "difficulty": "moderate",
+      "question": "What is the complete address of the school with the lowest excellence rate? Indicate the Street, City, Zip and State.",
+      "gold_sql": "SELECT T2.Street, T2.City, T2.State, T2.Zip FROM satscores AS T1 INNER JOIN schools AS T2 ON T1.cds = T2.CDSCode ORDER BY CAST(T1.NumGE1500 AS REAL) / T1.NumTstTakr ASC LIMIT 1",
+      "baseline_pred": "SELECT Street, City, Zip, State FROM schools WHERE CDSCode = (SELECT cds FROM satscores WHERE NumTstTakr > 0 ORDER BY (NumGE1500 * 1.0 / NumTstTakr) ASC LIMIT 1)",
+      "alt_pred": "SELECT sc.Street, sc.City, sc.Zip, sc.State\nFROM frpm f\nJOIN schools sc ON f.CDSCode = sc.CDSCode\nWHERE f.NumTstTakr IS NOT NULL AND f.NumTstTakr > 0\nORDER BY (f.NumGE1500 * 1.0) / f.NumTstTakr ASC\nLIMIT 1",
+      "alt_confidence": 0.0,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "helallao:grok-4.1",
+      "elapsed_ms": 12069.810900007724
+    },
+    {
+      "question_id": 125,
+      "db_id": "financial",
+      "difficulty": "challenging",
+      "question": "For loans contracts which are still running where client are in debt, list the district of the and the state the percentage unemployment rate increment from year 1995 to 1996.",
+      "gold_sql": "SELECT CAST((T3.A13 - T3.A12) AS REAL) * 100 / T3.A12 FROM loan AS T1 INNER JOIN account AS T2 ON T1.account_id = T2.account_id INNER JOIN district AS T3 ON T2.district_id = T3.district_id WHERE T1.status = 'D'",
+      "baseline_pred": "SELECT district.A2, CAST((district.A13 - district.A12) * 100.0 / district.A12 AS REAL) FROM loan JOIN account ON loan.account_id = account.account_id JOIN client ON account.district_id = client.district_id JOIN district ON client.district_id = district.district_id WHERE loan.status = 'D'",
+      "alt_pred": "SELECT DISTINCT a.district_id\n  FROM loan l\n  JOIN account a ON l.account_id = a.account_id\n  JOIN disp d ON d.account_id = a.account_id\n  WHERE l.status = 'D'\n    AND d.type = 'OWNER'\n), unemployment_by_district AS (\n  SELECT district_id,\n         ((A13 - A12) / NULLIF(A12, 0)) * 100.0 AS unemployment_increment\n  FROM district\n)\nSELECT dl.district_id, ub.unemployment_increment\nFROM debt_loans dl\nJOIN unemployment_by_district ub ON ub.district_id = dl.district_id",
+      "alt_confidence": 0.0,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "helallao:grok-4.1",
+      "elapsed_ms": 11667.305799986934
+    },
+    {
+      "question_id": 207,
+      "db_id": "toxicology",
+      "difficulty": "challenging",
+      "question": "What elements are in a double type bond?",
+      "gold_sql": "SELECT DISTINCT T1.element FROM atom AS T1 INNER JOIN bond AS T2 ON T1.molecule_id = T2.molecule_id INNER JOIN connected AS T3 ON T1.atom_id = T3.atom_id WHERE T2.bond_type = '='",
+      "baseline_pred": "SELECT DISTINCT a.element FROM atom a JOIN bond b ON a.molecule_id = b.molecule_id JOIN connected c ON b.bond_id = c.bond_id WHERE b.bond_type = '='",
+      "alt_pred": "SELECT DISTINCT a.element AS element_in_double_bond FROM atom AS a JOIN bond AS b ON a.molecule_id = b.molecule_id WHERE b.bond_type = '='",
+      "alt_confidence": 0.0,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "helallao:grok-4.1",
+      "elapsed_ms": 8335.170199992717
+    }
+  ]
+}

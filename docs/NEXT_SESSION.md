@@ -41,8 +41,8 @@
 
 | Цель | Стратегия | Ожидание |
 |---|---|---|
-| Past 86.5% chrome-free $0 | gpt-5.2 Pro retry на v18 residue (27 fails) после ≥30 мин cooldown — Pro mode дошёл только до 13/28 на прошлом sprint, остальные 15 cases НЕ пробованы под Pro. Высокий EV. | +0-2 rescue (~+0.5-1pp) |
-| Past 86.5% chrome-free $0 | Grok-4.1 Pro повторный с увеличенным `--sleep-between` (например 8.0) — 2 EXC connection-abort qid 37/1247 могли быть network noise, не модельный saturation | +0-1 rescue |
+| Past 86.5% chrome-free $0 | gpt-5.2 Pro retry на v18 residue (27 fails) **после ≥нескольких часов** cooldown — 30 мин эмпирически недостаточно (Grok-4.1 Pro+DAC на v18 residue после 30 мин cooldown получил 4/27 reached + 22 EXC `non-dict NoneType`). Pro-quota coalesces account-wide. | +0-2 rescue (~+0.5-1pp) |
+| Past 86.5% chrome-free $0 | DAC + helallao Pro mode после долгого cooldown — combo unique, ранее не пробованный полностью (Grok-4.1 Pro+DAC прервался на 4-м случае от Pro-quota coalesce) | +0-1 rescue, требует cooldown ≥3h |
 | Past 86.5% chrome-free $0 | claude-4.5-sonnet Pro через 24h+ cooldown (последний тест day-5 EOD ~06:30 MSK) | +0-2 rescue |
 | Past 86.5% chrome-free $0 | DAC mode для Pro models — `NLSQL_DAC=1 --model gpt-5.2` на v18 residue (Pro+DAC combo) | +0-1 rescue |
 | Past 86.5% chrome-free $0 | OpenRouter $1 top-up unlocks 1000/day free-model requests | re-test ortogonal free models, +0-1pp |
@@ -73,6 +73,7 @@
 - Не повторять gemini-3.0-pro на текущем prompt стеке (0/30 saturation подтверждена day-5).
 - Не повторять grok-4.1 Pro / reasoning на v14-v16 residue identical pipeline без modified prompt (DAC, M-Schema injection, новые few-shot).
 - **Не повторять mistral-large self-consistency на v16 residue** (day-5 evening: 3-key rotation × 3 temps × 29 qids → 0 rescues, same-family plateau подтверждён).
+- **Не запускать второй helallao Pro sprint в течение 30 мин** (day-5 evening v18: после gpt-5.2 Pro burned 13 cases, Grok-4.1 Pro+DAC через 30 мин получил 4/27 reached + 22 `non-dict NoneType`. Pro-quota recovers медленнее — закладывать ≥3h между sprint'ами).
 
 ## Quick start если хочется быстрого win
 

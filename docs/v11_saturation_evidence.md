@@ -185,3 +185,19 @@ Artefacts:
 - Patch: `scripts/run_selfcon_retry.py` (+ `RotatingMistralProvider` + `--api-keys` CSV arg)
 
 No update to headline. v16 85.5% verified остаётся ceiling под $0 chrome-free + helallao constraint. **Не повторять:** mistral-large (любая temp schedule, любая ротация ≥3 keys) на v16 residue без модификации prompt (DAC, M-Schema, fewshot diversification).
+
+## 2026-05-18 day-5 evening — Pro-quota coalesce empirical: cooldown 30 мин недостаточен
+
+После v18 sprint (helallao gpt-5.2 Pro → +1 rescue qid 989, 13/28 reached перед coalesce), запущен Grok-4.1 Pro + DAC на v18 residue (27 fails) с `--sleep-between 6.0`. Прошло ~30 мин между sprint'ами.
+
+| # | Model + DAC | Reached | Rescues | EXC pattern |
+|---|---|---:|---:|---|
+| 1 | grok-4.1 Pro + DAC (NLSQL_DAC=1, sleep=6.0) | **4/27** | **0** | 1 EXC connection-abort qid 349 + 22 EXC `non-dict NoneType` (qid 408..1531) — Pro-quota coalesced на 6-м call |
+
+**Conclusion:** Pro-quota Perplexity recovers значительно медленнее 30 мин — после прошлого Pro sprint (13 case) осталось только ~4 cases квоты к следующему sprint'у. Empirical: 30-минутный cooldown недостаточен. Pro-quota вероятно daily-bound, либо рекаверится в течение часов, не минут.
+
+**Operational rule (updated):** Между helallao Pro sprints (любая модель, base name без -thinking/-reasoning) нужен cooldown ≥ нескольких часов, а не 30 мин. Альтернативно — использовать reasoning-route (mode="reasoning") с -thinking/-reasoning suffix, у которого отдельная quota.
+
+Artefacts:
+- `eval/reports/2026-05-18b/helallao-grok41-pro-dac-on-v18-residue.json` (cases=4, 0 rescues)
+- `eval/reports/2026-05-18b/helallao-grok41-pro-dac.log`
