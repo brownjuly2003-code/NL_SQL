@@ -1,0 +1,40 @@
+{
+  "alt_model": "helallao:claude-4.5-sonnet-thinking",
+  "summary": {
+    "voted_better": 0,
+    "voted_worse": 0,
+    "voted_same": 2
+  },
+  "records": [
+    {
+      "question_id": 25,
+      "db_id": "california_schools",
+      "difficulty": "moderate",
+      "question": "Name schools in Riverside which the average of average math score for SAT is grater than 400, what is the funding type of these schools?",
+      "gold_sql": "SELECT T1.sname, T2.`Charter Funding Type` FROM satscores AS T1 INNER JOIN frpm AS T2 ON T1.cds = T2.CDSCode WHERE T2.`District Name` LIKE 'Riverside%' GROUP BY T1.sname, T2.`Charter Funding Type` HAVING CAST(SUM(T1.AvgScrMath) AS REAL) / COUNT(T1.cds) > 400",
+      "baseline_pred": "SELECT s.FundingType FROM schools AS s JOIN satscores AS t ON s.CDSCode = t.cds WHERE s.City = 'Riverside' AND t.AvgScrMath > 400 GROUP BY s.FundingType HAVING AVG(t.AvgScrMath) > 400",
+      "alt_pred": "SELECT s.School, s.FundingType\nFROM schools AS s\nJOIN satscores AS sa ON sa.cds = s.CDSCode\nWHERE s.County = 'Riverside' AND sa.AvgScrMath > 400",
+      "alt_confidence": 0.0,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "helallao:claude-4.5-sonnet-thinking",
+      "elapsed_ms": 20030.52359999856
+    },
+    {
+      "question_id": 37,
+      "db_id": "california_schools",
+      "difficulty": "moderate",
+      "question": "What is the complete address of the school with the lowest excellence rate? Indicate the Street, City, Zip and State.",
+      "gold_sql": "SELECT T2.Street, T2.City, T2.State, T2.Zip FROM satscores AS T1 INNER JOIN schools AS T2 ON T1.cds = T2.CDSCode ORDER BY CAST(T1.NumGE1500 AS REAL) / T1.NumTstTakr ASC LIMIT 1",
+      "baseline_pred": "SELECT Street, City, Zip, State FROM schools WHERE CDSCode = (SELECT cds FROM satscores WHERE NumTstTakr > 0 ORDER BY (NumGE1500 * 1.0 / NumTstTakr) ASC LIMIT 1)",
+      "alt_pred": "SELECT s.Street, s.City, s.Zip, s.State\nFROM schools s\nJOIN satscores ss ON s.CDSCode = ss.cds\nWHERE ss.NumTstTakr > 0\nORDER BY CAST(ss.NumGE1500 AS REAL) / CAST(ss.NumTstTakr AS REAL)\nLIMIT 1",
+      "alt_confidence": 0.95,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "helallao:claude-4.5-sonnet-thinking",
+      "elapsed_ms": 27245.007500008796
+    }
+  ]
+}

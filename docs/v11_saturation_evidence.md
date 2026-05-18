@@ -201,3 +201,27 @@ No update to headline. v16 85.5% verified остаётся ceiling под $0 chr
 Artefacts:
 - `eval/reports/2026-05-18b/helallao-grok41-pro-dac-on-v18-residue.json` (cases=4, 0 rescues)
 - `eval/reports/2026-05-18b/helallao-grok41-pro-dac.log`
+
+## 2026-05-18 day-5 night — reasoning-route saturation on v18 residue (kimi+sonnet45 both 0 rescues)
+
+После ~4h cooldown от прошлого Pro+reasoning sprint'а запущены reasoning-route модели на v18 residue (27 fails), DAC включён (`NLSQL_DAC=1`). Проверяет hypothesis из 055292d commit — что reasoning-route имеет отдельную quota и orthogonal lever на коротком cooldown.
+
+| # | Model + DAC | Reached | Rescues | EXC pattern | Cooldown от прошлого helallao sprint'а |
+|---|---|---:|---:|---|---|
+| 1 | claude-4.5-sonnet-thinking + DAC (sleep=2.0, default) | **2/27** | **0** | 25 EXC `non-dict NoneType` (qid 125..1531) — coalesce уже на 3-м case | **~10 мин** после grok-4.1 Pro+DAC sprint |
+| 2 | kimi-k2-thinking + DAC (sleep=4.0) | **26/27** | **0** | 1 EXC connection-abort qid 484; 26 "same" votes | **~4h** после sonnet45-thinking sprint |
+
+**Двойная conclusion:**
+1. **Sonnet45-thinking 24h rule подтверждён независимо.** Прошлая sonnet-thinking попытка была day-5 EOD ~06:30 MSK; повтор в 19:02 (~12h после) сразу coalesce. Источник coalesce — claude-4.5-sonnet-specific account ban (memory `feedback_user_chrome_assumption` / NEXT_SESSION row 73), не generic reasoning quota.
+2. **Kimi-k2-thinking + DAC v18-residue saturated.** 26/27 reached (1 connection EXC), 26 same votes, 0 rescues. Чистая saturation: kimi одинаково оценивает v18-residue qids как gpt-5.2-Pro baseline. v18 residue ortogonal к v15-residue rescue (qid 77) — kimi не имеет шанса на v18 residue. Этот lever закрыт.
+
+**Operational rule (refined):**
+- Reasoning-route ДЕЙСТВИТЕЛЬНО имеет отдельную quota от Pro mode (proof: kimi через ~4h после Pro sprint работает чисто).
+- НО внутри reasoning-route есть per-model 24h ban для claude-4.5-sonnet-thinking (sonnet45 day-5 EOD evidence persists).
+- Между разными reasoning-моделями (kimi vs gemini vs grok-reasoning) cross-quota effects не наблюдались.
+
+Artefacts:
+- `eval/reports/2026-05-18b/helallao-kimi-thinking-dac-on-v18-residue.json` (cases=26, 0 rescues)
+- `eval/reports/2026-05-18b/helallao-kimi-thinking-dac.log`
+- `eval/reports/2026-05-18b/helallao-sonnet45-thinking-dac-on-v18-residue.json` (cases=2, 25 EXC, 24h-rule violation evidence)
+- `eval/reports/2026-05-18b/helallao-sonnet45-thinking-dac.log`
