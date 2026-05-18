@@ -225,3 +225,32 @@ Artefacts:
 - `eval/reports/2026-05-18b/helallao-kimi-thinking-dac.log`
 - `eval/reports/2026-05-18b/helallao-sonnet45-thinking-dac-on-v18-residue.json` (cases=2, 25 EXC, 24h-rule violation evidence)
 - `eval/reports/2026-05-18b/helallao-sonnet45-thinking-dac.log`
+
+## 2026-05-18 day-5 night — Pro+DAC combo on v18 residue + Pro-quota partial-recovery curve
+
+После ~4h cooldown от последнего Pro sprint'а (helallao gpt-5.2 Pro v18 в ~18:30, grok-4.1 Pro+DAC в ~18:52) запущен gpt-5.2 Pro **+ DAC combo** (`NLSQL_DAC=1`, `sleep=6.0`) на v18 residue (27 fails). Combo ранее не пробованный, NEXT_SESSION row "DAC mode для Pro models +0-1 rescue".
+
+| # | Model + mode | Cooldown от прошлого Pro sprint'а | Reached | Rescues | EXC pattern |
+|---|---|---|---:|---:|---|
+| 1 | gpt-5.2 Pro + DAC (sleep=6.0) | **~4h** | **15/27** | **0** | 1 tokenize EXC qid 25 (SQL parse hiccup) + 11 EXC `non-dict NoneType` (qid 1094..1531) — Pro-quota coalesced на 17-м call |
+
+**Pro-quota recovery curve (empirical):**
+
+| Cooldown | Capacity (case до coalesce) |
+|---|---:|
+| ~10-30 мин | **~4 cases** (grok-4.1 Pro+DAC day-5 evening) |
+| ~4h | **~15-16 cases** (gpt-5.2 Pro+DAC day-5 night) |
+| Полное восстановление | Вероятно ≥24h (daily Pro quota) |
+
+**Двойная conclusion:**
+1. **Pro+DAC combo на v18 residue saturated.** 15 reached, 15 same votes, 0 rescues. DAC prompt switch на Pro models не открывает новых rescue paths поверх Pro-only sprint'а.
+2. **Pro-quota partial recovery curve quantified.** 4h cooldown даёт ~15-16 case capacity (vs ~4 case на 30 мин cooldown). Full daily quota Perplexity Pro coalesce-protected даже на 4h cooldown — для full 27-case sprint нужно ждать ≥6-8h или брать paid Anthropic/OpenAI bypass.
+
+**Operational rule (refined v3):** Не запускать Pro mode sprint на residue размером > capacity-at-current-cooldown:
+- 30 мин cooldown → max 4 cases
+- 4h cooldown → max 15 cases
+- 27+ case sprint требует ≥8h cooldown (consensus или ждать suток)
+
+Artefacts:
+- `eval/reports/2026-05-18b/helallao-gpt52-pro-dac-on-v18-residue.json` (cases=15, 0 rescues)
+- `eval/reports/2026-05-18b/helallao-gpt52-pro-dac.log`
