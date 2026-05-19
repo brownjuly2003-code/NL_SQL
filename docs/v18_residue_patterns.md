@@ -83,6 +83,10 @@ Per-qid:
 
 P1 **reverted** from working tree. Не возвращаться без orthogonal mechanism (e.g., row-count-aware repair pass that catches tied-rows truncation).
 
+**Orthogonal mechanism attempt CLOSED 2026-05-19 night: NEGATIVE.** Codex implemented `row_count_repair` node (AST-level LIMIT 1 detection + tie-prone question regex + re-execute without LIMIT + column-shape acceptance). Tests 4/4 pass, gate green. Empirical n=200 config C codestral: P2+P3 baseline 56.0% → +rcrepair 55.5% (**−1 case, qid 1157 regression, 0 rescues**). Of 23 cases eligible (LIMIT 1 + tie-prone + pred_row_count=1), zero actually got repaired in the final state — pred_sql unchanged. Likely state-update propagation issue in langgraph wiring or run-to-run variance in codestral generation. Reverted. Artefacts: `eval/reports/2026-05-19/C_dense_cards-rcrepair.json`.
+
+**Vendor: the 4 target qids (484, 930, 1144, 1205) are truly hard.** Neither prompt patch nor execute-feedback heuristic at codestral baseline layer flips them. They sit in v18 86.5% residue precisely because the full voting stack (gpt-5.2 Pro, sonnet-thinking, grok, kimi) also couldn't rescue. Past 86.5% won't come from baseline-layer tooling — only from new voting-layer additions (cooldown-gated) or paid escalation.
+
 Artefacts: `eval/reports/2026-05-19/C_dense_cards-p23_baseline.json`, `C_dense_cards-p1p23.json`.
 
 ### Patch P1 ORIGINAL proposal (для истории)

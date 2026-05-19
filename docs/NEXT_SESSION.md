@@ -54,6 +54,8 @@
   - P2: `formula_1.driverStandings vs results` disambiguation (target qid 902 + аналоги)
   - P3: `codebase_community.postHistory.Comment vs comments.Text` disambiguation (target qid 584)
 - **P1 LIMIT-discipline CLOSED 2026-05-19 night — NEGATIVE.** Experimental n=200 config C codestral: P23 56.0% → P1+P23 55.0% (**−2 cases, −1.0pp**). 6 wins / 8 regressions / 0 rescues among target qids 484/930/1144/1205. Reverted. Artefacts: `eval/reports/2026-05-19/C_dense_cards-{p23_baseline,p1p23}.json`.
+- **Orthogonal mechanism (row_count_repair node) CLOSED 2026-05-19 night — NEGATIVE.** Codex implemented full node (AST LIMIT detection + tie-prone regex + re-execute + acceptance). Gate green, 4 unit tests pass. Empirical: 56.0% → 55.5% (**−1 case qid 1157, 0 rescues**). Of 23 eligible cases zero got repaired in final state — likely langgraph state propagation issue. Reverted. Artefact: `eval/reports/2026-05-19/C_dense_cards-rcrepair.json`.
+- **Verdict on 4 target qids (484, 930, 1144, 1205):** they are deeply hard. Baseline-layer tooling (prompt patches OR execute-feedback heuristics) does not flip them. Past 86.5% must come from voting-layer additions (Pro retries gated on cooldown) или paid escalation. Не возвращаться к baseline-layer попыткам без orthogonal idea не из списка.
 - **Gate:** pytest 272/272, ruff clean, mypy strict clean (HEAD `6b290e1` + 3 file changes still uncommitted).
 - **Live HF Space E2E verified** через Playwright (86.5% / 72.36% видны на UI).
 
