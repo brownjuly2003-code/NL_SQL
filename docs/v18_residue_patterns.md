@@ -64,7 +64,28 @@
 
 ## Realistic v19 prompt-patch headroom
 
-### Patch P1 — LIMIT discipline (A1 family, 4 cases)
+### Patch P1 — LIMIT discipline (A1 family, 4 cases) — **CLOSED 2026-05-19 night: NEGATIVE**
+
+**Experiment** (config C codestral baseline, n=200, seed 0):
+
+| Run | simple | moderate | challenging | overall |
+|---|---:|---:|---:|---:|
+| P2+P3 only (baseline) | 71.6% | 50.5% | 41.2% | **56.0% (112/200)** |
+| P1+P2+P3 | 68.7% | 50.5% | 41.2% | **55.0% (110/200)** |
+| Delta | **−2.9pp** | 0 | 0 | **−1.0pp (−2 cases)** |
+
+Per-qid:
+- P1 wins (was FAIL, now PASS): 6 cases (118, 168, 327, 909, 1340, 1390)
+- P1 regressions (was PASS, now FAIL): 8 cases (98, 99, 189, 707, 865, 1281, 1500, 1528)
+- **Target qids (484, 930, 1144, 1205): 0/4 rescued** — все остались FAIL обоих runs.
+
+**Verdict:** P1 net-regressive at codestral baseline layer. The intended 4 targets (LIMIT mis-interp on v18 voting-survived residue) are **deep hard cases** the prompt patch alone cannot flip. Meanwhile the patch causes scattered regressions on simple-tier cases that previously chose correct `LIMIT 1`.
+
+P1 **reverted** from working tree. Не возвращаться без orthogonal mechanism (e.g., row-count-aware repair pass that catches tied-rows truncation).
+
+Artefacts: `eval/reports/2026-05-19/C_dense_cards-p23_baseline.json`, `C_dense_cards-p1p23.json`.
+
+### Patch P1 ORIGINAL proposal (для истории)
 
 **Proposed addition to system prompt:**
 

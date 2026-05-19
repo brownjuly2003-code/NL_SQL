@@ -53,7 +53,7 @@
 - **Prompt patches P2 + P3 applied** к `src/nl_sql/agent/prompts/generate_sql.txt` и `generate_sql_dac.txt`:
   - P2: `formula_1.driverStandings vs results` disambiguation (target qid 902 + аналоги)
   - P3: `codebase_community.postHistory.Comment vs comments.Text` disambiguation (target qid 584)
-- **P1 LIMIT-discipline DEFERRED** — высокий regression risk на legit `LIMIT 1` cases. План: experimental n=200 eval с P1, измерить regression rate перед merge.
+- **P1 LIMIT-discipline CLOSED 2026-05-19 night — NEGATIVE.** Experimental n=200 config C codestral: P23 56.0% → P1+P23 55.0% (**−2 cases, −1.0pp**). 6 wins / 8 regressions / 0 rescues among target qids 484/930/1144/1205. Reverted. Artefacts: `eval/reports/2026-05-19/C_dense_cards-{p23_baseline,p1p23}.json`.
 - **Gate:** pytest 272/272, ruff clean, mypy strict clean (HEAD `6b290e1` + 3 file changes still uncommitted).
 - **Live HF Space E2E verified** через Playwright (86.5% / 72.36% видны на UI).
 
