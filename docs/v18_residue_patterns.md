@@ -87,6 +87,31 @@ P1 **reverted** from working tree. Не возвращаться без orthogon
 
 **Vendor: the 4 target qids (484, 930, 1144, 1205) are truly hard.** Neither prompt patch nor execute-feedback heuristic at codestral baseline layer flips them. They sit in v18 86.5% residue precisely because the full voting stack (gpt-5.2 Pro, sonnet-thinking, grok, kimi) also couldn't rescue. Past 86.5% won't come from baseline-layer tooling — only from new voting-layer additions (cooldown-gated) or paid escalation.
 
+### Patch P4 — CSC merge-revision (arXiv:2505.13271) — **CLOSED 2026-05-19 morning: NULL**
+
+Two independent research sources (r1.md, r2.md в корне репо) сошлись на CSC-SQL merge-revision как самом сильном free-tier lever (+2-4pp за счёт top-2 cluster judge между disagreeing самплов). Реализовал поверх `eval/self_consistency.py` (новая функция `vote_with_csc_merge` + prompt-шаблон) + флаг `--enable-csc-merge` в `scripts/eval_baseline.py`.
+
+**Experiment** (config F = codestral self-consistency × 4 temperatures [0.2,0.4,0.6,0.8], n=200, seed 0):
+
+| Run | simple | moderate | challenging | overall | wall |
+|---|---:|---:|---:|---:|---:|
+| F baseline (plain vote) | 71.6% | 56.6% | 47.1% | **60.0% (120/200)** | 29.5 min |
+| F + CSC merge-revision | 71.6% | 56.6% | 47.1% | **60.0% (120/200)** | 2.6 min (cache) |
+| Delta | 0 | 0 | 0 | **+0 cases (+0.00pp)** | — |
+
+Per-qid: 0 wins, 0 regressions. CSC merge-revision triggered on **6/200 = 3% cases** (qid 159, 407, 414, 1037, 1205, 1531 — pred_sql changed). None of the 6 flipped the match flag: на 5 случаях both candidates были одинаково wrong vs gold; на qid 414 both — semantically equivalent SQL, both PASS.
+
+**Target qids:** 484, 930, 1144 — top-1 cluster unanimous (codestral 4 temps все согласны на wrong LIMIT 1 SQL), CSC даже не fire'нул. qid 1205 — fired, но альтернативный candidate тоже неправ.
+
+**Verdict:** CSC null on this setup. Why:
+1. **Codestral self-consistency homogeneous** — 4 temperatures sample from one model with same biases → 97% questions имеют top-1 strictly majority (>50%) → CSC threshold не пробивается.
+2. **Judge LLM = generator LLM** — даже когда candidates disagree, codestral как judge не имеет independent ground truth (same training, same blind spots).
+3. **Hard targets unanimous** — все 4 temps выдают одну и ту же неправильную SQL для LIMIT-mis-interp cases.
+
+**Когда CSC мог бы помочь:** N-rep (different schema representations per candidate) + diverse base models (codestral + Qwen + OmniSQL). На single-model homogeneous self-consistency lift = 0.
+
+Implementation reverted. Artefacts: `eval/reports/2026-05-19/F_self_consistency-{F_baseline_v2,F_csc_v2}.json`.
+
 Artefacts: `eval/reports/2026-05-19/C_dense_cards-p23_baseline.json`, `C_dense_cards-p1p23.json`.
 
 ### Patch P1 ORIGINAL proposal (для истории)
