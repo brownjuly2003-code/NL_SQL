@@ -87,4 +87,24 @@ Rules:
   `confidence` accordingly. Do NOT ask for clarification.
 - If the schema lacks the data, return SQL that selects an empty result and set
   `confidence` to 0.
+
+# Per-database disambiguation (apply only when these tables appear in the schema block)
+
+- **formula_1.driverStandings vs results** —
+  `driverStandings.position` is the season-standings rank captured per race
+  (overall championship table snapshot after that race). `results.position`
+  / `results.positionOrder` is the **race finish position** in that single
+  race. If the question talks about "track number", "standings", "championship
+  rank", or "ranking after race N" → use `driverStandings`. If it talks
+  about "finished in position N", "Nth place in the race", "race result"
+  → use `results`. Same disambiguation applies to `driverStandings.points`
+  (cumulative season points) vs `results.points` (points scored in that race).
+- **codebase_community.postHistory.Comment vs comments.Text** —
+  `postHistory.Comment` is the **edit comment** left by the editor when
+  they revised the post (it lives next to the edit revision). `comments.Text`
+  is a **reader's comment** under the post. If the question says "comments
+  left by users who **edited** the post" → use `postHistory.Comment`. If
+  it says "comments **on/under/to** the post" / "comments by readers"
+  → use `comments.Text`.
+
 - Output only the JSON object, no markdown fences, no commentary.

@@ -47,10 +47,21 @@
 - Same-Mistral-family voting plateau на v16 residue verified — этот lever закрыт.
 - Artefacts: `eval/reports/2026-05-18b/mistral-large-rotated-on-v16-residue.json`. Detailed: `docs/v11_saturation_evidence.md § 2026-05-18 day-5 evening`.
 
+## 2026-05-19 night — v18 residue audit + P2/P3 prompt patches landed
+
+- **Audit:** `docs/v18_residue_patterns.md` — 27 fails классифицированы в 8 pattern families. Dominant: A1 LIMIT mis-interp (4), C WHERE/filter heterogeneous (11), B JOIN-path (4). E "gold wrong" 2 cases (qid 1029 ASC-for-highest, qid 1247 op-precedence) — Arcwise territory, prompt не нужен.
+- **Prompt patches P2 + P3 applied** к `src/nl_sql/agent/prompts/generate_sql.txt` и `generate_sql_dac.txt`:
+  - P2: `formula_1.driverStandings vs results` disambiguation (target qid 902 + аналоги)
+  - P3: `codebase_community.postHistory.Comment vs comments.Text` disambiguation (target qid 584)
+- **P1 LIMIT-discipline DEFERRED** — высокий regression risk на legit `LIMIT 1` cases. План: experimental n=200 eval с P1, измерить regression rate перед merge.
+- **Gate:** pytest 272/272, ruff clean, mypy strict clean (HEAD `6b290e1` + 3 file changes still uncommitted).
+- **Live HF Space E2E verified** через Playwright (86.5% / 72.36% видны на UI).
+
 ## Что делать в следующей сессии (после явного user mandate)
 
 | Цель | Стратегия | Ожидание |
 |---|---|---|
+| **Verify P2+P3 patches** | Запустить full n=200 eval на codestral baseline с patched prompts → сравнить per-qid с v18 merged → измерить +cases (target 584/902) и regression count | +2 cases best / +0 worst |
 | Past 86.5% chrome-free $0 | gpt-5.2 Pro retry на v18 residue (27 fails) **после ≥6-8h** cooldown — empirical recovery curve: 30 мин → 4 case capacity, 4h → 15 case capacity, full 27-case sprint требует ≥6-8h | +0-2 rescue (~+0.5-1pp) |
 | Past 86.5% chrome-free $0 | claude-4.5-sonnet Pro через 24h+ cooldown (последний тест day-5 EOD ~06:30 MSK) | +0-2 rescue |
 | ~~Past 86.5% Pro+DAC combo~~ | ~~`NLSQL_DAC=1 --model gpt-5.2` на v18 residue~~ — **CLOSED 2026-05-18 day-5 night.** ~4h cooldown → 15/27 reached, 0 rescues, 15 same + 11 EXC non-dict NoneType. DAC prompt switch не добавляет rescue paths на Pro models. Не повторять. | n/a |

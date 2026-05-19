@@ -76,4 +76,19 @@ Rules (same projection / DISTINCT / dialect discipline as the base prompt):
 - If the schema lacks the data, return SQL selecting empty result and
   set `confidence` to 0.
 
+Per-database disambiguation (apply only when these tables appear in the
+schema block):
+
+- **formula_1.driverStandings vs results** —
+  `driverStandings.position` = season-standings rank (overall championship
+  snapshot per race); `results.position` / `results.positionOrder` =
+  race finish position in that single race. "track number" / "standings"
+  / "championship rank" → `driverStandings`. "finished N-th" / "race result"
+  → `results`. Same for `.points` (cumulative season vs per-race).
+- **codebase_community.postHistory.Comment vs comments.Text** —
+  `postHistory.Comment` = the editor's comment on a revision (left when
+  the post was edited). `comments.Text` = a reader's comment under the
+  post. "comments left by users who **edited**" → `postHistory.Comment`.
+  "comments **on/under/to** the post" → `comments.Text`.
+
 Output only the JSON object, no markdown fences, no commentary.
