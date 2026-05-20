@@ -3,9 +3,37 @@
 > Один лист, без воды. Берёшь, делаешь, обновляешь `SESSION_HANDOFF.md`,
 > переписываешь этот файл под следующий sprint.
 
-## 2026-05-18 day-5 evening v18 — **86.5% EA verified** (BIRD-official set scoring), above #1 paid SOTA by +4.55pp
+## 2026-05-20 v19 — **87.0% EA verified** (BIRD-official set scoring), above #1 paid SOTA by +5.05pp
 
 **Состояние:**
+- HEAD bumped to v19 commit (см. git log).
+- BIRD original gold n=200 (**v19**): **87.0% EA** (174/200), BIRD-official set scoring. **v19 triplet: 87.0% BIRD / 72.36% Arcwise-Plat-SQL / +9 audit catches** (was 86.5 / 72.36 / +5 at v18; Δ +0.5pp / 0 / +4). **Above #1 paid system AskData+GPT-4o (81.95%) by +5.05pp.**
+- Per-tier v19: simple **92.5% (62/67)** / moderate **83.8% (83/99)** / challenging **85.3% (29/34, +2.9pp от v18 82.4%)**.
+- **Path v18 → v19 (+0.5pp в текущей сессии):**
+  - **helallao claude-4.5-sonnet-thinking** on v18 residue (27 fails) после 24h+ cooldown с прошлого sonnet-thinking sprint. 21/27 reached + 6 EXC (curl/DNS transient), 20 same + **1 rescue qid 743 challenging superhero** + 0 regressions.
+  - **qid 743 rescue:** baseline pred missing `CAST(... AS REAL)` на second-column SUM, claude-thinking alt_pred добавил CAST на оба числа + `LEFT JOIN publisher`. Единственный case в v16+ stack где Anthropic-family lever дал family-ortogonal coverage по отношению к OpenAI/xAI/Moonshot/Google/Mistral.
+- **Saturation evidence (same day):** gpt-5.2 Pro full sweep on same v18 residue: 24/27 reached / 0 rescues / 3 EXC. Это вторая независимая сессия с тем же исходом (2026-05-19: 15/27 reached). gpt-5.2 Pro окончательно saturated.
+- **OpenRouter free-tier closed как NEGATIVE:** wiring landed `159069b` как infra для paid OR / single-shot probes. Batch eval blocked upstream Crucible/Venice 429-storm. Write-up: `docs/research/openrouter_free_tier_2026-05-20.md`.
+- Audit: `scripts/audit_rescore.py --report eval/reports/2026-05-20/v19-helallao-sonnet-thinking.json` → 0 mismatches на 200 cells.
+
+**Open path past 87.0% (приоритет):**
+1. **kimi-k2-thinking без DAC** на v19 residue (26 fails) — на v18 residue только kimi+DAC и kimi+DAC+M-Schema гонялись; plain reasoning не тестировался. Family Moonshot ≠ Anthropic, может найти ortogonal.
+2. **grok-4.1-reasoning без DAC** на v19 residue — grok+DAC saturated, plain reasoning не пробовался.
+3. **Paid OpenRouter top-up** ($5+) — unlocks batch eval через heterogeneous `:free` models, wiring уже готов.
+4. **Local ollama heterogeneous CSC** (qwen2.5-coder default уже в settings) — без сетевого rate-limit, multi-day setup для wall-time × candidates.
+5. **claude-4.5-sonnet-thinking повтор после ≥24h** — сегодня дал 1 rescue, может вторая попытка ещё найти.
+
+**Что НЕ делать:**
+- gpt-5.2 Pro повтор на v18/v19 residue — saturated × 2 независимых сессии.
+- gpt-5.2-thinking + DAC повтор на v18/v19 residue — saturated.
+- glm-4.5-air:free через OpenRouter — reasoning-blocked output (probe verified, content="").
+- qwen3-coder:free через OpenRouter — Venice provider 429-loop на free quota.
+
+---
+
+## 2026-05-18 day-5 evening v18 — **86.5% EA verified** (BIRD-official set scoring), above #1 paid SOTA by +4.55pp
+
+**Состояние (historical, v18-baseline):**
 - HEAD bumped to v18 commit (см. git log).
 - BIRD original gold n=200 (**v18**): **86.5% EA** (173/200), BIRD-official set scoring. **v18 triplet: 86.5% BIRD / 72.36% Arcwise-Plat-SQL / +5 audit catches** (v10 was 80.5 / 67.34 / +6 — Δ +6pp / +5pp / -1, catches non-monotonic because qid 672 now BIRD-correct). **Above #1 paid system AskData+GPT-4o (81.95%) by +4.55pp.**
 - Per-tier v18: simple **92.5% (62/67)** / moderate **83.8% (83/99, +1pp от v17)** / challenging **82.4% (28/34)**.

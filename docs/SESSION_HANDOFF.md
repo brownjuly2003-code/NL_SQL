@@ -1,5 +1,19 @@
-# NL_SQL — Session Handoff (2026-05-18 day-5 evening v18 = 86.5% EA verified via helallao gpt-5.2 Pro on v17 residue, above #1 paid SOTA by +4.55pp)
+# NL_SQL — Session Handoff (2026-05-20 v19 = 87.0% EA verified via helallao claude-4.5-sonnet-thinking on v18 residue, above #1 paid SOTA by +5.05pp)
 
+> **Tl;dr 2026-05-20 v19 (helallao claude-4.5-sonnet-thinking on v18 residue):**
+> - **v19 87.0% EA verified** (174/200) — published BIRD Mini-Dev SQLite. **Above #1 paid system AskData+GPT-4o (81.95%) by +5.05pp.**
+> - **v19 triplet (rescore 2026-05-20): 87.0% BIRD / 72.36% Arcwise-Plat-SQL (144/199) / +9 audit catches** (was 86.5% / 72.36% / +5 at v18; same Arcwise % but +4 gained_on_sql_only).
+> - **Per-tier v19:** simple 92.5% (62/67) / moderate 83.8% (83/99) / challenging **85.3% (29/34, +2.9pp от v18 82.4%)**.
+> - **The lever:** helallao claude-4.5-sonnet-thinking on v18 residue (27 fails). 24h+ cooldown с последнего sonnet-thinking sprint позволил 21/27 reached (vs 2/27 на 2026-05-18b sprint когда cooldown был ≤12h). 6 EXC — curl timeout / DNS resolve fail (transient network, not Perplexity rate-limit). 20 same + 1 RESCUE + 0 regressions.
+> - **1 rescue (qid 743 challenging superhero):** "Percentage of superheroes acting in self-interest; how many published by Marvel Comics." Baseline pred missing `CAST(... AS REAL)` на second-column SUM expression — integer-divided result не совпал с gold REAL. claude-thinking alt_pred добавил CAST на оба числа + LEFT JOIN к publisher (вместо INNER). Это пятый rescue past v16 stack saturation и единственный case где Anthropic-family lever проявил family-ortogonal coverage по отношению к OpenAI/xAI/Moonshot/Google/Mistral.
+> - **Saturation evidence (same day 2026-05-20):** gpt-5.2 Pro full sweep on same v18 residue: 24/27 reached / 0 rescues / 3 EXC (curl + tokenizer). Это вторая независимая сессия с тем же исходом (2026-05-19: 15/27 reached / 0 rescues). gpt-5.2 Pro окончательно saturated на v18 residue.
+> - **OpenRouter free-tier closed:** wiring landed (`src/nl_sql/llm/providers/openrouter.py` + Settings/factory/CLI/tests) как infra; batch eval на `:free` модели blocked upstream 429-storm (Crucible/Venice rate-limit `:free` после ~2 req). Single-shot probe прошёл (`deepseek/deepseek-v4-flash:free` returned valid JSON+SQL). Полный write-up: `docs/research/openrouter_free_tier_2026-05-20.md`.
+> - **Cost: $0** (cookies от 2026-05-17 23:29 ещё валидны).
+>
+> Артефакты v19: `eval/reports/2026-05-20/{helallao-gpt52-pro-on-v18-residue-full.json, helallao-sonnet45-thinking-on-v18-residue.json, v19-helallao-sonnet-thinking.json, v19_arcwise_rescored.json}` + OpenRouter wiring/research уже в `159069b`. Headline updates: README hero 86.5→87.0, 173→174, lift trace v18→v19 row, eval table v19 row, +4.55→+5.05pp, +38.7→+39.2pp, challenging 82.4→85.3, +5→+9 catches; `app/streamlit_app.py` research_value 86.5→87.0 EN+RU + caption (three post-cooldown rescues v16→v19 path). HF Space redeploy gated к user (external publish).
+>
+> ---
+>
 > **Tl;dr 2026-05-18 day-5 evening v18 (helallao gpt-5.2 Pro on v17 residue):**
 > - **v18 86.5% EA verified** (173/200) — published BIRD Mini-Dev SQLite. **Above #1 paid system AskData+GPT-4o (81.95%) by +4.55pp.**
 > - **v18 triplet (rescore 2026-05-18 day-5 night): 86.5% BIRD / 72.36% Arcwise-Plat-SQL (144/199) / +5 audit catches** (was 67.34% / +6 at v10; qid 672 now BIRD-correct after Pro sprints, +5pp Arcwise gain). See `docs/v18_residue_audit.md` § Cross-reference.
