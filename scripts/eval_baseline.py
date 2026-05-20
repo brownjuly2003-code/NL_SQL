@@ -190,7 +190,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument(
         "--provider",
-        choices=["mistral", "groq", "github_models", "ollama", "perplexity"],
+        choices=["mistral", "groq", "github_models", "ollama", "perplexity", "openrouter"],
         default="mistral",
         help=(
             "LLM provider for generation (embedding stays mistral — only "

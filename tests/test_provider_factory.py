@@ -7,6 +7,7 @@ from nl_sql.llm.providers import ProviderError, build_provider
 from nl_sql.llm.providers.github_models import GitHubModelsProvider
 from nl_sql.llm.providers.mistral import MistralProvider
 from nl_sql.llm.providers.ollama import OllamaProvider
+from nl_sql.llm.providers.openrouter import OpenRouterProvider
 
 
 def test_factory_builds_mistral() -> None:
@@ -46,3 +47,16 @@ def test_mistral_provider_requires_api_key() -> None:
 def test_github_models_provider_requires_token() -> None:
     with pytest.raises(ProviderError, match="non-empty GitHub PAT"):
         GitHubModelsProvider(token="")
+
+
+def test_factory_builds_openrouter() -> None:
+    settings = Settings(openrouter_api_key="test-or-key")  # type: ignore[call-arg]
+    provider = build_provider("openrouter", settings=settings)
+    assert isinstance(provider, OpenRouterProvider)
+    assert provider.name == "openrouter"
+    assert provider.model == "deepseek/deepseek-v4-flash:free"
+
+
+def test_openrouter_provider_requires_api_key() -> None:
+    with pytest.raises(ProviderError, match="non-empty api_key"):
+        OpenRouterProvider(api_key="")

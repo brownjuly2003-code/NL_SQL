@@ -8,6 +8,7 @@ from nl_sql.llm.providers.github_models import GitHubModelsProvider
 from nl_sql.llm.providers.groq import GroqProvider
 from nl_sql.llm.providers.mistral import MistralProvider
 from nl_sql.llm.providers.ollama import OllamaProvider
+from nl_sql.llm.providers.openrouter import OpenRouterProvider
 from nl_sql.llm.providers.perplexity import PerplexityProvider
 
 
@@ -15,8 +16,8 @@ def build_provider(name: str, settings: Settings | None = None) -> LLMProvider:
     """Build an LLMProvider by short name.
 
     Recognized names: ``mistral``, ``github_models``, ``groq``, ``ollama``,
-    ``perplexity``. Raises ProviderError for unknown names or missing
-    credentials.
+    ``perplexity``, ``openrouter``. Raises ProviderError for unknown names
+    or missing credentials.
     """
     s = settings or get_settings()
     match name:
@@ -48,6 +49,12 @@ def build_provider(name: str, settings: Settings | None = None) -> LLMProvider:
             return PerplexityProvider(
                 model=s.perplexity_browser_model,
                 base_url=s.perplexity_base_url,
+            )
+        case "openrouter":
+            return OpenRouterProvider(
+                api_key=s.openrouter_api_key,
+                model=s.openrouter_model,
+                base_url=s.openrouter_base_url,
             )
         case _:
             raise ProviderError(f"unknown provider name: {name!r}")

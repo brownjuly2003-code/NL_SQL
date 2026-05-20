@@ -4,7 +4,7 @@ from typing import Literal
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-ProviderName = Literal["mistral", "github_models", "groq", "ollama"]
+ProviderName = Literal["mistral", "github_models", "groq", "ollama", "openrouter"]
 
 
 class Settings(BaseSettings):
@@ -37,6 +37,20 @@ class Settings(BaseSettings):
     ollama_gen_model: str = "qwen2.5-coder:7b-instruct"
     ollama_base_url: str = "http://localhost:11434/v1"
 
+    # OpenRouter — heterogeneous-CSC slot. Default = deepseek-v4-flash:free
+    # (DeepSeek family, ≠ Mistral — needed so self-consistency votes don't
+    # collapse into one model's blind spots, as happened in config F + CSC
+    # merge-revision saturation on homogeneous codestral). Earlier picks
+    # rejected during 2026-05-20 probe:
+    #   - z-ai/glm-4.5-air:free → reasoning model, 2186 reasoning_tokens
+    #     consumed the whole budget, content=empty (smoke5 → 0% EA).
+    #   - qwen/qwen3-coder:free → Venice provider 429-loop (free quota).
+    # deepseek-v4-flash:free returned valid JSON+SQL on probe (LIMIT/OFFSET
+    # correct for 7th-row case). Other live free models cycle; check
+    # `D:\TXT\Free API Keys.txt` / smoke before switching.
+    openrouter_model: str = "deepseek/deepseek-v4-flash:free"
+    openrouter_base_url: str = "https://openrouter.ai/api/v1"
+
     # Perplexity browser path via local GraceKelly (D:\GraceKells). Free
     # because it rides the user's Perplexity Pro subscription via Playwright.
     # `claude-sonnet-4-6` here is the Perplexity menu label, not the
@@ -47,6 +61,7 @@ class Settings(BaseSettings):
     mistral_api_key: str = Field(default="", validation_alias="MISTRAL_API_KEY")
     github_token: str = Field(default="", validation_alias="GITHUB_TOKEN")
     groq_api_key: str = Field(default="", validation_alias="GROQ_API_KEY")
+    openrouter_api_key: str = Field(default="", validation_alias="OPENROUTER_API_KEY")
 
     # diskcache for LLM generate/embed responses (per docs/02_architecture_v2.md §6.5).
     # Two subdirs ("gen", "embed") are created under this root by `nl_sql.llm.cache`.
