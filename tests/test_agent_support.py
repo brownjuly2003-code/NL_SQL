@@ -167,6 +167,39 @@ def test_render_schema_block_appends_extended_samples_appendix() -> None:
     assert "position: 4, 5" in text
 
 
+def test_render_schema_block_appends_join_hints() -> None:
+    bundle = ContextBundle(
+        db_id="d",
+        question="q",
+        schema_hits=[
+            _hit(
+                "album",
+                "Table: album\n"
+                "Columns:\n"
+                "  - artist_id: INTEGER [NOT NULL]\n"
+                "Foreign keys:\n"
+                "  - (artist_id) -> artist(artist_id)",
+            ),
+            _hit(
+                "track",
+                "Table: track\n"
+                "Columns:\n"
+                "  - album_id: INTEGER [NOT NULL]\n"
+                "Foreign keys:\n"
+                "  - (album_id) -> album(album_id)",
+            ),
+        ],
+        fk_neighbours=[],
+        fewshots=[],
+    )
+
+    text = render_schema_block(bundle, sort_alphabetically=True)
+
+    assert "# Join hints" in text
+    assert "album.artist_id = artist.artist_id" in text
+    assert "track.album_id = album.album_id" in text
+
+
 def test_render_schema_block_skips_appendix_when_extended_empty() -> None:
     bundle = ContextBundle(
         db_id="d",

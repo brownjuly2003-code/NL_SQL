@@ -132,8 +132,8 @@ def render_schema_block(
     if context is None:
         return "(no schema context)"
     blocks: list[str] = []
+    all_hits = list(context.schema_hits) + list(context.fk_neighbours)
     if sort_alphabetically:
-        all_hits = list(context.schema_hits) + list(context.fk_neighbours)
         all_hits.sort(key=lambda h: h.table_name.lower())
         blocks.extend(hit.text for hit in all_hits)
     else:
@@ -143,10 +143,50 @@ def render_schema_block(
             blocks.extend(hit.text for hit in context.fk_neighbours)
     if not blocks:
         return "(no tables matched)"
+    join_hints = _render_join_hints_appendix(all_hits)
+    if join_hints:
+        blocks.append(join_hints)
     appendix = _render_extended_samples_appendix(context.extended_samples)
     if appendix:
         blocks.append(appendix)
     return "\n\n".join(blocks)
+
+
+def _render_join_hints_appendix(hits: list[Any]) -> str:
+    lines: list[str] = []
+    seen: set[str] = set()
+    for hit in hits:
+        table = str(hit.table_name)
+        for raw_line in hit.text.splitlines():
+            fk_m = _M_FK_RE.match(raw_line)
+            if not fk_m:
+                continue
+            local_cols, ref_table, ref_cols = fk_m.groups()
+            hints = _format_join_hint(table, local_cols, ref_table, ref_cols)
+            for hint in hints:
+                if hint in seen:
+                    continue
+                seen.add(hint)
+                lines.append(hint)
+    if not lines:
+        return ""
+    return "\n".join(["# Join hints", *lines])
+
+
+def _format_join_hint(
+    table: str,
+    local_cols: str,
+    ref_table: str,
+    ref_cols: str,
+) -> list[str]:
+    locals_ = [c.strip() for c in local_cols.split(",") if c.strip()]
+    refs = [c.strip() for c in ref_cols.split(",") if c.strip()]
+    if len(locals_) == len(refs):
+        return [
+            f"{table}.{left} = {ref_table}.{right}"
+            for left, right in zip(locals_, refs, strict=True)
+        ]
+    return [f"{table}.({local_cols}) -> {ref_table}.({ref_cols})"]
 
 
 def _render_extended_samples_appendix(
