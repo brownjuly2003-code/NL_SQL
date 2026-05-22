@@ -20,9 +20,16 @@ class OllamaProvider:
         self,
         model: str = "qwen2.5-coder:7b-instruct",
         base_url: str = "http://localhost:11434/v1",
+        timeout_seconds: float = 180.0,
     ) -> None:
         self.model = model
-        self._client = OpenAI(api_key="ollama-local", base_url=base_url)
+        self.timeout_seconds = timeout_seconds
+        self._client = OpenAI(
+            api_key="ollama-local",
+            base_url=base_url,
+            timeout=timeout_seconds,
+            max_retries=0,
+        )
 
     def generate(self, req: GenerateRequest) -> GenerateResponse:
         return chat_complete(self._client, self.model, req)

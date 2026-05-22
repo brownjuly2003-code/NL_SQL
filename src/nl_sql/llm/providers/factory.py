@@ -44,6 +44,7 @@ def build_provider(name: str, settings: Settings | None = None) -> LLMProvider:
             return OllamaProvider(
                 model=s.ollama_gen_model,
                 base_url=s.ollama_base_url,
+                timeout_seconds=s.ollama_timeout_seconds,
             )
         case "perplexity":
             return PerplexityProvider(

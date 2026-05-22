@@ -27,10 +27,11 @@ def test_factory_builds_github_models() -> None:
 
 
 def test_factory_builds_ollama_without_credentials() -> None:
-    settings = Settings()  # type: ignore[call-arg]
+    settings = Settings(ollama_timeout_seconds=42.0)  # type: ignore[call-arg]
     provider = build_provider("ollama", settings=settings)
     assert isinstance(provider, OllamaProvider)
     assert provider.name == "ollama"
+    assert provider.timeout_seconds == 42.0
 
 
 def test_factory_raises_on_unknown_provider() -> None:

@@ -36,6 +36,7 @@ class Settings(BaseSettings):
 
     ollama_gen_model: str = "qwen2.5-coder:7b-instruct"
     ollama_base_url: str = "http://localhost:11434/v1"
+    ollama_timeout_seconds: float = 180.0
 
     # OpenRouter — heterogeneous-CSC slot. Default = deepseek-v4-flash:free
     # (DeepSeek family, ≠ Mistral — needed so self-consistency votes don't

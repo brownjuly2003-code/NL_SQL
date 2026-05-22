@@ -11,7 +11,7 @@ import httpx
 import pytest
 import respx
 
-from nl_sql.llm.providers import GenerateRequest
+from nl_sql.llm.providers import GenerateRequest, ProviderError
 from nl_sql.llm.providers.github_models import GitHubModelsProvider
 from nl_sql.llm.providers.mistral import MistralProvider
 from nl_sql.llm.providers.ollama import OllamaProvider
@@ -84,6 +84,19 @@ def test_ollama_generate_returns_normalized_response() -> None:
     assert route.called
     assert response.text == "SELECT count(*) FROM t;"
     assert response.model == "qwen2.5-coder:7b-instruct"
+
+
+@respx.mock
+def test_ollama_generate_does_not_retry_failures() -> None:
+    route = respx.post("http://localhost:11434/v1/chat/completions").mock(
+        return_value=httpx.Response(500, json={"error": "local model timed out"})
+    )
+    provider = OllamaProvider()
+
+    with pytest.raises(ProviderError):
+        provider.generate(GenerateRequest(prompt="count rows"))
+
+    assert route.call_count == 1
 
 
 @respx.mock

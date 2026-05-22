@@ -23,9 +23,15 @@
 - Delta vs `eval/reports/2026-05-19/C_dense_cards-p23_baseline.json`: **+1 net case** (6 wins: 118, 327, 881, 909, 1340, 1390; 5 regressions: 120, 189, 865, 1088, 1157). Target FK/JOIN residue qids **207, 584, 902, 959, 1275** stayed FAIL, so this is baseline hygiene only, not v21/headline.
 - Tooling fixes from the eval: `scripts/audit_rescore.py` no longer turns empty `pred_sql` provider failures into false PASS when gold is empty; `scripts/eval_baseline.py` skips incompatible prior JSON while rebuilding the daily HTML index.
 
+**Local Ollama probe (same day):**
+- Installed local models: `llama3.1:8b`, `gemma3:4b`, `qwen3:4b`; project default `qwen2.5-coder:7b-instruct` is **not installed**.
+- Added `NL_SQL_OLLAMA_TIMEOUT_SECONDS` wiring and `max_retries=0` for `OllamaProvider` because OpenAI SDK retries made a 45s local timeout cost ~142s/case.
+- `llama3.1:8b` smoke: `NL_SQL_OLLAMA_GEN_MODEL=llama3.1:8b NL_SQL_OLLAMA_TIMEOUT_SECONDS=45 uv run python scripts/eval_baseline.py --provider ollama --config C --n 5 --seed 0 --report-suffix ollama-llama31-smoke5` → **0/5**, all `Request timed out`, P50 latency ~47s. Artifact: `eval/reports/2026-05-22/C_dense_cards-ollama-llama31-smoke5.json`; audit 0 mismatches.
+- `qwen2.5-coder:7b-instruct` pull attempted, but blocked by network/TLS (`max retries exceeded`, Cloudflare R2 TLS handshake timeout) after ~6 min and only ~569KB/4.7GB. Local heterogeneous CSC is blocked until the coding model is installed or the machine has a faster local runtime.
+
 **Open path past 87.5% (приоритет):**
 1. **Paid OpenRouter top-up** ($5+) — unlocks batch eval через heterogeneous `:free`/paid routed models, wiring уже готов.
-2. **Local ollama heterogeneous CSC** (qwen2.5-coder default уже в settings) — без сетевого rate-limit, multi-day setup для wall-time × candidates.
+2. **Local ollama heterogeneous CSC** — blocked until `qwen2.5-coder:7b-instruct` is actually installed; existing local `llama3.1:8b` times out on schema-heavy prompts.
 3. **P3.F JOIN-path linker** (`docs/p3f_design.md`) — единственный remaining non-quota engineering path, multi-day.
 4. **GraceKelly maintenance** — re-run `D:/GraceKelly/tools/capture_perplexity_recon.py` + update selectors only if Chrome profile is confirmed free.
 
@@ -34,6 +40,7 @@
 - Не повторять plain `grok-4.1-reasoning` на v20 residue — 0 rescues, clean saturation.
 - Не повторять `claude-4.5-sonnet-thinking` на v20 residue без нового 24h+ cooldown и явной причины — повтор 2026-05-22 дал 0 rescues.
 - Не делать второй plain FK-hints baseline ablation: post-v20 `C_dense_cards-fkjoinhints` уже измерен как +1 net case, но 0/5 target FK/JOIN residue rescues.
+- Не тратить время на `llama3.1:8b` local Ollama eval: smoke5 timed out 5/5 even after fail-fast timeout wiring.
 - Не тратить время на `qid 1399` через helallao без tokenizer workaround: все три модели упали на quote/tokenizing error around `Mclean` + `Women's Soccer`.
 - gpt-5.2 Pro повтор на v18/v19 residue — saturated × 2 независимых сессии.
 - gpt-5.2-thinking + DAC повтор на v18/v19 residue — saturated.
