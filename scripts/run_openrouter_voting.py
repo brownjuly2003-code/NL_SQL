@@ -126,6 +126,7 @@ def main() -> int:
     rescued = 0
     regressed = 0
     same = 0
+    errored = 0
     out_path = args.out
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -146,7 +147,33 @@ def main() -> int:
                     dialect="sqlite",
                 )
             except Exception as exc:
+                errored += 1
+                records.append({
+                    "question_id": qid,
+                    "db_id": ex.db_id,
+                    "difficulty": ex.difficulty,
+                    "question": ex.question,
+                    "gold_sql": ex.sql,
+                    "baseline_pred": br["pred_sql"],
+                    "alt_pred": "",
+                    "alt_confidence": None,
+                    "baseline_match": bool(br.get("match")),
+                    "alt_match": False,
+                    "vote_match": False,
+                    "vote_source": f"openrouter:{args.provider_model}",
+                    "alt_error": str(exc),
+                })
                 print(f"[{i:3d}/{len(fails)}] qid={qid} EXC: {str(exc)[:180]}", file=sys.stderr)
+                out_path.write_text(json.dumps({
+                    "alt_model": f"openrouter:{args.provider_model}",
+                    "summary": {
+                        "voted_better": rescued,
+                        "voted_worse": regressed,
+                        "voted_same": same,
+                        "errored": errored,
+                    },
+                    "records": records,
+                }, indent=2), encoding="utf-8")
                 time.sleep(args.sleep_between)
                 continue
             elapsed = (time.perf_counter() - t0) * 1000.0
@@ -203,7 +230,12 @@ def main() -> int:
 
             out_path.write_text(json.dumps({
                 "alt_model": f"openrouter:{args.provider_model}",
-                "summary": {"voted_better": rescued, "voted_worse": regressed, "voted_same": same},
+                "summary": {
+                    "voted_better": rescued,
+                    "voted_worse": regressed,
+                    "voted_same": same,
+                    "errored": errored,
+                },
                 "records": records,
             }, indent=2), encoding="utf-8")
         finally:
@@ -216,6 +248,7 @@ def main() -> int:
     print(f"  rescued: {rescued}", file=sys.stderr)
     print(f"  regressed: {regressed}", file=sys.stderr)
     print(f"  same: {same}", file=sys.stderr)
+    print(f"  errored: {errored}", file=sys.stderr)
     return 0
 
 

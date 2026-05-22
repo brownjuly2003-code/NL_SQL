@@ -29,8 +29,8 @@
 - `llama3.1:8b` smoke: `NL_SQL_OLLAMA_GEN_MODEL=llama3.1:8b NL_SQL_OLLAMA_TIMEOUT_SECONDS=45 uv run python scripts/eval_baseline.py --provider ollama --config C --n 5 --seed 0 --report-suffix ollama-llama31-smoke5` → **0/5**, all `Request timed out`, P50 latency ~47s. Artifact: `eval/reports/2026-05-22/C_dense_cards-ollama-llama31-smoke5.json`; audit 0 mismatches.
 - `qwen2.5-coder:7b-instruct` pull attempted, but blocked by network/TLS (`max retries exceeded`, Cloudflare R2 TLS handshake timeout) after ~6 min and only ~569KB/4.7GB. Local heterogeneous CSC is blocked until the coding model is installed or the machine has a faster local runtime.
 
-**Helallao tooling fix (same day):**
-- `scripts/run_helallao_voting.py` now persists pipeline exceptions as JSON records with `alt_error` and `summary.errored` instead of only printing stderr. Regression coverage: `tests/scripts/test_run_helallao_voting.py`. This makes the next qid 1399 diagnostic run auditable, but it is not a tokenizer workaround by itself.
+**Voting tooling fix (same day):**
+- `scripts/run_helallao_voting.py` and `scripts/run_openrouter_voting.py` now persist pipeline exceptions as JSON records with `alt_error` and `summary.errored` instead of only printing stderr. Regression coverage: `tests/scripts/test_run_helallao_voting.py` and `tests/scripts/test_run_openrouter_voting.py`. This makes the next qid 1399 or OpenRouter paid-top-up diagnostic run auditable, but it is not a tokenizer workaround by itself.
 
 **Open path past 87.5% (приоритет):**
 1. **Paid OpenRouter top-up** ($5+) — unlocks batch eval через heterogeneous `:free`/paid routed models, wiring уже готов.
