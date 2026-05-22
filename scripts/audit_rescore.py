@@ -59,8 +59,12 @@ def main() -> int:
                         pred_rows = list(result.rows)
                 except Exception:
                     pred_rows = []
-            cmp = compare_results(gold_rows, pred_rows, gold_sql=r["gold_sql"])
-            true_match = bool(cmp.match)
+                cmp = compare_results(gold_rows, pred_rows, gold_sql=r["gold_sql"])
+                true_match = bool(cmp.match)
+                reason = cmp.reason
+            else:
+                true_match = False
+                reason = "empty prediction"
             stored = bool(r.get("match"))
             if stored != true_match:
                 mismatches.append(
@@ -72,7 +76,7 @@ def main() -> int:
                         "true_match": true_match,
                         "gold_rows": len(gold_rows),
                         "pred_rows": len(pred_rows),
-                        "reason": cmp.reason,
+                        "reason": reason,
                     }
                 )
         finally:

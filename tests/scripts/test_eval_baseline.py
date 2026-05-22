@@ -1,0 +1,93 @@
+from __future__ import annotations
+
+import json
+from pathlib import Path
+from types import SimpleNamespace
+
+from nl_sql.eval.dataset import BirdExample
+from nl_sql.eval.runner import Configuration, EvalRun, EvalSummary
+from scripts import eval_baseline
+
+
+def test_eval_baseline_skips_incompatible_prior_json(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    run = EvalRun(
+        configuration=Configuration.A_FULL_SCHEMA,
+        sql_model="codestral-latest",
+        overall=EvalSummary(
+            n=1,
+            ea=1.0,
+            validity_rate=1.0,
+            schema_recall_at_k=1.0,
+            repair_success_rate=0.0,
+            first_pass_ea=1.0,
+            empty_result_rate=0.0,
+            latency_p50_ms=1.0,
+            latency_p95_ms=1.0,
+            tokens_p50=1.0,
+            tokens_p95=1.0,
+        ),
+        per_difficulty={
+            "simple": EvalSummary(1, 1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0),
+            "moderate": EvalSummary(0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+            "challenging": EvalSummary(0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+        },
+        records=[],
+    )
+    report_dir = tmp_path / "2026-05-22"
+    report_dir.mkdir()
+    (report_dir / "voting-merged.json").write_text(
+        json.dumps(
+            {
+                "configuration": "C_dense_cards",
+                "sql_model": "codestral-latest",
+                "overall": {"matched": 1},
+                "per_difficulty": {},
+                "records": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+    html_runs: list[EvalRun] = []
+
+    monkeypatch.setattr(
+        eval_baseline,
+        "get_settings",
+        lambda: SimpleNamespace(
+            mistral_api_key="key",
+            llm_cache_dir=tmp_path / "cache",
+            llm_cache_size_limit_gb=1,
+        ),
+    )
+    monkeypatch.setattr(
+        eval_baseline,
+        "load_bird_mini_dev",
+        lambda path: [
+            BirdExample(
+                question_id=1,
+                db_id="d",
+                question="q",
+                evidence="",
+                sql="SELECT 1",
+                difficulty="simple",
+            )
+        ],
+    )
+    monkeypatch.setattr(eval_baseline, "build_provider", lambda provider, settings: SimpleNamespace(model="codestral-latest"))
+    monkeypatch.setattr(eval_baseline, "CachingLLMProvider", lambda raw, **kwargs: raw)
+    monkeypatch.setattr(eval_baseline, "get_default_registry", lambda: SimpleNamespace(ids=lambda: ["bird_d"]))
+    monkeypatch.setattr(eval_baseline, "run_config_a", lambda *args, **kwargs: run)
+    monkeypatch.setattr(eval_baseline, "write_json_report", lambda *args, **kwargs: report_dir / "A_full_schema.json")
+
+    def fake_write_html_report(runs, *, root):
+        html_runs.extend(runs)
+        return report_dir / "index.html"
+
+    monkeypatch.setattr(eval_baseline, "write_html_report", fake_write_html_report)
+
+    result = eval_baseline.main(["--config", "A", "--n", "1", "--reports", str(tmp_path)])
+
+    assert result == 0
+    assert html_runs == [run]

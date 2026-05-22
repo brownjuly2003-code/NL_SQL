@@ -409,7 +409,7 @@ def main(argv: list[str] | None = None) -> int:
             continue
         try:
             prior_runs.append(load_run_from_json(other))
-        except (KeyError, ValueError) as exc:
+        except (KeyError, TypeError, ValueError) as exc:
             print(f"[warn] skipped {other.name}: {exc}", file=sys.stderr)
     html_path = write_html_report([*prior_runs, run], root=args.reports)
     print()

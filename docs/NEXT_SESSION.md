@@ -16,6 +16,13 @@
   - **claude-4.5-sonnet-thinking repeat после 24h+** on v20 residue: 24/25 reached, 0 rescues, 24 same, 1 tokenizer EXC qid 1399.
 - Audit: `scripts/audit_rescore.py --report eval/reports/2026-05-22/v20-kimi-k2-thinking-merged.json` → stored 175 / true 175 / **0 mismatches**.
 
+**Post-v20 baseline ablation (same day):**
+- HEAD `a62f844` added a compact `# Join hints` appendix to `render_schema_block` from parsed FK lines (`table.col = ref.col`).
+- Verification: `uv run python scripts/eval_baseline.py --config C --n 200 --seed 0 --report-suffix fkjoinhints` → **56.5% EA** (113/200), simple **70.1%** / moderate **52.5%** / challenging **41.2%**. Artifact: `eval/reports/2026-05-22/C_dense_cards-fkjoinhints.json`; HTML index regenerated.
+- Audit: `uv run python scripts/audit_rescore.py --report eval/reports/2026-05-22/C_dense_cards-fkjoinhints.json` → stored 113 / true 113 / **0 mismatches**.
+- Delta vs `eval/reports/2026-05-19/C_dense_cards-p23_baseline.json`: **+1 net case** (6 wins: 118, 327, 881, 909, 1340, 1390; 5 regressions: 120, 189, 865, 1088, 1157). Target FK/JOIN residue qids **207, 584, 902, 959, 1275** stayed FAIL, so this is baseline hygiene only, not v21/headline.
+- Tooling fixes from the eval: `scripts/audit_rescore.py` no longer turns empty `pred_sql` provider failures into false PASS when gold is empty; `scripts/eval_baseline.py` skips incompatible prior JSON while rebuilding the daily HTML index.
+
 **Open path past 87.5% (приоритет):**
 1. **Paid OpenRouter top-up** ($5+) — unlocks batch eval через heterogeneous `:free`/paid routed models, wiring уже готов.
 2. **Local ollama heterogeneous CSC** (qwen2.5-coder default уже в settings) — без сетевого rate-limit, multi-day setup для wall-time × candidates.
@@ -26,6 +33,7 @@
 - Не повторять plain `kimi-k2-thinking` на v19/v20 residue — v20 уже взял единственный rescue qid 584; остальное same.
 - Не повторять plain `grok-4.1-reasoning` на v20 residue — 0 rescues, clean saturation.
 - Не повторять `claude-4.5-sonnet-thinking` на v20 residue без нового 24h+ cooldown и явной причины — повтор 2026-05-22 дал 0 rescues.
+- Не делать второй plain FK-hints baseline ablation: post-v20 `C_dense_cards-fkjoinhints` уже измерен как +1 net case, но 0/5 target FK/JOIN residue rescues.
 - Не тратить время на `qid 1399` через helallao без tokenizer workaround: все три модели упали на quote/tokenizing error around `Mclean` + `Women's Soccer`.
 - gpt-5.2 Pro повтор на v18/v19 residue — saturated × 2 независимых сессии.
 - gpt-5.2-thinking + DAC повтор на v18/v19 residue — saturated.
