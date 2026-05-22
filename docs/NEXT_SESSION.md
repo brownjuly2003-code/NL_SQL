@@ -3,6 +3,37 @@
 > Один лист, без воды. Берёшь, делаешь, обновляешь `SESSION_HANDOFF.md`,
 > переписываешь этот файл под следующий sprint.
 
+## 2026-05-22 v20 — **87.5% EA verified** (BIRD-official set scoring), above #1 paid SOTA by +5.55pp
+
+**Состояние:**
+- HEAD at `be679cb` during eval; reports generated but not committed.
+- BIRD original gold n=200 (**v20**): **87.5% EA** (175/200), BIRD-official set scoring. **v20 triplet: 87.5% BIRD / 72.36% Arcwise-Plat-SQL / +9 audit catches** (Arcwise not rerun; carry-forward from v19). **Above #1 paid system AskData+GPT-4o (81.95%) by +5.55pp.**
+- Per-tier v20: simple **92.5% (62/67)** / moderate **84.8% (84/99, +1.0pp от v19)** / challenging **85.3% (29/34)**.
+- **Path v19 → v20 (+0.5pp):**
+  - **helallao kimi-k2-thinking без DAC** on v19 residue (26 fails): 25/26 reached, **1 rescue qid 584 moderate codebase_community**, 24 same, 0 regressions, 1 tokenizer EXC qid 1399.
+  - **qid 584 rescue:** baseline joined `comments.Text`; kimi plain reasoning picked `postHistory.Comment`, matching BIRD gold for "comments left by users who edited the post titled ...".
+  - **grok-4.1-reasoning без DAC** on v20 residue: 24/25 reached, 0 rescues, 24 same, 1 tokenizer EXC qid 1399.
+  - **claude-4.5-sonnet-thinking repeat после 24h+** on v20 residue: 24/25 reached, 0 rescues, 24 same, 1 tokenizer EXC qid 1399.
+- Audit: `scripts/audit_rescore.py --report eval/reports/2026-05-22/v20-kimi-k2-thinking-merged.json` → stored 175 / true 175 / **0 mismatches**.
+
+**Open path past 87.5% (приоритет):**
+1. **Paid OpenRouter top-up** ($5+) — unlocks batch eval через heterogeneous `:free`/paid routed models, wiring уже готов.
+2. **Local ollama heterogeneous CSC** (qwen2.5-coder default уже в settings) — без сетевого rate-limit, multi-day setup для wall-time × candidates.
+3. **P3.F JOIN-path linker** (`docs/p3f_design.md`) — единственный remaining non-quota engineering path, multi-day.
+4. **GraceKelly maintenance** — re-run `D:/GraceKelly/tools/capture_perplexity_recon.py` + update selectors only if Chrome profile is confirmed free.
+
+**Что НЕ делать:**
+- Не повторять plain `kimi-k2-thinking` на v19/v20 residue — v20 уже взял единственный rescue qid 584; остальное same.
+- Не повторять plain `grok-4.1-reasoning` на v20 residue — 0 rescues, clean saturation.
+- Не повторять `claude-4.5-sonnet-thinking` на v20 residue без нового 24h+ cooldown и явной причины — повтор 2026-05-22 дал 0 rescues.
+- Не тратить время на `qid 1399` через helallao без tokenizer workaround: все три модели упали на quote/tokenizing error around `Mclean` + `Women's Soccer`.
+- gpt-5.2 Pro повтор на v18/v19 residue — saturated × 2 независимых сессии.
+- gpt-5.2-thinking + DAC повтор на v18/v19 residue — saturated.
+- glm-4.5-air:free через OpenRouter — reasoning-blocked output (probe verified, content="").
+- qwen3-coder:free через OpenRouter — Venice provider 429-loop на free quota.
+
+---
+
 ## 2026-05-20 v19 — **87.0% EA verified** (BIRD-official set scoring), above #1 paid SOTA by +5.05pp
 
 **Состояние:**

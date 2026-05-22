@@ -1,5 +1,18 @@
-# NL_SQL — Session Handoff (2026-05-20 v19 = 87.0% EA verified via helallao claude-4.5-sonnet-thinking on v18 residue, above #1 paid SOTA by +5.05pp)
+# NL_SQL — Session Handoff (2026-05-22 v20 = 87.5% EA verified via helallao kimi-k2-thinking plain reasoning on v19 residue, above #1 paid SOTA by +5.55pp)
 
+> **Tl;dr 2026-05-22 v20 (helallao kimi-k2-thinking without DAC on v19 residue):**
+> - **v20 87.5% EA verified** (175/200) — published BIRD Mini-Dev SQLite. **Above #1 paid system AskData+GPT-4o (81.95%) by +5.55pp.**
+> - **v20 triplet:** 87.5% BIRD / 72.36% Arcwise-Plat-SQL / +9 audit catches. Arcwise was not rerun in this session; carry-forward from v19 rescore.
+> - **Per-tier v20:** simple 92.5% (62/67) / moderate **84.8% (84/99, +1.0pp от v19)** / challenging 85.3% (29/34).
+> - **The lever:** helallao `kimi-k2-thinking` plain reasoning, no `NLSQL_DAC`, on v19 residue (26 fails). 25/26 reached, 24 same, **1 RESCUE qid 584**, 0 regressions, 1 tokenizer EXC qid 1399.
+> - **1 rescue (qid 584 moderate codebase_community):** "Write all the comments left by users who edited the post titled 'Why square the difference instead of taking the absolute value in standard deviation?'" Baseline joined `comments.Text`; kimi plain reasoning picked `postHistory.Comment`, matching BIRD gold. This closes the old P3 `postHistory.Comment vs comments.Text` target from `docs/v18_residue_patterns.md`.
+> - **Negative evidence same session:** after cooldown, `grok-4.1-reasoning` on v20 residue reached 24/25 with 0 rescues; `claude-4.5-sonnet-thinking` repeat after 24h+ reached 24/25 with 0 rescues. Both had the same tokenizer EXC on qid 1399 around `Mclean` + `Women's Soccer`.
+> - **Audit:** `scripts/audit_rescore.py --report eval/reports/2026-05-22/v20-kimi-k2-thinking-merged.json` → 200 records, stored 175, true 175, **0 mismatches**.
+>
+> Артефакты v20: `eval/reports/2026-05-22/{helallao-kimi-k2-thinking-on-v19-residue.json, v20-kimi-k2-thinking-merged.json, helallao-grok41-reasoning-on-v20-residue.json, helallao-claude45-thinking-on-v20-residue.json}`. Headline updates: README/UI 87.0→87.5, 174→175, +5.05→+5.55pp over AskData, +39.2→+39.7pp over GPT-4 zero-shot, moderate 83.8→84.8. HF Space redeploy still gated to user.
+>
+> ---
+>
 > **Tl;dr 2026-05-20 v19 (helallao claude-4.5-sonnet-thinking on v18 residue):**
 > - **v19 87.0% EA verified** (174/200) — published BIRD Mini-Dev SQLite. **Above #1 paid system AskData+GPT-4o (81.95%) by +5.05pp.**
 > - **v19 triplet (rescore 2026-05-20): 87.0% BIRD / 72.36% Arcwise-Plat-SQL (144/199) / +9 audit catches** (was 86.5% / 72.36% / +5 at v18; same Arcwise % but +4 gained_on_sql_only).

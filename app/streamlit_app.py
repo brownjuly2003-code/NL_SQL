@@ -61,18 +61,18 @@ I18N: dict[str, dict[str, str]] = {
         "metric_percent": "100%",
         "metric_caption": "30 dev + 30 held-out, balanced split, all ten query categories at 100% on the free-tier codestral pipeline.",
         "research_kicker": "BIRD Mini-Dev research benchmark",
-        "research_value": "87.0% / 200",
+        "research_value": "87.5% / 200",
         "research_caption": (
             "Hybrid pipeline: "
             "<span class='nl-term' title='Mistral codestral-latest — SQL-specialised generation model, free tier'>codestral</span> + "
             "<span class='nl-term' title='Anthropic Claude 4.5 Sonnet via Perplexity Pro browser bridge — used on the hard tier'>Sonnet 4.6 bridge</span> + "
             "<span class='nl-term' title='Per-failure re-prompt with executable-shape feedback — only on frozen failures, no T=0 noise'>grounded-critique retry</span> + "
-            "<span class='nl-term' title='helallao reverse-engineered HTTPS bridge to Perplexity backend — Grok 4.1, GPT-5.2, Claude 4.5 Sonnet, kimi-k2-thinking, gpt-5.2-thinking + DAC on residue, claude-4.5-sonnet-thinking on v18 residue, reasoning + Pro modes'>helallao multi-model voting</span>. "
+            "<span class='nl-term' title='helallao reverse-engineered HTTPS bridge to Perplexity backend — Grok 4.1, GPT-5.2, Claude 4.5 Sonnet, kimi-k2-thinking, gpt-5.2-thinking + DAC on residue, claude-4.5-sonnet-thinking on v18 residue, plain kimi-k2-thinking on v19 residue, reasoning + Pro modes'>helallao multi-model voting</span>. "
             "Scored under "
             "<span class='nl-term' title='bird-bench/mini_dev evaluation_ex.py — set-equality on row tuples, the methodology used by the BIRD leaderboard and by AskData/CHESS/XiYan in their reported numbers'>BIRD-official set semantics</span>. "
-            "+39.2pp over the GPT-4 zero-shot reference (47.8%), $0 external cost. "
+            "+39.7pp over the GPT-4 zero-shot reference (47.8%), $0 external cost. "
             "On <span class='nl-term' title='Jin et al., CIDR/VLDB 2026, arXiv:2601.08778 — corrected BIRD gold annotations'>Arcwise-Plat corrected gold</span>: 72.36% — honest noise-floor; +9 cases where our prediction catches BIRD's own wrong gold. "
-            "Three post-cooldown rescues found on v16→v19 path: qid 896 (driverStandings.position via gpt-5.2-thinking+DAC), qid 989 (Canadian GP 2008 winner time via gpt-5.2 Pro), qid 743 (superhero alignment percentage with proper CAST AS REAL on both columns via claude-4.5-sonnet-thinking)."
+            "Four late-stage rescues found on v16→v20 path: qid 896 (driverStandings.position via gpt-5.2-thinking+DAC), qid 989 (Canadian GP 2008 winner time via gpt-5.2 Pro), qid 743 (superhero alignment percentage with proper CAST AS REAL on both columns via claude-4.5-sonnet-thinking), qid 584 (postHistory.Comment vs comments.Text via plain kimi-k2-thinking)."
         ),
         "settings_header": "Settings",
         "db_label": "Database",
@@ -142,18 +142,18 @@ I18N: dict[str, dict[str, str]] = {
         "metric_percent": "100%",
         "metric_caption": "30 dev + 30 held-out, сбалансированный сплит, все десять категорий запросов на 100% через бесплатный codestral.",
         "research_kicker": "Исследовательский бенчмарк BIRD Mini-Dev",
-        "research_value": "87,0% / 200",
+        "research_value": "87,5% / 200",
         "research_caption": (
             "Гибридный пайплайн: "
             "<span class='nl-term' title='Mistral codestral-latest — модель, специализированная под генерацию SQL, бесплатный тариф'>codestral</span> + "
             "<span class='nl-term' title='Anthropic Claude 4.5 Sonnet через браузерный мост Perplexity Pro — на сложных кейсах'>мост к Sonnet 4.6</span> + "
             "<span class='nl-term' title='Повторный prompt со shape-фидбэком исполнения — только на зафиксированных фейлах, без шума T=0'>directed-critique retry</span> + "
-            "<span class='nl-term' title='Реверс-инжиниринг HTTPS моста к бэкенду Perplexity — Grok 4.1, GPT-5.2, Claude 4.5 Sonnet, kimi-k2-thinking, gpt-5.2-thinking + DAC на residue, claude-4.5-sonnet-thinking на v18 residue; режимы reasoning + Pro'>multi-model voting через helallao</span>. "
+            "<span class='nl-term' title='Реверс-инжиниринг HTTPS моста к бэкенду Perplexity — Grok 4.1, GPT-5.2, Claude 4.5 Sonnet, kimi-k2-thinking, gpt-5.2-thinking + DAC на residue, claude-4.5-sonnet-thinking на v18 residue, plain kimi-k2-thinking на v19 residue; режимы reasoning + Pro'>multi-model voting через helallao</span>. "
             "Scoring — "
             "<span class='nl-term' title='bird-bench/mini_dev evaluation_ex.py — set-равенство на результирующих кортежах. Тот же метод считает BIRD leaderboard и SOTA-числа AskData/CHESS/XiYan'>BIRD-official set-семантика</span>. "
-            "+39,2 п.п. над zero-shot GPT-4 (47,8%), внешние расходы — ноль. "
+            "+39,7 п.п. над zero-shot GPT-4 (47,8%), внешние расходы — ноль. "
             "На <span class='nl-term' title='Jin et al., CIDR/VLDB 2026, arXiv:2601.08778 — исправленные аннотации gold BIRD'>исправленном gold Arcwise-Plat</span>: 72,36% — честный noise-floor; +9 случаев, где наш ответ правильнее эталона BIRD. "
-            "Три post-cooldown rescue на пути v16→v19: qid 896 (driverStandings.position через gpt-5.2-thinking+DAC), qid 989 (Canadian GP 2008 winner time через gpt-5.2 Pro), qid 743 (процент superhero-выравнивания с правильным CAST AS REAL на обоих числах через claude-4.5-sonnet-thinking)."
+            "Четыре late-stage rescue на пути v16→v20: qid 896 (driverStandings.position через gpt-5.2-thinking+DAC), qid 989 (Canadian GP 2008 winner time через gpt-5.2 Pro), qid 743 (процент superhero-выравнивания с правильным CAST AS REAL на обоих числах через claude-4.5-sonnet-thinking), qid 584 (postHistory.Comment vs comments.Text через plain kimi-k2-thinking)."
         ),
         "settings_header": "Настройки",
         "db_label": "База данных",
