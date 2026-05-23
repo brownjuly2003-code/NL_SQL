@@ -146,6 +146,9 @@ def render_schema_block(
     join_hints = _render_join_hints_appendix(all_hits)
     if join_hints:
         blocks.append(join_hints)
+    schema_link_hints = _render_schema_link_hints_appendix(context, all_hits)
+    if schema_link_hints:
+        blocks.append(schema_link_hints)
     appendix = _render_extended_samples_appendix(context.extended_samples)
     if appendix:
         blocks.append(appendix)
@@ -187,6 +190,27 @@ def _format_join_hint(
             for left, right in zip(locals_, refs, strict=True)
         ]
     return [f"{table}.({local_cols}) -> {ref_table}.({ref_cols})"]
+
+
+def _render_schema_link_hints_appendix(context: ContextBundle, hits: list[Any]) -> str:
+    tables = {str(hit.table_name).lower() for hit in hits}
+    question = context.question.lower()
+    db_id = context.db_id.lower()
+    if (
+        db_id in {"student_club", "bird_student_club"}
+        and {"event", "expense"} <= tables
+        and "type" in question
+        and "expense" in question
+        and "event" in question
+    ):
+        return "\n".join(
+            [
+                "# Schema-link hints",
+                "- For event-linked expense questions asking for a type, use event.type. "
+                "expense.expense_description describes individual expense rows.",
+            ]
+        )
+    return ""
 
 
 def _render_extended_samples_appendix(

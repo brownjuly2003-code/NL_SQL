@@ -3,6 +3,30 @@
 > Один лист, без воды. Берёшь, делаешь, обновляешь `SESSION_HANDOFF.md`,
 > переписываешь этот файл под следующий sprint.
 
+## 2026-05-23 continuation — P3.F harness + qid 1404 narrow hint
+
+**Сделано:**
+- Добавлен qid-level acceptance harness: `scripts/p3f_acceptance.py`.
+  Он проверяет report JSON по двум P3.F target qids:
+  - `1404`: требует `event.type`, запрещает `expense.expense_description/type`.
+  - `207`: требует `connected.atom_id`, запрещает `connected.bond_id`.
+- Текущий v20 report ожидаемо красный по обоим target qids:
+  `uv run python scripts/p3f_acceptance.py --report eval/reports/2026-05-22/v20-kimi-k2-thinking-merged.json`.
+- Добавлен узкий schema-link hint в `render_schema_block()` только для
+  `student_club` + вопроса про `expense` type/event. Это не generic FK booster.
+- In-memory smoke без записи report: config C на `qid 1404` теперь дал
+  `match=True`, pred SQL использует `event.type`.
+- Gate: `uv run pytest -q` → 315 passed; `uv run ruff check src tests scripts app` clean;
+  `uv run mypy --strict src` clean; `git diff --check` clean, но Git печатает
+  Windows autocrlf warning для `_support.py`. Байтовая проверка: все изменённые
+  текстовые файлы `CRLF=0`.
+
+**Следующее:**
+1. Прогнать durable exact-qid report: `eval_baseline.py --config C --only-qids 1404,207 --report-suffix p3f-targets`.
+2. Прогнать `scripts/p3f_acceptance.py --report <that-report> --require-pass`.
+3. Если `1404` подтверждён, не трогать generic FK linker; отдельно проектировать `207`,
+   потому натуральный `connected.bond_id` path всё ещё опасен.
+
 ## 2026-05-22 v20 — **87.5% EA verified** (BIRD-official set scoring), above #1 paid SOTA by +5.55pp
 
 **Состояние:**
