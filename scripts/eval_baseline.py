@@ -9,6 +9,7 @@ Usage:
     uv run python scripts/eval_baseline.py --config A --n 50 --seed 0
     uv run python scripts/eval_baseline.py --config C --n 50 --seed 0
     uv run python scripts/eval_baseline.py --n 5 --db bird_california_schools
+    uv run python scripts/eval_baseline.py --config C --only-qids 1399,1205
 """
 
 from __future__ import annotations
@@ -66,6 +67,14 @@ def main(argv: list[str] | None = None) -> int:
             "(e.g. --difficulty challenging to run config F only on the "
             "hard tier and merge with G for the rest — see "
             "docs/SESSION_HANDOFF.md for the hybrid recipe)."
+        ),
+    )
+    parser.add_argument(
+        "--only-qids",
+        default="",
+        help=(
+            "comma-separated BIRD question IDs to run exactly, preserving "
+            "argument order and bypassing --n/--seed sampling"
         ),
     )
     parser.add_argument(
@@ -200,12 +209,6 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
-    settings = get_settings()
-    if not settings.mistral_api_key:
-        print("[error] MISTRAL_API_KEY not set in .env", file=sys.stderr)
-        return 2
-
-    registry = get_default_registry()
     examples = load_bird_mini_dev(Path(args.bird_root))
     if args.db:
         examples = [e for e in examples if e.registry_db_id == args.db]
@@ -213,7 +216,20 @@ def main(argv: list[str] | None = None) -> int:
             print(f"[error] no examples for db {args.db!r}", file=sys.stderr)
             return 3
 
-    sample = dev_split(examples, n=args.n, seed=args.seed)
+    try:
+        only_qids = [int(x) for x in args.only_qids.split(",") if x.strip()]
+    except ValueError:
+        print("[error] invalid --only-qids: expected comma-separated integers", file=sys.stderr)
+        return 3
+    if only_qids:
+        examples_by_qid = {e.question_id: e for e in examples}
+        sample = [examples_by_qid[qid] for qid in only_qids if qid in examples_by_qid]
+        missing_qids = [qid for qid in only_qids if qid not in examples_by_qid]
+        if missing_qids:
+            print(f"[error] qids not found after filters: {missing_qids}", file=sys.stderr)
+            return 3
+    else:
+        sample = dev_split(examples, n=args.n, seed=args.seed)
     if args.difficulty:
         # Apply AFTER dev_split so the same shuffle-prefix examples appear
         # as in unfiltered runs — needed for hybrid merging (e.g., F on
@@ -227,6 +243,8 @@ def main(argv: list[str] | None = None) -> int:
             )
             return 3
     print(f"[info] loaded {len(examples)} examples → sampled {len(sample)} (seed={args.seed})")
+
+    registry = get_default_registry()
     missing = sorted({e.registry_db_id for e in sample} - set(registry.ids()))
     if missing:
         print(
@@ -235,6 +253,11 @@ def main(argv: list[str] | None = None) -> int:
             file=sys.stderr,
         )
         return 4
+
+    settings = get_settings()
+    if not settings.mistral_api_key:
+        print("[error] MISTRAL_API_KEY not set in .env", file=sys.stderr)
+        return 2
 
     raw_sql_provider = build_provider(args.provider, settings=settings)
     print(f"[info] provider: {args.provider} (model={raw_sql_provider.model})")

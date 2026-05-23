@@ -11,6 +11,10 @@ Usage:
         --baseline eval/reports/.../v11.json \\
         --out eval/reports/.../helallao-grok-voting.json \\
         --model grok-4.1
+    uv run python scripts/run_helallao_voting.py \\
+        --baseline eval/reports/.../v20.json \\
+        --out eval/reports/.../helallao-qid1399.json \\
+        --model grok-4.1-reasoning --only-qids 1399
 """
 
 from __future__ import annotations
@@ -42,6 +46,11 @@ def main() -> int:
     p.add_argument("--out", type=Path, required=True)
     p.add_argument("--max-cases", type=int, default=200)
     p.add_argument("--skip-qids", default="")
+    p.add_argument(
+        "--only-qids",
+        default="",
+        help="comma-separated baseline failure qids to retry exactly, preserving argument order",
+    )
     p.add_argument("--model", default="grok-4.1")
     p.add_argument(
         "--cookies",
@@ -57,13 +66,27 @@ def main() -> int:
     )
     args = p.parse_args()
 
-    settings = get_settings()
     baseline = json.loads(args.baseline.read_text(encoding="utf-8"))
     fails = [r for r in baseline["records"] if not r.get("match")]
+    try:
+        only_qids = [int(x) for x in args.only_qids.split(",") if x.strip()]
+    except ValueError:
+        print("[error] invalid --only-qids: expected comma-separated integers", file=sys.stderr)
+        return 3
+    if only_qids:
+        fails_by_qid = {int(r["question_id"]): r for r in fails}
+        missing_qids = [qid for qid in only_qids if qid not in fails_by_qid]
+        if missing_qids:
+            print(f"[error] qids not found in baseline failures: {missing_qids}", file=sys.stderr)
+            return 3
+        fails = [fails_by_qid[qid] for qid in only_qids]
     skip = {int(x) for x in args.skip_qids.split(",") if x.strip()}
     fails = [r for r in fails if r["question_id"] not in skip][: args.max_cases]
     print(f"[info] {len(fails)} failures to retry with helallao+{args.model}", file=sys.stderr)
+    if not fails:
+        return 0
 
+    settings = get_settings()
     examples = {e.question_id: e for e in load_bird_mini_dev(args.bird_root)}
     registry = get_default_registry()
     sql_provider = HelallaoPerplexityProvider(

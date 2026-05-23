@@ -29,14 +29,23 @@
 - `llama3.1:8b` smoke: `NL_SQL_OLLAMA_GEN_MODEL=llama3.1:8b NL_SQL_OLLAMA_TIMEOUT_SECONDS=45 uv run python scripts/eval_baseline.py --provider ollama --config C --n 5 --seed 0 --report-suffix ollama-llama31-smoke5` → **0/5**, all `Request timed out`, P50 latency ~47s. Artifact: `eval/reports/2026-05-22/C_dense_cards-ollama-llama31-smoke5.json`; audit 0 mismatches.
 - `qwen2.5-coder:7b-instruct` pull attempted, but blocked by network/TLS (`max retries exceeded`, Cloudflare R2 TLS handshake timeout) after ~6 min and only ~569KB/4.7GB. Local heterogeneous CSC is blocked until the coding model is installed or the machine has a faster local runtime.
 
-**Voting tooling fix (same day):**
+**Voting/tooling fix (same day + continuation):**
 - `scripts/run_helallao_voting.py` and `scripts/run_openrouter_voting.py` now persist pipeline exceptions as JSON records with `alt_error` and `summary.errored` instead of only printing stderr. Regression coverage: `tests/scripts/test_run_helallao_voting.py` and `tests/scripts/test_run_openrouter_voting.py`. This makes the next qid 1399 or OpenRouter paid-top-up diagnostic run auditable, but it is not a tokenizer workaround by itself.
+- Retry/eval CLIs now support exact qid targeting via `--only-qids`: `scripts/eval_baseline.py`, `run_critique_retry.py`, `run_groq_voting.py`, `run_helallao_voting.py`, `run_openrouter_voting.py`, `run_selfcon_retry.py`, `run_sonnet_voting.py`, and `run_wide_schema_retry.py`. Use this before any expensive residue-wide run, e.g. `--only-qids 1399` for tokenizer diagnostics or `--only-qids 207,1404` for P3.F join-path probes. Test coverage: `tests/scripts/test_retry_only_qids_cli.py` plus targeted helallao/openrouter/eval tests.
+- P3.F v20 recheck: `207` and `1404` remain FAIL in `v20-kimi-k2-thinking-merged.json`; old partial targets `77` and `990` are no longer clean P3.F work items in v20. Treat `207` carefully: the natural FK-looking path `bond.bond_id = connected.bond_id` is exactly what current predictions choose, while BIRD gold instead uses `connected.atom_id`; a stronger generic FK linker can make this worse. `1404` is the cleaner column-source/GROUP BY target (`event.type` vs `expense.expense_description/type`).
+- Gate before commit: `uv run pytest -q` → 309 passed; `uv run ruff check src tests scripts app` clean; `uv run mypy --strict src` clean; `git diff --check` clean. Touched text files verified LF-only.
 
 **Open path past 87.5% (приоритет):**
 1. **Paid OpenRouter top-up** ($5+) — unlocks batch eval через heterogeneous `:free`/paid routed models, wiring уже готов.
 2. **Local ollama heterogeneous CSC** — blocked until `qwen2.5-coder:7b-instruct` is actually installed; existing local `llama3.1:8b` times out on schema-heavy prompts.
-3. **P3.F JOIN-path linker** (`docs/p3f_design.md`) — единственный remaining non-quota engineering path, multi-day.
+3. **P3.F JOIN-path linker** (`docs/p3f_design.md`) — единственный remaining non-quota engineering path, multi-day; do not build a generic FK booster without a qid-level acceptance harness for `207/1404`.
 4. **GraceKelly maintenance** — re-run `D:/GraceKelly/tools/capture_perplexity_recon.py` + update selectors only if Chrome profile is confirmed free.
+
+**Next tactical plan:**
+1. If continuing P3.F, start with a qid-level acceptance harness for `1404` and `207`, not a broad linker.
+2. Treat `1404` as the first implementation target; it is a cleaner column-source/GROUP BY failure.
+3. Defer `207` until the harness can catch FK-overconfidence regressions, because BIRD gold disagrees with the natural `bond_id` path.
+4. Do not run qid `1399` through helallao again until there is a real tokenizer workaround or a diagnostic patch that preserves the exception payload.
 
 **Что НЕ делать:**
 - Не повторять plain `kimi-k2-thinking` на v19/v20 residue — v20 уже взял единственный rescue qid 584; остальное same.
@@ -198,6 +207,12 @@ uv run python scripts/run_helallao_voting.py \
   --baseline eval/reports/2026-05-18b/v18-gpt52-pro-merged.json \
   --out eval/reports/<date>/helallao-gpt52-pro-on-v18-residue.json \
   --model gpt-5.2 --sleep-between 4.0
+
+# Точечный diagnostic без полного residue (только после tokenizer workaround):
+uv run python scripts/run_helallao_voting.py \
+  --baseline eval/reports/2026-05-22/v20-kimi-k2-thinking-merged.json \
+  --out eval/reports/<date>/helallao-qid1399.json \
+  --model grok-4.1-reasoning --only-qids 1399
 ```
 
 ## Cookies refresh (если helallao падает с auth error)

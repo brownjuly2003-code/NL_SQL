@@ -12,6 +12,9 @@ Usage:
     uv run python scripts/run_selfcon_retry.py \
         --baseline eval/reports/2026-05-13/hybrid+multi-vote+critique-v4.json \
         --out eval/reports/2026-05-13/selfcon-retry.json
+    uv run python scripts/run_selfcon_retry.py \
+        --baseline eval/reports/2026-05-22/v20-kimi-k2-thinking-merged.json \
+        --out eval/reports/2026-05-22/selfcon-qid1399.json --only-qids 1399
 """
 
 from __future__ import annotations
@@ -101,6 +104,11 @@ def main() -> int:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--baseline", type=Path, required=True)
     p.add_argument("--bird-root", type=Path, default=Path("data/bird_mini_dev/MINIDEV"))
+    p.add_argument(
+        "--only-qids",
+        default="",
+        help="comma-separated baseline failure qids to retry exactly, preserving argument order",
+    )
     p.add_argument("--temperatures", nargs="+", type=float, default=[0.2, 0.4, 0.6, 0.8])
     p.add_argument("--gen-model", default="codestral-latest", help="Mistral model id")
     p.add_argument("--sleep-between", type=float, default=0.0, help="seconds between pipeline calls (use for mistral-large rate limits)")
@@ -112,6 +120,20 @@ def main() -> int:
     p.add_argument("--out", type=Path, required=True)
     args = p.parse_args()
 
+    baseline = json.loads(args.baseline.read_text(encoding="utf-8"))
+    fails = [r for r in baseline["records"] if not r.get("match")]
+    try:
+        only_qids = [int(x) for x in args.only_qids.split(",") if x.strip()]
+    except ValueError:
+        print("[error] invalid --only-qids: expected comma-separated integers", file=sys.stderr)
+        return 3
+    if only_qids:
+        fails_by_qid = {int(r["question_id"]): r for r in fails}
+        missing_qids = [qid for qid in only_qids if qid not in fails_by_qid]
+        if missing_qids:
+            print(f"[error] qids not found in baseline failures: {missing_qids}", file=sys.stderr)
+            return 3
+        fails = [fails_by_qid[qid] for qid in only_qids]
     settings = get_settings()
     if args.api_keys:
         keys = [k.strip() for k in args.api_keys.split(",") if k.strip()]
@@ -120,8 +142,6 @@ def main() -> int:
     if not keys or not keys[0]:
         print("[error] no Mistral API keys provided", file=sys.stderr)
         return 1
-    baseline = json.loads(args.baseline.read_text(encoding="utf-8"))
-    fails = [r for r in baseline["records"] if not r.get("match")]
     print(
         f"[info] {len(fails)} failures, temps={args.temperatures}, model={args.gen_model}, keys={len(keys)}",
         file=sys.stderr,

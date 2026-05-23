@@ -38,6 +38,11 @@ def test_pipeline_exception_is_written_to_report(
             {
                 "records": [
                     {
+                        "question_id": 1404,
+                        "match": False,
+                        "pred_sql": "SELECT 2",
+                    },
+                    {
                         "question_id": 1399,
                         "match": False,
                         "pred_sql": "SELECT 0",
@@ -56,6 +61,14 @@ def test_pipeline_exception_is_written_to_report(
         sql="SELECT 1",
         difficulty="moderate",
     )
+    other_example = BirdExample(
+        question_id=1404,
+        db_id="student_club",
+        question="Identify the type of expenses approved for October Meeting.",
+        evidence="",
+        sql="SELECT 2",
+        difficulty="moderate",
+    )
     model = "openai/gpt-oss-120b:free"
 
     monkeypatch.setattr(
@@ -71,8 +84,8 @@ def test_pipeline_exception_is_written_to_report(
             str(tmp_path / "bird"),
             "--out",
             str(out_path),
-            "--max-cases",
-            "1",
+            "--only-qids",
+            "1399",
             "--sleep-between",
             "0",
         ],
@@ -82,7 +95,11 @@ def test_pipeline_exception_is_written_to_report(
         "get_settings",
         lambda: SimpleNamespace(mistral_api_key="key", llm_cache_dir=tmp_path / "cache"),
     )
-    monkeypatch.setattr(run_openrouter_voting, "load_bird_mini_dev", lambda root: [example])
+    monkeypatch.setattr(
+        run_openrouter_voting,
+        "load_bird_mini_dev",
+        lambda root: [other_example, example],
+    )
     monkeypatch.setattr(run_openrouter_voting, "get_default_registry", lambda: FakeRegistry())
     monkeypatch.setattr(run_openrouter_voting, "_read_openrouter_key", lambda: "key")
     monkeypatch.setattr(run_openrouter_voting, "OpenAI", lambda **kwargs: SimpleNamespace())

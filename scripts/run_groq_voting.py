@@ -16,6 +16,10 @@ Usage:
         --provider-model qwen/qwen3-32b \
         --max-cases 20 \
         --out eval/reports/2026-05-12/qwen3-voting.json
+    uv run python scripts/run_groq_voting.py \
+        --baseline eval/reports/2026-05-22/v20-kimi-k2-thinking-merged.json \
+        --provider-model openai/gpt-oss-120b \
+        --out eval/reports/2026-05-22/groq-qid1399.json --only-qids 1399
 """
 
 from __future__ import annotations
@@ -95,26 +99,46 @@ def main() -> int:
         default="",
         help="comma-separated qids to skip (already covered by prior runs)",
     )
+    p.add_argument(
+        "--only-qids",
+        default="",
+        help="comma-separated baseline failure qids to retry exactly, preserving argument order",
+    )
     p.add_argument("--bird-root", default="data/bird_mini_dev/MINIDEV")
     p.add_argument("--out", type=Path, required=True)
     args = p.parse_args()
 
-    settings = get_settings()
-    examples = {e.question_id: e for e in load_bird_mini_dev(Path(args.bird_root))}
     baseline = json.loads(args.baseline.read_text(encoding="utf-8"))["records"]
 
     # Pick failing cases of the requested bucket (optionally filter difficulty).
     bucket_fn = _BUCKETS[args.bucket]
     skip = {int(x) for x in args.skip_qids.split(",") if x.strip()}
-    candidates = [r for r in baseline if bucket_fn(r) and r["question_id"] not in skip]
-    if args.difficulty:
-        candidates = [r for r in candidates if r["difficulty"] == args.difficulty]
+    try:
+        only_qids = [int(x) for x in args.only_qids.split(",") if x.strip()]
+    except ValueError:
+        print("[error] invalid --only-qids: expected comma-separated integers", file=sys.stderr)
+        return 3
+    if only_qids:
+        failures_by_qid = {int(r["question_id"]): r for r in baseline if not r.get("match")}
+        missing_qids = [qid for qid in only_qids if qid not in failures_by_qid]
+        if missing_qids:
+            print(f"[error] qids not found in baseline failures: {missing_qids}", file=sys.stderr)
+            return 3
+        candidates = [failures_by_qid[qid] for qid in only_qids if qid not in skip]
+    else:
+        candidates = [r for r in baseline if bucket_fn(r) and r["question_id"] not in skip]
+        if args.difficulty:
+            candidates = [r for r in candidates if r["difficulty"] == args.difficulty]
     candidates = candidates[: args.max_cases]
     print(
         f"[info] picked {len(candidates)} {args.bucket} cases (skipped {len(skip)} qids)",
         file=sys.stderr,
     )
+    if not candidates:
+        return 0
 
+    settings = get_settings()
+    examples = {e.question_id: e for e in load_bird_mini_dev(Path(args.bird_root))}
     # Pipeline with the Groq alt model. We override the codestral-cached
     # provider with a fresh Groq client at the chosen model id.
     raw_groq = OpenAI(api_key=settings.groq_api_key, base_url=settings.groq_base_url)

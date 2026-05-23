@@ -18,6 +18,9 @@ Usage:
     uv run python scripts/run_wide_schema_retry.py \
         --baseline eval/reports/2026-05-13/hybrid+multi-vote+critique+selfcon-v5.json \
         --out eval/reports/2026-05-13/wide-schema-retry.json
+    uv run python scripts/run_wide_schema_retry.py \
+        --baseline eval/reports/2026-05-22/v20-kimi-k2-thinking-merged.json \
+        --out eval/reports/2026-05-22/wide-schema-qid207.json --only-qids 207
 """
 
 from __future__ import annotations
@@ -56,18 +59,35 @@ def main() -> int:
     p.add_argument("--schema-top-k", type=int, default=10)
     p.add_argument("--fk-hops", type=int, default=2)
     p.add_argument("--table-budget", type=int, default=20)
+    p.add_argument(
+        "--only-qids",
+        default="",
+        help="comma-separated row_count_off failure qids to retry exactly, preserving argument order",
+    )
     p.add_argument("--out", type=Path, required=True)
     args = p.parse_args()
 
-    settings = get_settings()
     baseline = json.loads(args.baseline.read_text(encoding="utf-8"))
     fails = [r for r in baseline["records"] if _is_row_count_off(r)]
+    try:
+        only_qids = [int(x) for x in args.only_qids.split(",") if x.strip()]
+    except ValueError:
+        print("[error] invalid --only-qids: expected comma-separated integers", file=sys.stderr)
+        return 3
+    if only_qids:
+        fails_by_qid = {int(r["question_id"]): r for r in fails}
+        missing_qids = [qid for qid in only_qids if qid not in fails_by_qid]
+        if missing_qids:
+            print(f"[error] qids not found in row_count_off failures: {missing_qids}", file=sys.stderr)
+            return 3
+        fails = [fails_by_qid[qid] for qid in only_qids]
     print(
         f"[info] {len(fails)} row_count_off fails to retry with "
         f"top_k={args.schema_top_k}, hops={args.fk_hops}, budget={args.table_budget}",
         file=sys.stderr,
     )
 
+    settings = get_settings()
     examples = {e.question_id: e for e in load_bird_mini_dev(args.bird_root)}
     registry = get_default_registry()
     mistral = MistralProvider(api_key=settings.mistral_api_key, gen_model="codestral-latest")

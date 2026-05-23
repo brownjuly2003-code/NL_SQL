@@ -14,6 +14,9 @@ Usage:
         --baseline eval/reports/2026-05-13/hybrid+multi-vote-v3.json \
         --bird-root data/bird_mini_dev/MINIDEV \
         --out eval/reports/2026-05-13/critique-retry.json
+    uv run python scripts/run_critique_retry.py \
+        --baseline eval/reports/2026-05-22/v20-kimi-k2-thinking-merged.json \
+        --out eval/reports/2026-05-22/critique-qid1399.json --only-qids 1399
 """
 
 from __future__ import annotations
@@ -42,6 +45,11 @@ def main() -> int:
     p.add_argument("--bird-root", type=Path, default=Path("data/bird_mini_dev/MINIDEV"))
     p.add_argument("--out", type=Path, required=True)
     p.add_argument("--max-cases", type=int, default=200)
+    p.add_argument(
+        "--only-qids",
+        default="",
+        help="comma-separated baseline failure qids to retry exactly, preserving argument order",
+    )
     p.add_argument(
         "--fewshot-top-k",
         type=int,
@@ -90,12 +98,24 @@ def main() -> int:
     )
     args = p.parse_args()
 
-    settings = get_settings()
     baseline = json.loads(args.baseline.read_text(encoding="utf-8"))
     fails = [r for r in baseline["records"] if not r.get("match")]
+    try:
+        only_qids = [int(x) for x in args.only_qids.split(",") if x.strip()]
+    except ValueError:
+        print("[error] invalid --only-qids: expected comma-separated integers", file=sys.stderr)
+        return 3
+    if only_qids:
+        fails_by_qid = {int(r["question_id"]): r for r in fails}
+        missing_qids = [qid for qid in only_qids if qid not in fails_by_qid]
+        if missing_qids:
+            print(f"[error] qids not found in baseline failures: {missing_qids}", file=sys.stderr)
+            return 3
+        fails = [fails_by_qid[qid] for qid in only_qids]
     fails = fails[: args.max_cases]
     print(f"[info] {len(fails)} failures to retry with grounded_critique", file=sys.stderr)
 
+    settings = get_settings()
     examples = {e.question_id: e for e in load_bird_mini_dev(args.bird_root)}
     registry = get_default_registry()
 

@@ -10,6 +10,10 @@ Usage:
         --baseline eval/reports/2026-05-18/v16-helallao-dac-reasoning.json \\
         --provider-model openai/gpt-oss-120b:free \\
         --out eval/reports/2026-05-18b/gpt-oss-or-on-v16-residue.json
+    uv run python scripts/run_openrouter_voting.py \\
+        --baseline eval/reports/2026-05-22/v20-kimi-k2-thinking-merged.json \\
+        --provider-model openai/gpt-oss-120b:free \\
+        --out eval/reports/2026-05-22/openrouter-qid1399.json --only-qids 1399
 """
 
 from __future__ import annotations
@@ -58,16 +62,35 @@ def main() -> int:
     p.add_argument("--out", type=Path, required=True)
     p.add_argument("--max-cases", type=int, default=200)
     p.add_argument("--skip-qids", default="")
+    p.add_argument(
+        "--only-qids",
+        default="",
+        help="comma-separated baseline failure qids to retry exactly, preserving argument order",
+    )
     p.add_argument("--sleep-between", type=float, default=2.0)
     args = p.parse_args()
 
-    settings = get_settings()
     baseline = json.loads(args.baseline.read_text(encoding="utf-8"))
     fails = [r for r in baseline["records"] if not r.get("match")]
+    try:
+        only_qids = [int(x) for x in args.only_qids.split(",") if x.strip()]
+    except ValueError:
+        print("[error] invalid --only-qids: expected comma-separated integers", file=sys.stderr)
+        return 3
+    if only_qids:
+        fails_by_qid = {int(r["question_id"]): r for r in fails}
+        missing_qids = [qid for qid in only_qids if qid not in fails_by_qid]
+        if missing_qids:
+            print(f"[error] qids not found in baseline failures: {missing_qids}", file=sys.stderr)
+            return 3
+        fails = [fails_by_qid[qid] for qid in only_qids]
     skip = {int(x) for x in args.skip_qids.split(",") if x.strip()}
     fails = [r for r in fails if r["question_id"] not in skip][: args.max_cases]
     print(f"[info] {len(fails)} failures to retry with openrouter+{args.provider_model}", file=sys.stderr)
+    if not fails:
+        return 0
 
+    settings = get_settings()
     examples = {e.question_id: e for e in load_bird_mini_dev(args.bird_root)}
     registry = get_default_registry()
     api_key = _read_openrouter_key()
