@@ -1,0 +1,154 @@
+{
+  "alt_model": "archive-sweep",
+  "baseline": "eval/reports/2026-05-23/v24-v23-plus-archive-rescore-959-merged.json",
+  "summary": {
+    "voted_better": 0,
+    "voted_worse": 0,
+    "voted_same": 0,
+    "examined_qids": 20,
+    "total_candidates": 696
+  },
+  "examined": [
+    {
+      "question_id": 25,
+      "difficulty": "moderate",
+      "db_id": "california_schools",
+      "candidates": 55,
+      "rescued": false
+    },
+    {
+      "question_id": 37,
+      "difficulty": "moderate",
+      "db_id": "california_schools",
+      "candidates": 47,
+      "rescued": false
+    },
+    {
+      "question_id": 125,
+      "difficulty": "challenging",
+      "db_id": "financial",
+      "candidates": 49,
+      "rescued": false
+    },
+    {
+      "question_id": 349,
+      "difficulty": "moderate",
+      "db_id": "card_games",
+      "candidates": 31,
+      "rescued": false
+    },
+    {
+      "question_id": 408,
+      "difficulty": "moderate",
+      "db_id": "card_games",
+      "candidates": 9,
+      "rescued": false
+    },
+    {
+      "question_id": 484,
+      "difficulty": "moderate",
+      "db_id": "card_games",
+      "candidates": 35,
+      "rescued": false
+    },
+    {
+      "question_id": 595,
+      "difficulty": "moderate",
+      "db_id": "codebase_community",
+      "candidates": 42,
+      "rescued": false
+    },
+    {
+      "question_id": 694,
+      "difficulty": "moderate",
+      "db_id": "codebase_community",
+      "candidates": 34,
+      "rescued": false
+    },
+    {
+      "question_id": 894,
+      "difficulty": "moderate",
+      "db_id": "formula_1",
+      "candidates": 38,
+      "rescued": false
+    },
+    {
+      "question_id": 902,
+      "difficulty": "simple",
+      "db_id": "formula_1",
+      "candidates": 23,
+      "rescued": false
+    },
+    {
+      "question_id": 930,
+      "difficulty": "simple",
+      "db_id": "formula_1",
+      "candidates": 35,
+      "rescued": false
+    },
+    {
+      "question_id": 1029,
+      "difficulty": "moderate",
+      "db_id": "european_football_2",
+      "candidates": 26,
+      "rescued": false
+    },
+    {
+      "question_id": 1094,
+      "difficulty": "challenging",
+      "db_id": "european_football_2",
+      "candidates": 45,
+      "rescued": false
+    },
+    {
+      "question_id": 1144,
+      "difficulty": "simple",
+      "db_id": "european_football_2",
+      "candidates": 27,
+      "rescued": false
+    },
+    {
+      "question_id": 1168,
+      "difficulty": "challenging",
+      "db_id": "thrombosis_prediction",
+      "candidates": 45,
+      "rescued": false
+    },
+    {
+      "question_id": 1247,
+      "difficulty": "challenging",
+      "db_id": "thrombosis_prediction",
+      "candidates": 28,
+      "rescued": false
+    },
+    {
+      "question_id": 1251,
+      "difficulty": "simple",
+      "db_id": "thrombosis_prediction",
+      "candidates": 18,
+      "rescued": false
+    },
+    {
+      "question_id": 1254,
+      "difficulty": "moderate",
+      "db_id": "thrombosis_prediction",
+      "candidates": 33,
+      "rescued": false
+    },
+    {
+      "question_id": 1275,
+      "difficulty": "moderate",
+      "db_id": "thrombosis_prediction",
+      "candidates": 33,
+      "rescued": false
+    },
+    {
+      "question_id": 1531,
+      "difficulty": "moderate",
+      "db_id": "debit_card_specializing",
+      "candidates": 43,
+      "rescued": false
+    }
+  ],
+  "records": []
+}

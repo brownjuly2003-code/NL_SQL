@@ -37,24 +37,38 @@
   *перезамер* старых артефактов под исправленным runner'ом + цепочкой audit'ов.
   Всё прозрачно: 0 mismatches на каждом шаге.
 
-**Следующее:**
-1. Полностью проиграть archive sweep/rescore против v24 misses (20/200) — на
-   случай если ещё какой-то старый pred совпадает с gold уже под текущим runner'ом.
-   Цель: zero free pp от archive, выходим в фазу «всё, что можно было audit'ом — снято».
-2. GraceKelly browser-orchestrator: исправить full-prompt стабильность (Perplexity
+**Archive sweep против v24 misses — закрыт NEGATIVE 2026-05-24:**
+
+- Скрипт: `scripts/archive_sweep.py` (reusable).
+- Запуск: `uv run python scripts/archive_sweep.py --baseline
+  eval/reports/2026-05-23/v24-v23-plus-archive-rescore-959-merged.json --out
+  eval/reports/2026-05-24/archive-sweep-v24-candidates.json`.
+- Поверхность: 696 unique pred_sql кандидатов из 162 архивных отчётов
+  против 20 v24 misses.
+- Результат: **0 rescues / 20 misses**. Все 20 v24 misses — genuinely
+  новые failures под текущим corrected runner'ом; ни один старый pred не
+  совпадает с gold.
+- Headline `90.0% EA` остаётся, без изменений.
+- Closed: archive-discipline lever saturated. v23/v24 были последними archive
+  wins.
+
+**Следующее (priority):**
+1. GraceKelly browser-orchestrator: исправить full-prompt стабильность (Perplexity
    UI text leak / model-picker timeout). Текущая работа возможна только на
-   ultrashort targeted prompts.
-3. Paid OpenRouter top-up ($5+): запустить **только** на 20-qid v24 residue
+   ultrashort targeted prompts. Это работа в `D:/GraceKelly`, не в этом repo.
+2. Paid OpenRouter top-up ($5+): запустить **только** на 20-qid v24 residue
    через стрелковые residue-моделями (claude-4.5-sonnet, gpt-5.2-thinking,
    grok-4.1-reasoning), сливать только `alt_match=True` + audit. Никаких
    full n=200 run'ов.
-4. Local heterogeneous CSC: `qwen2.5-coder:7b-instruct` ещё не установлен,
+3. Local heterogeneous CSC: `qwen2.5-coder:7b-instruct` ещё не установлен,
    pull блокирует Cloudflare R2. Попробовать на быстром канале или другой
    машине.
-5. Не строить generic FK linker (v22 lesson: qid 207 показал, что natural
+4. Не строить generic FK linker (v22 lesson: qid 207 показал, что natural
    FK-looking path — это ровно WRONG path под BIRD gold).
-6. Не запускать helallao reasoning route на одном аккаунте подряд по
+5. Не запускать helallao reasoning route на одном аккаунте подряд по
    models — backend coalesces quota по аккаунту, не по модели.
+6. Не повторять archive sweep после новых fixes без явного нового
+   runner-level изменения — без этого результат гарантированно 0.
 
 ## 2026-05-23 v22 — **89.0% EA verified** via P3.F rescues merged on top of v21
 

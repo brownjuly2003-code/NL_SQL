@@ -1,5 +1,15 @@
-# NL_SQL — Session Handoff (2026-05-24 v24 = 90.0% EA verified via archive sweep + archive rescore on top of v22, above #1 paid SOTA by +8.05pp)
+# NL_SQL — Session Handoff (2026-05-24 v24 = 90.0% EA holds; archive sweep against v24 misses closed NEGATIVE, archive-discipline lever saturated)
 
+> **Tl;dr 2026-05-24 archive sweep against v24 misses (closed NEGATIVE):**
+> - Reusable tooling: `scripts/archive_sweep.py`. Scans every `eval/reports/**/*.json` for stale pred_sql records matching a baseline's miss qids, re-executes each under the current corrected runner, and reports only verified `alt_match=True` rescues.
+> - Run: `uv run python scripts/archive_sweep.py --baseline eval/reports/2026-05-23/v24-v23-plus-archive-rescore-959-merged.json --out eval/reports/2026-05-24/archive-sweep-v24-candidates.json`.
+> - Surface: 696 unique pred_sql candidates from 162 archived reports against 20 v24 misses.
+> - Result: **0 rescues / 20 misses**. All 20 v24 misses are genuinely new failures under the current corrected runner; no historical pred matches the gold rows.
+> - v24 headline `90.0% EA / 200` unchanged. Archive-discipline lever saturated; v23/v24 were the last two archive wins.
+> - Negative-result artefact: `eval/reports/2026-05-24/archive-sweep-v24-candidates.json` (records `[]`, `examined` lists each of the 20 misses with their candidate count).
+>
+> ---
+>
 > **Tl;dr 2026-05-24 v24 (archive-rescore qid 959 on top of v23):**
 > - **v24 90.0% EA verified** (180/200) — published BIRD Mini-Dev SQLite, BIRD-official set scoring. **Above #1 paid system AskData+GPT-4o (81.95%) by +8.05pp.**
 > - **Per-tier v24:** simple **94.0% (63/67)** / moderate 87.9% (87/99) / challenging 88.2% (30/34).
