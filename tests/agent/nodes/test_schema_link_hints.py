@@ -144,6 +144,80 @@ def test_formula_1_track_number_hint_is_question_scoped() -> None:
     assert "# Schema-link hints" not in rendered
 
 
+def test_debit_card_top_spending_hint_points_to_yearmonth_consumption() -> None:
+    rendered = render_schema_block(
+        ContextBundle(
+            db_id="debit_card_specializing",
+            question=(
+                "Who is the top spending customer and how much is the average "
+                "price per single item purchased by this customer? What "
+                "currency was being used?"
+            ),
+            schema_hits=[
+                _hit(
+                    "yearmonth",
+                    "Table: yearmonth\nColumns:\n"
+                    "  - CustomerID: INTEGER [NOT NULL]\n"
+                    "  - Consumption: REAL [NULL]",
+                    db_id="debit_card_specializing",
+                ),
+                _hit(
+                    "transactions_1k",
+                    "Table: transactions_1k\nColumns:\n"
+                    "  - CustomerID: INTEGER [NOT NULL]\n"
+                    "  - Price: REAL [NULL]\n"
+                    "  - Amount: INTEGER [NULL]",
+                    db_id="debit_card_specializing",
+                ),
+                _hit(
+                    "customers",
+                    "Table: customers\nColumns:\n"
+                    "  - CustomerID: INTEGER [PK NOT NULL]\n"
+                    "  - Currency: TEXT [NULL]",
+                    db_id="debit_card_specializing",
+                ),
+            ],
+            fk_neighbours=[],
+            fewshots=[],
+        )
+    )
+
+    assert "# Schema-link hints" in rendered
+    assert "yearmonth.Consumption" in rendered
+    assert "SUM(T2.Price / T2.Amount)" in rendered
+    assert "NOT SUM(transactions_1k.Price)" in rendered
+
+
+def test_debit_card_top_spending_hint_is_question_scoped() -> None:
+    rendered = render_schema_block(
+        ContextBundle(
+            db_id="debit_card_specializing",
+            question="Which year recorded the most consumption of gas paid in CZK?",
+            schema_hits=[
+                _hit(
+                    "yearmonth",
+                    "Table: yearmonth\nColumns:\n  - Consumption: REAL [NULL]",
+                    db_id="debit_card_specializing",
+                ),
+                _hit(
+                    "transactions_1k",
+                    "Table: transactions_1k\nColumns:\n  - Price: REAL [NULL]",
+                    db_id="debit_card_specializing",
+                ),
+                _hit(
+                    "customers",
+                    "Table: customers\nColumns:\n  - Currency: TEXT [NULL]",
+                    db_id="debit_card_specializing",
+                ),
+            ],
+            fk_neighbours=[],
+            fewshots=[],
+        )
+    )
+
+    assert "# Schema-link hints" not in rendered
+
+
 def _hit(table_name: str, text: str, *, db_id: str = "student_club") -> SchemaQueryHit:
     return SchemaQueryHit(
         chunk_id=f"{db_id}::{table_name}",

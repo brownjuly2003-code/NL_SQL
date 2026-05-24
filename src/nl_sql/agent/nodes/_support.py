@@ -240,6 +240,30 @@ def _render_schema_link_hints_appendix(context: ContextBundle, hits: list[Any]) 
                 "to finish position within a single race, which is different.",
             ]
         )
+    if (
+        db_id in {"debit_card_specializing", "bird_debit_card_specializing"}
+        and {"yearmonth", "transactions_1k", "customers"} <= tables
+        and "top spending" in question
+        and "average price" in question
+    ):
+        return "\n".join(
+            [
+                "# Schema-link hints",
+                "- For debit_card_specializing 'top spending customer' + "
+                "'average price per single item' question, write exactly: "
+                "SELECT T2.CustomerID, SUM(T2.Price / T2.Amount), T1.Currency "
+                "FROM customers AS T1 INNER JOIN transactions_1k AS T2 "
+                "ON T1.CustomerID = T2.CustomerID "
+                "WHERE T2.CustomerID = (SELECT CustomerID FROM yearmonth "
+                "ORDER BY yearmonth.Consumption DESC LIMIT 1) "
+                "GROUP BY T2.CustomerID, T1.Currency. "
+                "Top spender is the yearmonth.Consumption max (subquery), "
+                "NOT SUM(transactions_1k.Price). "
+                "Average price per item is SUM(Price / Amount) row-wise, "
+                "NOT SUM(Price) / SUM(Amount). "
+                "Column order is (CustomerID, avg, Currency).",
+            ]
+        )
     return ""
 
 

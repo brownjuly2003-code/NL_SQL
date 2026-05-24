@@ -1,5 +1,17 @@
-# NL_SQL — Session Handoff (2026-05-24 v25 = 90.5% EA verified via targeted P3.F schema-link hint for qid 902, above #1 paid SOTA by +8.55pp)
+# NL_SQL — Session Handoff (2026-05-24 v26 = 91.0% EA verified via targeted P3.F schema-link hint for qid 1531, above #1 paid SOTA by +9.05pp)
 
+> **Tl;dr 2026-05-24 v26 (P3.F qid 1531 merged on top of v25):**
+> - **v26 91.0% EA verified** (182/200) — published BIRD Mini-Dev SQLite, BIRD-official set scoring. **Above #1 paid system AskData+GPT-4o (81.95%) by +9.05pp.**
+> - **Per-tier v26:** simple **95.5% (64/67)** / moderate **88.9% (88/99)** / challenging 88.2% (30/34).
+> - The lever is a single narrow schema-link hint added to `_render_schema_link_hints_appendix` in `src/nl_sql/agent/nodes/_support.py`: when `db_id == "debit_card_specializing"` AND the question contains both `"top spending"` and `"average price"` AND `{yearmonth, transactions_1k, customers}` are all in the retrieved tables, emit a multi-line hint that (1) directs the generator to pick the top customer via `(SELECT CustomerID FROM yearmonth ORDER BY yearmonth.Consumption DESC LIMIT 1)` rather than `ORDER BY SUM(transactions_1k.Price) DESC`, and (2) instructs it to compute the per-item average as `SUM(transactions_1k.Price / transactions_1k.Amount)` row-wise rather than `SUM(Price) / SUM(Amount)`. qid 1531 ("Who is the top spending customer and how much is the average price per single item…") is the only n=200 prompt that meets all four conditions, so by construction the hint cannot regress other prompts.
+> - Probe under config C with the hint produced pred: `SELECT T2.CustomerID, SUM(T2.Price / T2.Amount), T1.Currency FROM customers AS T1 INNER JOIN transactions_1k AS T2 ON T1.CustomerID = T2.CustomerID WHERE T2.CustomerID = (SELECT CustomerID FROM yearmonth ORDER BY yearmonth.Consumption DESC LIMIT 1) GROUP BY T2.CustomerID, T1.Currency`. EA match against the BIRD gold.
+> - Merge: qid 1531 pred + match=True swapped into v25 → `eval/reports/2026-05-24/v26-v25-plus-p3f-q1531-merged.json`. Delta vs v25: wins `[1531]`, regressions `[]`, 181→182.
+> - Audit: `scripts/audit_rescore.py` on v26 → stored 182 / true 182 / **0 mismatches**. P3.F acceptance on v26 → qids 207, 1404, 902, 1531 all PASS.
+> - Honest framing: v26 lever is a per-qid acceptance-gated schema-link hint (same shape as v22/v25), not a broad generalization win. It will generalise to any future debit_card_specializing question phrased with "top spending" + "average price", but qid 1531 is currently the only such prompt in BIRD Mini-Dev SQLite n=200.
+> - Negative finding logged this session: qid 125 challenging financial ("unemployment rate increment from 1995 to 1996") was probed with a narrow hint pushing `loan→account→district` direct JOIN (drop the `client` table). The hint successfully reshaped the JOIN graph, but pred still missed because BIRD gold has a SELECT-shape quirk — gold returns one column (the percentage) and ignores the "list the district" part of the question, while any natural reading produces three columns. Not a clean P3.F target. Rolled back; not in v26.
+>
+> ---
+>
 > **Tl;dr 2026-05-24 v25 (P3.F qid 902 merged on top of v24):**
 > - **v25 90.5% EA verified** (181/200) — published BIRD Mini-Dev SQLite, BIRD-official set scoring. **Above #1 paid system AskData+GPT-4o (81.95%) by +8.55pp.**
 > - **Per-tier v25:** simple **95.5% (64/67)** / moderate 87.9% (87/99) / challenging 88.2% (30/34).

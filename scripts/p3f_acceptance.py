@@ -62,6 +62,12 @@ TARGETS: tuple[AcceptanceTarget, ...] = (
         required_columns=(("driverstandings", "position"),),
         forbidden_columns=(("results", "position"), ("results", "positionorder")),
     ),
+    AcceptanceTarget(
+        qid=1531,
+        label="debit_card_specializing 'top spending' must use yearmonth.Consumption subquery, not transactions_1k Price aggregation",
+        required_columns=(("yearmonth", "consumption"),),
+        forbidden_columns=(),
+    ),
 )
 
 

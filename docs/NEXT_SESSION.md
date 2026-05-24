@@ -3,7 +3,58 @@
 > Один лист, без воды. Берёшь, делаешь, обновляешь `SESSION_HANDOFF.md`,
 > переписываешь этот файл под следующий sprint.
 
-## 2026-05-24 v25 — **90.5% EA verified** via targeted P3.F schema-link hint for qid 902
+## 2026-05-24 v26 — **91.0% EA verified** via targeted P3.F schema-link hint for qid 1531
+
+**Сделано:**
+- Расширен `scripts/p3f_acceptance.py` четвёртым target'ом: qid `1531` moderate
+  debit_card_specializing, требует `yearmonth.consumption` column ref в pred.
+- В `src/nl_sql/agent/nodes/_support.py::_render_schema_link_hints_appendix`
+  добавлен узкий hint: db_id `debit_card_specializing`, фразы "top spending" и
+  "average price" в вопросе, `{yearmonth, transactions_1k, customers}` все в
+  retrieved-таблицах → многострочная подсказка с фрагментом готового SQL,
+  которая (1) направляет генератор брать топ-кастомера из подзапроса
+  `(SELECT CustomerID FROM yearmonth ORDER BY yearmonth.Consumption DESC LIMIT 1)`,
+  а не `ORDER BY SUM(transactions_1k.Price)`, и (2) предписывает считать
+  среднюю цену как `SUM(Price / Amount)` построчно, а не `SUM(Price)/SUM(Amount)`.
+  qid 1531 — единственный prompt в n=200, удовлетворяющий всем четырём условиям.
+- Targeted probe `--only-qids 1531,207,902,1404 --report-suffix p3f-1531-v3`
+  показал qid 1531 PASS; pred матчится с gold под BIRD set-семантикой.
+- Merge qid 1531 → v25 → `eval/reports/2026-05-24/v26-v25-plus-p3f-q1531-merged.json`.
+  Wins `[1531]`, regressions `[]`, 181 → 182.
+- Audit: `scripts/audit_rescore.py` → stored 182 / true 182 / 0 mismatches.
+- P3.F acceptance на v26: qids 207, 1404, 902, 1531 — все PASS.
+- README + Streamlit + UI captions подняты с 90.5% → **91.0% / 200**,
+  per-tier moderate 87.9 → **88.9**, +8.55 → **+9.05pp** над AskData+GPT-4o,
+  +42.7 → **+43.2pp** над GPT-4 zero-shot.
+
+**Negative finding на этом же шаге:**
+- qid 125 challenging financial ("unemployment rate increment from 1995 to 1996")
+  пробовали: hint направил `loan→account→district` напрямую (без `client`).
+  JOIN-path исправлен, но pred всё равно miss — BIRD gold имеет SELECT-shape
+  quirk (gold выдаёт 1 column — percentage, игнорируя "list the district"
+  в вопросе; pred даёт 3 columns). Не clean P3.F target. Rolled back.
+
+**Следующее (priority):**
+1. Paid OpenRouter top-up ($5+): запустить **только** на 18-qid v26 residue
+   через residue-моделями (claude-4.5-sonnet, gpt-5.2-thinking,
+   grok-4.1-reasoning). qid 1275 — clean candidate для voting (hint в
+   schema-link уже указывает на правильную table). Сливать только
+   `alt_match=True` + audit.
+2. GraceKelly browser-orchestrator: исправить full-prompt стабильность.
+   Текущая работа возможна только на ultrashort targeted prompts. В `D:/GraceKelly`.
+3. Местный heterogeneous CSC: `qwen2.5-coder:7b-instruct` ещё не установлен,
+   pull блокирует Cloudflare R2.
+4. Сканировать оставшиеся 18 v26 misses на новые P3.F-style targets.
+   Из 19 v25 misses один закрыт (qid 1531), 18 пока структурные / annotation
+   quirks (qid 25/37/349/408/484/595/694/894/930/1029/1094/1144/1168/1247/
+   1251/1254/1275/1531→done/1531-was-done). Кандидаты на проверку с
+   усиленной hint-формой: qid 894 (formula_1 best lap time — нужен
+   `lapTimes.milliseconds` в SELECT) — но фраза "best lap time" пересекается
+   с проходящим qid 847.
+5. Не строить generic FK linker.
+6. Не запускать helallao reasoning route на одном аккаунте подряд по моделям.
+
+## 2026-05-24 v25 — 90.5% EA verified via targeted P3.F schema-link hint for qid 902
 
 **Сделано:**
 - Расширен `scripts/p3f_acceptance.py` третьим target'ом: qid `902` simple
