@@ -1449,7 +1449,7 @@
       "pred_row_count": 4,
       "gold_row_count": 1,
       "comparison_reason": "row count mismatch: gold=1, pred=4",
-      "audit_note": "BIRD-official set-semantics audit (compare_results Counter→set, see commit notes)"
+      "audit_note": "BIRD-official set-semantics audit (compare_results Counter\u2192set, see commit notes)"
     },
     {
       "question_id": 366,
@@ -1892,7 +1892,7 @@
       "question": "Which of the play format has the highest number of banned status? Indicate the play format and the names of all the card meet the condition.",
       "gold_sql": "WITH MaxBanned AS (SELECT format, COUNT(*) AS count_banned FROM legalities WHERE status = 'Banned' GROUP BY format ORDER BY COUNT(*) DESC LIMIT 1) SELECT T2.format, T1.name FROM cards AS T1 INNER JOIN legalities AS T2 ON T2.uuid = T1.uuid INNER JOIN MaxBanned MB ON MB.format = T2.format WHERE T2.status = 'Banned'",
       "pred_sql": "SELECT format, COUNT(*) AS banned_count\n  FROM legalities\n  WHERE status = 'Banned'\n  GROUP BY format\n), max_banned AS (\n  SELECT MAX(banned_count) AS banned_count\n  FROM banned_counts\n)\nSELECT bc.format, c.name\nFROM banned_counts AS bc\nJOIN max_banned AS mb\n  ON bc.banned_count = mb.banned_count\nJOIN legalities AS l\n  ON l.format = bc.format AND l.status = 'Banned'\nJOIN cards AS c\n  ON c.uuid = l.uuid\nORDER BY bc.format, c.name",
-      "match": true,
+      "match": false,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
@@ -1916,7 +1916,8 @@
       "pred_row_count": 1,
       "gold_row_count": 0,
       "comparison_reason": "row count mismatch: gold=0, pred=1",
-      "voted_by": "helallao:grok-4.1-reasoning"
+      "voted_by": "helallao:grok-4.1-reasoning",
+      "match_note": "pred-fail-empty-gold false-positive corrected 2026-05-25 (CX [P2] from c74b46c review)"
     },
     {
       "question_id": 531,
@@ -6906,19 +6907,16 @@
   ],
   "per_difficulty": {
     "simple": {
-      "n": 67,
       "matched": 65,
-      "ea": 0.9701492537313433
+      "total": 67
     },
     "moderate": {
-      "n": 99,
-      "matched": 90,
-      "ea": 0.9090909090909091
+      "matched": 89,
+      "total": 99
     },
     "challenging": {
-      "n": 34,
       "matched": 30,
-      "ea": 0.8823529411764706
+      "total": 34
     }
   }
 }

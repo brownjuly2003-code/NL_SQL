@@ -34,7 +34,7 @@ from typing import Any
 
 from nl_sql.db.connection import execute_readonly
 from nl_sql.db.registry import get_default_registry
-from nl_sql.eval.metrics.execution_accuracy import compare_results
+from nl_sql.eval.metrics.execution_accuracy import safe_compare_pred
 from nl_sql.eval.runner import _execute_gold
 
 
@@ -98,6 +98,7 @@ def main() -> int:
             # it on pred can mask validator-style failures and yields
             # non-deterministic engine state across sequential records.
             pred_rows: list[tuple[Any, ...]] = []
+            pred_failed = False
             if pred_sql.strip():
                 try:
                     with execute_readonly(
@@ -106,6 +107,9 @@ def main() -> int:
                         pred_rows = list(result.rows)
                 except Exception as exc:
                     out_entry["pred_exec_error"] = str(exc)
+                    pred_failed = True
+            else:
+                pred_failed = True
 
             # Score against each variant.
             for variant, source in (
@@ -122,7 +126,9 @@ def main() -> int:
                 except Exception as exc:
                     gold_rows = []
                     out_entry[f"{variant}_gold_exec_error"] = str(exc)
-                cmp = compare_results(gold_rows, pred_rows, gold_sql=source)
+                cmp = safe_compare_pred(
+                    gold_rows, pred_rows, gold_sql=source, pred_failed=pred_failed
+                )
                 is_match = bool(cmp.match)
                 out_entry[f"{variant}_match"] = is_match
                 out_entry[f"{variant}_reason"] = cmp.reason

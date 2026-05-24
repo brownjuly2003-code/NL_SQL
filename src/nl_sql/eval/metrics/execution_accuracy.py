@@ -108,6 +108,42 @@ def compare_results(
     )
 
 
+def safe_compare_pred(
+    gold_rows: Sequence[Sequence[Any]],
+    pred_rows: Sequence[Sequence[Any]],
+    *,
+    gold_sql: str | None = None,
+    pred_failed: bool,
+) -> ResultComparison:
+    """Comparison wrapper that short-circuits pred execution failures.
+
+    Plain `compare_results` is row-level: it treats `pred_rows=[]` identically
+    whether pred returned zero rows or pred raised before producing any. When
+    gold also returns zero rows (BIRD quirks: empty filter results, missing
+    Banned legalities, etc.), `compare_results([], [])` returns match=True —
+    a silent false positive for malformed pred SQL.
+
+    The runner's `_run_one` already handles this (see eval/runner.py:662 —
+    explicit ResultComparison(match=False) when result.outcome is None).
+    Voting and rescoring scripts that bypass the runner must use this helper
+    instead of calling compare_results directly.
+
+    Discovered via Codex review of c74b46c → qid 518 (card_games moderate
+    "format with most banned cards"): pred CTE missing the WITH prefix,
+    SyntaxError on every execution, gold returns 0 rows for that DB, scoring
+    blessed it as match=True since v13 (helallao grok-4.1-reasoning rescue).
+    Re-merge v22-v29 + 2026-05-25 EOD fix lands the correction.
+    """
+    if pred_failed:
+        return ResultComparison(
+            match=False,
+            reason="pred execution failed",
+            gold_rows=len(gold_rows),
+            pred_rows=0,
+        )
+    return compare_results(gold_rows, pred_rows, gold_sql=gold_sql)
+
+
 def execution_accuracy(matches: Sequence[bool]) -> float:
     """Return EA as a fraction in [0, 1]. Empty → 0.0."""
     if not matches:

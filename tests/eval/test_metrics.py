@@ -5,8 +5,41 @@ from __future__ import annotations
 from nl_sql.eval.metrics.execution_accuracy import (
     compare_results,
     execution_accuracy,
+    safe_compare_pred,
 )
 from nl_sql.eval.metrics.schema_recall import schema_recall_at_k
+
+
+class TestSafeComparePred:
+    """Regression guards for the 2026-05-25 fix (CX [P2] from c74b46c review).
+
+    Before the fix, qid 518 v13 helallao rescue silently sat at match=True
+    across the v22-v29 chain because pred SQL was syntactically broken
+    (`compare_results([], [])` returns match=True when gold is also empty).
+    """
+
+    def test_pred_failed_short_circuits_to_false_even_when_both_empty(self) -> None:
+        # Reproduces the qid 518 pattern: gold=[], pred=[] but pred actually
+        # raised on execution. Plain compare_results returns match=True;
+        # safe_compare_pred must return match=False when pred_failed=True.
+        cmp = safe_compare_pred([], [], pred_failed=True)
+        assert not cmp.match
+        assert cmp.reason == "pred execution failed"
+        # Sanity: plain compare_results would incorrectly bless this.
+        baseline = compare_results([], [])
+        assert baseline.match  # the bug the wrapper guards against
+
+    def test_pred_succeeded_passes_through_to_compare_results(self) -> None:
+        gold = [(1, "a"), (2, "b")]
+        pred = [(2, "b"), (1, "a")]
+        cmp = safe_compare_pred(gold, pred, pred_failed=False)
+        assert cmp.match
+
+    def test_pred_failed_but_gold_nonempty_still_false(self) -> None:
+        cmp = safe_compare_pred([(1,), (2,)], [], pred_failed=True)
+        assert not cmp.match
+        assert cmp.gold_rows == 2
+        assert cmp.pred_rows == 0
 
 
 class TestCompareResults:

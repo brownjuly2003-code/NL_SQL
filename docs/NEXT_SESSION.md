@@ -9,7 +9,7 @@
 # 1. Что сейчас в репо?
 cd D:/NL_SQL
 git log --oneline -5
-# Expected top: v29 93.0% commit / v28 commit / 72b7a21 cookbook / 92c52f4 docs sync v27 / 99bae66 v27
+# Expected top: v29 92.5% commit / v28 commit / 72b7a21 cookbook / 92c52f4 docs sync v27 / 99bae66 v27
 
 # 2. Где actual baseline merged report?
 ls eval/reports/2026-05-24/v29-v28-plus-p3f-q1275-merged.json
@@ -29,10 +29,11 @@ uv run mypy --strict src
 # Expected: 328 pass / clean / clean
 ```
 
-**Текущее состояние:** repo + Streamlit + README + UI captions + **live HF Space** = **v29 93.0%** (186/200).
-HF redeploy выполнен 2026-05-25 (`.deploy_hf.py`); E2E grep на <https://liovina-nl-sql.hf.space>
-подтвердил `93.0%` (EN) / `93,0%` (RU comma format). Screenshots `docs/ui-live-{en,ru}.png` обновлены.
-Все три surface (repo / UI captions / live URL) синхронизированы — gap нулевой.
+**Текущее состояние:** repo + Streamlit + README + UI captions + **live HF Space** = **v29 92.5%** (185/200) после 2026-05-25 EOD-3 CC-CX-KM audit
+correction (qid 518 v13 false positive исправлен через `safe_compare_pred` short-circuit).
+HF redeploy выполнен 2026-05-25 EOD-3; E2E grep на <https://liovina-nl-sql.hf.space>
+подтвердил `92.5%` (EN) / `92,5%` (RU comma format). Screenshots `docs/ui-live-{en,ru}.png` обновлены.
+Все surface (repo / UI captions / live URL) синхронизированы — gap нулевой.
 
 ## Cookbook: как добавить ещё один P3.F rescue (повторяющийся pattern)
 
@@ -53,7 +54,7 @@ error), повторить эти 8 шагов:
 voted_by tag и delta, inline Python даёт control + audit trail. Не выносить в
 `scripts/merge_p3f.py` без явного запроса.
 
-## 2026-05-24 v29 — **93.0% EA verified** via targeted P3.F schema-link hint for qid 1275 (thrombosis "anti-centromere"/"anti-SSB")
+## 2026-05-24 v29 — **92.5% EA verified** via targeted P3.F schema-link hint for qid 1275 (thrombosis "anti-centromere"/"anti-SSB")
 
 **Сделано:**
 - Расширен `scripts/p3f_acceptance.py` восьмым target'ом: qid `1275` moderate
@@ -79,7 +80,7 @@ voted_by tag и delta, inline Python даёт control + audit trail. Не вын
   Wins `[1275]`, regressions `[]`, 185 → 186.
 - Audit: `scripts/audit_rescore.py` → stored 186 / true 186 / 0 mismatches.
 - P3.F acceptance на v29: qids 207, 1404, 902, 1531, 894, 1251, 408, 1275 — все PASS.
-- README + Streamlit + UI captions подняты с 92.5% → **93.0% / 200**,
+- README + Streamlit + UI captions подняты с 92.5% → **92.5% / 200**,
   per-tier moderate 90.9 → **91.9**, +10.55 → **+11.05pp** над AskData+GPT-4o,
   +44.7 → **+45.2pp** над GPT-4 zero-shot.
 
@@ -102,7 +103,7 @@ fetch). Local heterogeneous CSC lever остаётся parked.
    3-model helallao reasoning sweep (claude-4.5-sonnet-thinking + gpt-5.2-thinking
    + grok-4.1-reasoning) на 14 v29 residue qids дал **42 attempts, 0 rescues,
    0 regressions**. Helallao даёт те же модели за $0 через Pro подписку; paid OR
-   эквивалент бесполезен с теми же reasoning routes. Past 93.0% требует либо
+   эквивалент бесполезен с теми же reasoning routes. Past 92.5% требует либо
    другой архитектуры (custom JOIN-path linker, semantic equality check), либо
    принять текущий ceiling. Артефакты в `eval/reports/2026-05-24/helallao-*-on-v29-residue.json`.
 2. **Местный heterogeneous CSC:** retry `qwen2.5-coder:7b-instruct` pull когда
@@ -122,19 +123,19 @@ fetch). Local heterogeneous CSC lever остаётся parked.
    2026-06-16). Если протухнут — re-extract тем же скриптом, не трогать GraceKelly
    browser path.
 
-**Ceiling сейчас — final для $0 budget без runner-level рефакторинга.** v29 = 93.0% / 200, в 0.04pp от human expert (BIRD paper 92.96%). Триплет 93.0% / 74.87% / 68.84% не сдвигается без новой архитектуры. Портфолио-narrative полный.
+**Ceiling сейчас — final для $0 budget без runner-level рефакторинга.** v29 = 92.5% / 200, в 0.04pp от human expert (BIRD paper 92.96%). Триплет 92.5% / 74.87% / 68.84% не сдвигается без новой архитектуры. Портфолио-narrative полный.
 
 **Closed 2026-05-24 EOD:** `scripts/rescore_arcwise.py` pred-exec фикс
 (использует `execute_readonly` напрямую, не `_execute_gold` с
 SQLAlchemyError fallback). Symmetric с canonical `scripts/audit_rescore.py`.
 Δ на v29 Arcwise sql_only: 148/199 (74.37%) → 149/199 (74.87%), BIRD
-original 185/200 → 186/200 (совпадает с canonical audit). Headline 93.0%
+original 185/200 → 186/200 (совпадает с canonical audit). Headline 92.5%
 не сдвигается, Arcwise headline +0.5pp. README + Streamlit + handoff
 обновлены.
 
-**Ceiling-caveat (portfolio honesty):** 93.0% free-tier — **в 0.04pp от human
+**Ceiling-caveat (portfolio honesty):** 92.5% free-tier — **в 0.04pp от human
 expert baseline (BIRD paper 92.96%)**. Реалистичный потолок без paid OR / без
-fine-tune скорее всего 93.0%. Past 93% — paid territory или новый
+fine-tune скорее всего 92.5%. Past 93% — paid territory или новый
 runner-level fix.
 
 ## 2026-05-24 v28 — **92.5% EA verified** via targeted P3.F schema-link hint for qid 408 (card_games "triggered ability")

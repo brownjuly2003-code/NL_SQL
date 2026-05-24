@@ -1,6 +1,28 @@
-# NL_SQL — Session Handoff (2026-05-25 EOD: v29 = 93.0% EA live on HF Space — repo + UI + live URL fully in sync after HF redeploy, above #1 paid SOTA by +11.05pp)
+# NL_SQL — Session Handoff (2026-05-25 EOD-3: v29 = **92.5% EA** after CC-CX-KM audit caught a v13 false positive; above #1 paid SOTA by +10.55pp)
 
-> **Tl;dr 2026-05-25 EOD — HF Space redeploy v17 → v29 (live UI in sync with repo):**
+> **Tl;dr 2026-05-25 EOD-3 — CC-CX-KM /cxkm audit caught a systemic scoring bug (qid 518 v13 false positive):**
+> - **What CX [P2] found:** `scripts/rescore_arcwise.py` (post-fix c74b46c) passes `pred_rows=[]` to `compare_results` after exec failure; when gold also returns 0 rows, the comparison returns `match=True` — a silent false positive. CX cited qid 518 specifically: `pred_exec_error` (sqlite SyntaxError) + all three variants `*_match: true`.
+> - **Confirmed and traced upstream.** The pattern isn't unique to rescore_arcwise — same shape lives in `audit_rescore.py` and 9 other voting scripts. The qid 518 false positive originated in v13 (2026-05-18, helallao grok-4.1-reasoning rescue): pred SQL was a CTE fragment missing the `WITH banned_counts AS (` prefix → syntactically broken → exec failed → `pred_rows=[]` → compared against gold (which returns 0 rows for card_games "format with most banned cards" question, BIRD-side quirk) → `compare_results([], []) = match=True` → silently propagated through v13→v22→v29.
+> - **Scope sweep** (`.tmp/scan_empty_pred_fp.py` re-executes every stored match=True pred): exactly **1 qid affected (518) across all v22-v29 baselines**. No other pred-fail/empty-gold combinations.
+> - **Fix landed:**
+>   - New `safe_compare_pred(...)` helper in `src/nl_sql/eval/metrics/execution_accuracy.py` — short-circuits `match=False` on `pred_failed=True` before reaching `compare_results`. Run pipeline `eval/runner.py:662` already had this guard; only scripts/ bypassed it.
+>   - `scripts/audit_rescore.py` + `scripts/rescore_arcwise.py` migrated to `safe_compare_pred` with explicit `pred_failed` flag. (9 other voting scripts left as-is — they don't run on current v29 ceiling work; backlog item to migrate them if voting resumes.)
+>   - 8 merged baselines (v22-v29) surgically patched: qid 518 `match=True` → `False` + `match_note` annotation explaining the fix. `summary.matched` recomputed.
+>   - 3 regression tests in `tests/eval/test_metrics.py::TestSafeComparePred` pinning the short-circuit semantics + a baseline-bug demonstration test.
+> - **Corrected headline triplet (v29):**
+>   - **BIRD original: 185/200 = 92.5%** (was 93.0%)
+>   - **Arcwise-Plat-SQL: 148/199 = 74.37%** (was 74.87%)
+>   - **Arcwise-Plat full: 136/199 = 68.34%** (was 68.84%)
+>   - Per-tier: simple 97.0% (unchanged) / moderate **90.9%** (was 91.9%, qid 518 is moderate) / challenging 88.2% (unchanged)
+>   - Over GPT-4 zero-shot: +44.7pp (was +45.2pp). Over AskData+GPT-4o: +10.55pp (was +11.05pp). Within 0.46pp human-expert (BIRD paper 92.96%, was 0.04pp).
+> - **Audit-discipline narrative strengthens, not weakens.** Portfolio claim: we ran CC-CX-KM on our own diff, CX caught a systemic scoring bug that had been silently inflating numbers since v13 (a week of headlines were off by 1 qid), we documented + fixed + re-deployed within the same session. That's the right story for a Senior DE/DA portfolio: catch your own false positives.
+> - **Gates:** 333 pytest (+3 regression tests on safe_compare_pred), ruff clean, mypy --strict src clean.
+> - **HF redeploy with corrected 92.5%** — landed (E2E grep confirmed `92.5%` EN / `92,5%` RU on live URL <https://liovina-nl-sql.hf.space>).
+> - **KM was unavailable** for this review (`normalization_error` — kimi auth fragile per `reference_kimi_codex_auth_fragile`). CX-only review per `feedback_cx_review_status_fragile` is "advisory only" — but I independently verified the CX finding via `.tmp/scan_empty_pred_fp.py` re-executing each stored match=True pred against the live DB. Re-execution is the canonical check, stronger than KM cross-confirm; CX [P2] verdict stands.
+>
+> ---
+>
+> **Tl;dr 2026-05-25 EOD — HF Space redeploy v17 → v29 (live UI in sync with repo) [SUPERSEDED by EOD-3]:**
 > - **What:** ran `.deploy_hf.py` to push current repo (HEAD 40ac2a1) to <https://liovina-nl-sql.hf.space>. Build BUILDING → APP_STARTING → RUNNING in ~90s.
 > - **Why:** live URL was stuck on v17 86.5% since 2026-05-18 (last redeploy) while repo/UI captions/README climbed to v29 93.0%. Hire-аудитория, кликая на портфолио link, видела старое число — 7pp gap.
 > - **E2E verify (per `feedback_deploy_e2e_gate`):** Playwright headless 1440×900 на live URL, dump page body, grep for headline:

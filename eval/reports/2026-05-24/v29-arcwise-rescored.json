@@ -2,15 +2,15 @@
   "source_report": "eval\\reports\\2026-05-24\\v29-v28-plus-p3f-q1275-merged.json",
   "summary": {
     "original": {
-      "matched": 186,
+      "matched": 185,
       "total": 200
     },
     "sql_only": {
-      "matched": 149,
+      "matched": 148,
       "total": 199
     },
     "full": {
-      "matched": 137,
+      "matched": 136,
       "total": 199
     }
   },
@@ -21,7 +21,7 @@
         "total": 67
       },
       "moderate": {
-        "matched": 91,
+        "matched": 90,
         "total": 99
       },
       "challenging": {
@@ -35,7 +35,7 @@
         "total": 67
       },
       "moderate": {
-        "matched": 72,
+        "matched": 71,
         "total": 98
       },
       "challenging": {
@@ -49,7 +49,7 @@
         "total": 67
       },
       "moderate": {
-        "matched": 67,
+        "matched": 66,
         "total": 98
       },
       "challenging": {
@@ -1451,15 +1451,15 @@
       "db_id": "card_games",
       "difficulty": "moderate",
       "pred_sql": "SELECT format, COUNT(*) AS banned_count\n  FROM legalities\n  WHERE status = 'Banned'\n  GROUP BY format\n), max_banned AS (\n  SELECT MAX(banned_count) AS banned_count\n  FROM banned_counts\n)\nSELECT bc.format, c.name\nFROM banned_counts AS bc\nJOIN max_banned AS mb\n  ON bc.banned_count = mb.banned_count\nJOIN legalities AS l\n  ON l.format = bc.format AND l.status = 'Banned'\nJOIN cards AS c\n  ON c.uuid = l.uuid\nORDER BY bc.format, c.name",
-      "original_match": true,
+      "original_match": false,
       "pred_exec_error": "(sqlite3.OperationalError) near \")\": syntax error\n[SQL: SELECT format, COUNT(*) AS banned_count\n  FROM legalities\n  WHERE status = 'Banned'\n  GROUP BY format\n), max_banned AS (\n  SELECT MAX(banned_count) AS banned_count\n  FROM banned_counts\n)\nSELECT bc.format, c.name\nFROM banned_counts AS bc\nJOIN max_banned AS mb\n  ON bc.banned_count = mb.banned_count\nJOIN legalities AS l\n  ON l.format = bc.format AND l.status = 'Banned'\nJOIN cards AS c\n  ON c.uuid = l.uuid\nORDER BY bc.format, c.name]\n(Background on this error at: https://sqlalche.me/e/20/e3q8)",
-      "original_reason": "",
+      "original_reason": "pred execution failed",
       "original_gold_rows": 0,
-      "sql_only_match": true,
-      "sql_only_reason": "",
+      "sql_only_match": false,
+      "sql_only_reason": "pred execution failed",
       "sql_only_gold_rows": 0,
-      "full_match": true,
-      "full_reason": "",
+      "full_match": false,
+      "full_reason": "pred execution failed",
       "full_gold_rows": 0
     },
     {

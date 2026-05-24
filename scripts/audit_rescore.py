@@ -22,7 +22,7 @@ from pathlib import Path
 
 from nl_sql.db import DatabaseSpec
 from nl_sql.db.connection import execute_readonly, sqlite_url_readonly
-from nl_sql.eval.metrics.execution_accuracy import compare_results
+from nl_sql.eval.metrics.execution_accuracy import safe_compare_pred
 from nl_sql.eval.runner import _execute_gold
 
 
@@ -51,6 +51,7 @@ def main() -> int:
             )
             pred_sql = r.get("pred_sql") or ""
             pred_rows: list = []
+            pred_failed = False
             if pred_sql.strip():
                 try:
                     with execute_readonly(
@@ -59,7 +60,10 @@ def main() -> int:
                         pred_rows = list(result.rows)
                 except Exception:
                     pred_rows = []
-                cmp = compare_results(gold_rows, pred_rows, gold_sql=r["gold_sql"])
+                    pred_failed = True
+                cmp = safe_compare_pred(
+                    gold_rows, pred_rows, gold_sql=r["gold_sql"], pred_failed=pred_failed
+                )
                 true_match = bool(cmp.match)
                 reason = cmp.reason
             else:
