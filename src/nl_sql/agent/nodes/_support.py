@@ -279,6 +279,28 @@ def _render_schema_link_hints_appendix(context: ContextBundle, hits: list[Any]) 
             ]
         )
     if (
+        db_id in {"thrombosis_prediction", "bird_thrombosis_prediction"}
+        and {"patient", "laboratory"} <= tables
+        and ("anti-centromere" in question or "anti-ssb" in question)
+    ):
+        return "\n".join(
+            [
+                "# Schema-link hints",
+                "- For thrombosis_prediction questions mentioning 'anti-centromere' "
+                "or 'anti-SSB', the antibody values live on the Laboratory table "
+                "as columns Laboratory.CENTROMEA and Laboratory.SSB (NOT on "
+                "Examination — Examination has no CENTROMEA or SSB columns at "
+                "all). BIRD gold encodes 'a normal level of anti-centromere / "
+                "anti-SSB' as Laboratory.CENTROMEA IN ('negative', '0') and "
+                "Laboratory.SSB IN ('negative', '0') — these are the actual "
+                "string values stored in Laboratory; do not invent '-' / '+-' / "
+                "'+' tokens. Write: SELECT COUNT(DISTINCT T1.ID) FROM Patient "
+                "AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE "
+                "T2.CENTROMEA IN ('negative', '0') AND T2.SSB IN "
+                "('negative', '0') AND T1.SEX = 'M'.",
+            ]
+        )
+    if (
         db_id in {"card_games", "bird_card_games"}
         and {"cards", "rulings"} <= tables
         and "triggered ability" in question

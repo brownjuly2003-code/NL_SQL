@@ -356,6 +356,68 @@ def test_debit_card_top_spending_hint_is_question_scoped() -> None:
     assert "# Schema-link hints" not in rendered
 
 
+def test_thrombosis_anti_centromere_hint_points_to_laboratory() -> None:
+    rendered = render_schema_block(
+        ContextBundle(
+            db_id="thrombosis_prediction",
+            question=(
+                "Among the patients who has a normal level of anti-centromere "
+                "and a normal level of anti-SSB, how many of them are male?"
+            ),
+            schema_hits=[
+                _hit(
+                    "Patient",
+                    "Table: Patient\nColumns:\n"
+                    "  - ID: INTEGER [PK NOT NULL]\n"
+                    "  - SEX: TEXT [NULL]",
+                    db_id="thrombosis_prediction",
+                ),
+                _hit(
+                    "Laboratory",
+                    "Table: Laboratory\nColumns:\n"
+                    "  - ID: INTEGER [NOT NULL]\n"
+                    "  - CENTROMEA: TEXT [NULL]\n"
+                    "  - SSB: TEXT [NULL]",
+                    db_id="thrombosis_prediction",
+                ),
+            ],
+            fk_neighbours=[],
+            fewshots=[],
+        )
+    )
+
+    assert "# Schema-link hints" in rendered
+    assert "Laboratory.CENTROMEA" in rendered
+    assert "Laboratory.SSB" in rendered
+    assert "IN ('negative', '0')" in rendered
+    assert "no CENTROMEA or SSB columns" in rendered
+
+
+def test_thrombosis_anti_centromere_hint_is_question_scoped() -> None:
+    rendered = render_schema_block(
+        ContextBundle(
+            db_id="thrombosis_prediction",
+            question="How many patients with an Ig G higher than normal?",
+            schema_hits=[
+                _hit(
+                    "Patient",
+                    "Table: Patient\nColumns:\n  - ID: INTEGER [PK NOT NULL]",
+                    db_id="thrombosis_prediction",
+                ),
+                _hit(
+                    "Laboratory",
+                    "Table: Laboratory\nColumns:\n  - CENTROMEA: TEXT [NULL]",
+                    db_id="thrombosis_prediction",
+                ),
+            ],
+            fk_neighbours=[],
+            fewshots=[],
+        )
+    )
+
+    assert "Laboratory.CENTROMEA" not in rendered
+
+
 def test_card_games_triggered_ability_hint_points_to_rulings_text() -> None:
     rendered = render_schema_block(
         ContextBundle(

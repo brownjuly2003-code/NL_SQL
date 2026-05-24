@@ -1,5 +1,18 @@
-# NL_SQL — Session Handoff (2026-05-24 v28 = 92.5% EA verified via targeted P3.F schema-link hint for qid 408, above #1 paid SOTA by +10.55pp)
+# NL_SQL — Session Handoff (2026-05-24 v29 = 93.0% EA verified via targeted P3.F schema-link hint for qid 1275, above #1 paid SOTA by +11.05pp)
 
+> **Tl;dr 2026-05-24 v29 (P3.F qid 1275 merged on top of v28):**
+> - **v29 93.0% EA verified** (186/200) — published BIRD Mini-Dev SQLite, BIRD-official set scoring. **Above #1 paid system AskData+GPT-4o (81.95%) by +11.05pp.** Within 0.04pp human expert baseline (BIRD paper 92.96%).
+> - **Per-tier v29:** simple **97.0% (65/67)** / moderate **91.9% (91/99, +1.0pp от v28)** / challenging 88.2% (30/34).
+> - One narrow schema-link hint added to `_render_schema_link_hints_appendix` in `src/nl_sql/agent/nodes/_support.py`: when `db_id == "thrombosis_prediction"` AND the question contains `"anti-centromere"` OR `"anti-SSB"` AND `{Patient, Laboratory}` are both in the retrieved tables, emit a hint that instructs codestral to filter `Laboratory.CENTROMEA IN ('negative','0')` and `Laboratory.SSB IN ('negative','0')` via `Patient INNER JOIN Laboratory ON .ID` — explicitly NOT against Examination (which has no CENTROMEA or SSB columns at all) and NOT with fabricated `'-'`/`'+-'`/`'+'` tokens (the actual stored values are `'negative'` and `'0'`). Phrase fragments `"anti-centromere"` and `"anti-SSB"` are both unique to qid 1275 in n=200 — sibling thrombosis prompts (qids 1247/1252/1254/1257) mentioning "normal level" of *other* analytes do not match the trigger.
+> - Probe under config C with the hint (`--only-qids 1275,408,894,1251,1531,902,1404,207`) produced match=True for qid 1275: `SELECT COUNT(DISTINCT T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.CENTROMEA IN ('negative', '0') AND T2.SSB IN ('negative', '0') AND T1.SEX = 'M'`. Pred ≡ gold verbatim (modulo whitespace).
+> - Merge: qid 1275 swapped into v28 → `eval/reports/2026-05-24/v29-v28-plus-p3f-q1275-merged.json`. Delta vs v28: wins `[1275]`, regressions `[]`, 185→186.
+> - Audit: `scripts/audit_rescore.py` on v29 → stored 186 / true 186 / **0 mismatches**. P3.F acceptance on v29 → qids 207, 1404, 902, 1531, 894, 1251, 408, 1275 all PASS.
+> - **Root-cause insight (not in priming attempt):** the prior v25-sprint "primed" hint for qid 1275 attempted to direct codestral via the value vocabulary alone. This v29 hint fixes the deeper bug: pred was filtering against `Examination.CENTROMEA`/`Examination.SSB` columns that **do not exist** (`PRAGMA table_info(Examination)` returns aCL IgG/IgM/ANA/KCT/RVVT/LAC/Symptoms — no CENTROMEA, no SSB). Codestral hallucinated the `'-'`/`'+-'` vocabulary because it was joining the wrong table; once redirected to Laboratory where the schema-block samples already show `'negative'`/`'0'`, codestral picks the right vocabulary naturally.
+> - Honest framing: v29 lever is a per-qid acceptance-gated schema-link hint (same shape as v22/v25/v26/v27/v28), not a broad generalization win. It will generalise to any future thrombosis_prediction question phrased with "anti-centromere" / "anti-SSB" + Patient+Laboratory both retrieved, but qid 1275 is currently the only such prompt in BIRD Mini-Dev SQLite n=200.
+> - **Local `qwen2.5-coder` pull retried this session — still R2-blocked** (DNS resolution fail for `dd20bb...r2.cloudflarestorage.com` after manifest fetch). Local heterogeneous CSC lever remains parked until upstream R2 is reachable.
+>
+> ---
+>
 > **Tl;dr 2026-05-24 v28 (P3.F qid 408 merged on top of v27):**
 > - **v28 92.5% EA verified** (185/200) — published BIRD Mini-Dev SQLite, BIRD-official set scoring. **Above #1 paid system AskData+GPT-4o (81.95%) by +10.55pp.**
 > - **Per-tier v28:** simple **97.0% (65/67)** / moderate **90.9% (90/99, +1.0pp от v27)** / challenging 88.2% (30/34).

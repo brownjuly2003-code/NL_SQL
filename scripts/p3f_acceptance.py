@@ -86,6 +86,12 @@ TARGETS: tuple[AcceptanceTarget, ...] = (
         required_columns=(("rulings", "text"), ("rulings", "uuid")),
         forbidden_columns=(("cards", "text"),),
     ),
+    AcceptanceTarget(
+        qid=1275,
+        label="thrombosis_prediction 'anti-centromere'/'anti-SSB' must filter Laboratory.CENTROMEA and Laboratory.SSB",
+        required_columns=(("laboratory", "centromea"), ("laboratory", "ssb")),
+        forbidden_columns=(),
+    ),
 )
 
 

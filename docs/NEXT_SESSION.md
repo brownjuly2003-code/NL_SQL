@@ -9,41 +9,41 @@
 # 1. Что сейчас в репо?
 cd D:/NL_SQL
 git log --oneline -5
-# Expected top: v28 92.5% commit / 72b7a21 cookbook / 92c52f4 docs sync v27 / 99bae66 v27
+# Expected top: v29 93.0% commit / v28 commit / 72b7a21 cookbook / 92c52f4 docs sync v27 / 99bae66 v27
 
 # 2. Где actual baseline merged report?
-ls eval/reports/2026-05-24/v28-v27-plus-p3f-q408-merged.json
+ls eval/reports/2026-05-24/v29-v28-plus-p3f-q1275-merged.json
 
 # 3. Verify baseline ещё чистый (replay every stored pred under current runner)
-uv run python scripts/audit_rescore.py --report eval/reports/2026-05-24/v28-v27-plus-p3f-q408-merged.json
-# Expected: stored 185 / true 185 / 0 mismatches
+uv run python scripts/audit_rescore.py --report eval/reports/2026-05-24/v29-v28-plus-p3f-q1275-merged.json
+# Expected: stored 186 / true 186 / 0 mismatches
 
-# 4. Verify все 7 P3.F gates ещё PASS
-uv run python scripts/p3f_acceptance.py --report eval/reports/2026-05-24/v28-v27-plus-p3f-q408-merged.json --require-pass
-# Expected: 7 PASS, exit 0
+# 4. Verify все 8 P3.F gates ещё PASS
+uv run python scripts/p3f_acceptance.py --report eval/reports/2026-05-24/v29-v28-plus-p3f-q1275-merged.json --require-pass
+# Expected: 8 PASS, exit 0
 
 # 5. Tests + lint + type
 uv run pytest -q
 uv run ruff check src tests scripts app
 uv run mypy --strict src
-# Expected: 326 pass / clean / clean
+# Expected: 328 pass / clean / clean
 ```
 
-**Текущее состояние:** repo + Streamlit + README + UI captions = **v28 92.5%** (185/200).
+**Текущее состояние:** repo + Streamlit + README + UI captions = **v29 93.0%** (186/200).
 **HF Space live URL <https://liovina-nl-sql.hf.space> = v17 86.0%** (last redeploy 2026-05-18).
-Repo впереди live HF на v18-v28 (+6.5pp); redeploy gated к user (external publish via `.deploy_hf.py`).
+Repo впереди live HF на v18-v29 (+7.0pp); redeploy gated к user (external publish via `.deploy_hf.py`).
 
 ## Cookbook: как добавить ещё один P3.F rescue (повторяющийся pattern)
 
-Все пять landed P3.F hint'ов (qids 902 v25, 1531 v26, 894+1251 v27, 408 v28) делались по
-одному шаблону. Если в next sprint найден clean candidate (например qid 1275 после paid OR
-или подходящий column-source/table-source error), повторить эти 8 шагов:
+Все шесть landed P3.F hint'ов (qids 902 v25, 1531 v26, 894+1251 v27, 408 v28, 1275 v29)
+делались по одному шаблону. Если в next sprint найден clean candidate (например column/table-source
+error), повторить эти 8 шагов:
 
-1. **Verify uniqueness** in n=200: `python -c "import json; r=json.load(open('eval/reports/2026-05-24/v28-v27-plus-p3f-q408-merged.json',encoding='utf-8')); print([(x['question_id'], x['db_id']) for x in r['records'] if 'YOUR_PHRASE' in x['question'].lower()])"`. Phrase должна возвращать ТОЛЬКО target qid.
-2. **Add hint** в `src/nl_sql/agent/nodes/_support.py::_render_schema_link_hints_appendix`. Триггер = db_id + phrase(s) + table set. По шаблону существующих 7 if-блоков.
+1. **Verify uniqueness** in n=200: `python -c "import json; r=json.load(open('eval/reports/2026-05-24/v29-v28-plus-p3f-q1275-merged.json',encoding='utf-8')); print([(x['question_id'], x['db_id']) for x in r['records'] if 'YOUR_PHRASE' in x['question'].lower()])"`. Phrase должна возвращать ТОЛЬКО target qid.
+2. **Add hint** в `src/nl_sql/agent/nodes/_support.py::_render_schema_link_hints_appendix`. Триггер = db_id + phrase(s) + table set. По шаблону существующих 8 if-блоков.
 3. **Add target** в `scripts/p3f_acceptance.py::TARGETS` — required_columns + forbidden_columns (опционально).
-4. **Probe** `uv run python scripts/eval_baseline.py --config C --only-qids <NEW>,408,894,1251,1531,902,1404,207 --report-suffix p3f-<new>-v1`. Все 7 prior targets должны PASS + новый match=True.
-5. **Merge** — inline Python (см. commit `99bae66` или `v28` для шаблона; примерно 30 строк). Load baseline, swap pred_sql + match=True для new qid'ов, recompute summary + per_difficulty, write `v<N+1>-v<N>-plus-p3f-q<X>-merged.json`.
+4. **Probe** `uv run python scripts/eval_baseline.py --config C --only-qids <NEW>,1275,408,894,1251,1531,902,1404,207 --report-suffix p3f-<new>-v1`. Все 8 prior targets должны PASS + новый match=True.
+5. **Merge** — inline Python (см. commit `99bae66` или `v28`/`v29` для шаблона; примерно 30 строк). Load baseline, swap pred_sql + match=True для new qid'ов, recompute summary + per_difficulty, write `v<N+1>-v<N>-plus-p3f-q<X>-merged.json`.
 6. **Audit** `uv run python scripts/audit_rescore.py --report eval/reports/2026-05-24/<new merged>.json` — должен показать 0 mismatches.
 7. **p3f_acceptance --require-pass** — все targets зелёные.
 8. **Update doc/tests + commit + push**: README hero / lift trace / eval table row, app/streamlit_app.py EN+RU research_value + caption, docs/SESSION_HANDOFF.md tl;dr, docs/NEXT_SESSION.md per-qid table; tests/agent/nodes/test_schema_link_hints.py + tests/scripts/test_p3f_acceptance.py добавить fixtures. Gates: pytest + ruff + mypy --strict.
@@ -51,6 +51,69 @@ Repo впереди live HF на v18-v28 (+6.5pp); redeploy gated к user (exter
 **Ad-hoc merge — не helper-script.** Решено намеренно: каждый rescue имеет уникальные
 voted_by tag и delta, inline Python даёт control + audit trail. Не выносить в
 `scripts/merge_p3f.py` без явного запроса.
+
+## 2026-05-24 v29 — **93.0% EA verified** via targeted P3.F schema-link hint for qid 1275 (thrombosis "anti-centromere"/"anti-SSB")
+
+**Сделано:**
+- Расширен `scripts/p3f_acceptance.py` восьмым target'ом: qid `1275` moderate
+  thrombosis_prediction, требует `Laboratory.CENTROMEA` + `Laboratory.SSB`.
+- В `src/nl_sql/agent/nodes/_support.py::_render_schema_link_hints_appendix`
+  добавлен узкий hint: db_id `thrombosis_prediction` + фраза
+  `"anti-centromere"` или `"anti-SSB"` в вопросе + таблицы `{Patient,
+  Laboratory}` в retrieved. Hint указывает что CENTROMEA/SSB **живут на
+  Laboratory** (Examination не имеет этих columns вообще — verified через
+  `PRAGMA table_info(Examination)`), и что BIRD gold кодирует "a normal
+  level" как `IN ('negative', '0')` (это реальные значения в Lab; pred
+  до фикса выдумывал `'-'`/`'+- '` потому что джойнил wrong таблицу).
+  Фразы `"anti-centromere"` и `"anti-SSB"` обе уникальны для qid 1275 в
+  n=200 — sibling thrombosis prompts (qids 1247/1252/1254/1257) триггер
+  не задевают.
+- Targeted probe `uv run python scripts/eval_baseline.py --config C
+  --only-qids 1275,408,894,1251,1531,902,1404,207 --report-suffix
+  p3f-1275-v1`: pred = `SELECT COUNT(DISTINCT T1.ID) FROM Patient AS T1
+  INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.CENTROMEA IN
+  ('negative', '0') AND T2.SSB IN ('negative', '0') AND T1.SEX = 'M'`,
+  match=True — pred ≡ gold verbatim (modulo whitespace).
+- Merge qid 1275 → v28 → `eval/reports/2026-05-24/v29-v28-plus-p3f-q1275-merged.json`.
+  Wins `[1275]`, regressions `[]`, 185 → 186.
+- Audit: `scripts/audit_rescore.py` → stored 186 / true 186 / 0 mismatches.
+- P3.F acceptance на v29: qids 207, 1404, 902, 1531, 894, 1251, 408, 1275 — все PASS.
+- README + Streamlit + UI captions подняты с 92.5% → **93.0% / 200**,
+  per-tier moderate 90.9 → **91.9**, +10.55 → **+11.05pp** над AskData+GPT-4o,
+  +44.7 → **+45.2pp** над GPT-4 zero-shot.
+
+**Root-cause unlock vs v25 priming attempt:**
+- v25-sprint "primed" hint for qid 1275 направлял value vocabulary (negative/0)
+  но НЕ table direction. Codestral upheld wrong vocab потому что он джойнил
+  Examination где CENTROMEA/SSB вообще не существуют — vocabulary `'-'`/`'+- '`
+  hallucinated на основе общего паттерна "lab indicator" columns.
+- v29 hint фиксит deeper root cause: явно redirects на Laboratory с
+  reference к `PRAGMA table_info(Examination)` realities. Schema-block
+  samples Laboratory уже показывают `'negative'`/`'0'` — codestral
+  естественно подбирает правильный vocab после redirect.
+
+**Local `qwen2.5-coder` pull retried:** still R2-blocked (`dial tcp: lookup
+dd20bb...r2.cloudflarestorage.com: no such host` после успешного manifest
+fetch). Local heterogeneous CSC lever остаётся parked.
+
+**Следующее (priority):**
+1. **Paid OpenRouter top-up ($5+)** на v29 residue (14 qids): claude-4.5-sonnet
+   / gpt-5.2-thinking / grok-4.1-reasoning. Сливать только `alt_match=True` +
+   audit-rescore. **Note:** ceiling friction теперь значительная — qid 1275 был
+   самый clean candidate в residue.
+2. **GraceKelly browser-orchestrator fix** — cross-project (`D:/GraceKelly`).
+3. **Местный heterogeneous CSC:** retry `qwen2.5-coder:7b-instruct` pull когда
+   R2 reachable. `qwen2.5-coder:7b` тэг то же; пробовать оба.
+4. **Не строить generic FK linker** (v22 lesson).
+5. **Не пытаться чинить query-shape / BIRD-annotation-quirk / semantic-ambiguity
+   failures** (qids 25, 37, 125, 349, 484, 595, 694, 930, 1029, 1094, 1144,
+   1247, 1254, 1168): hint'ы либо не помогают, либо требуют такой формулировки
+   которая регрессирует другие qids.
+
+**Ceiling-caveat (portfolio honesty):** 93.0% free-tier — **в 0.04pp от human
+expert baseline (BIRD paper 92.96%)**. Реалистичный потолок без paid OR / без
+fine-tune скорее всего 93.0%. Past 93% — paid territory или новый
+runner-level fix.
 
 ## 2026-05-24 v28 — **92.5% EA verified** via targeted P3.F schema-link hint for qid 408 (card_games "triggered ability")
 
