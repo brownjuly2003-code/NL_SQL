@@ -123,14 +123,14 @@ def main() -> int:
                     gold_rows = []
                     out_entry[f"{variant}_gold_exec_error"] = str(exc)
                 cmp = compare_results(gold_rows, pred_rows, gold_sql=source)
-                m = bool(cmp.match)
-                out_entry[f"{variant}_match"] = m
+                is_match = bool(cmp.match)
+                out_entry[f"{variant}_match"] = is_match
                 out_entry[f"{variant}_reason"] = cmp.reason
                 out_entry[f"{variant}_gold_rows"] = len(gold_rows)
                 total_scored[variant] += 1
-                matched[variant] += int(m)
+                matched[variant] += int(is_match)
                 per_diff[variant][difficulty][1] += 1
-                per_diff[variant][difficulty][0] += int(m)
+                per_diff[variant][difficulty][0] += int(is_match)
 
             # Transitions vs sql_only and vs full.
             for variant in ("sql_only", "full"):
@@ -163,9 +163,9 @@ def main() -> int:
     print("\n=== Arcwise rescoring summary ===", file=sys.stderr)
     for variant in variants:
         total = total_scored[variant]
-        m = matched[variant]
-        pct = (m / total * 100) if total else 0.0
-        print(f"  {variant:10s}: {m}/{total} = {pct:.2f}%", file=sys.stderr)
+        count = matched[variant]
+        pct = (count / total * 100) if total else 0.0
+        print(f"  {variant:10s}: {count}/{total} = {pct:.2f}%", file=sys.stderr)
     print("\n=== Per-tier ===", file=sys.stderr)
     for variant in variants:
         line = f"  {variant:10s}: "
