@@ -1,0 +1,56 @@
+{
+  "alt_model": "helallao:gpt-5.2-thinking",
+  "summary": {
+    "voted_better": 0,
+    "voted_worse": 0,
+    "voted_same": 3,
+    "errored": 0
+  },
+  "records": [
+    {
+      "question_id": 125,
+      "db_id": "financial",
+      "difficulty": "challenging",
+      "question": "For loans contracts which are still running where client are in debt, list the district of the and the state the percentage unemployment rate increment from year 1995 to 1996.",
+      "gold_sql": "SELECT CAST((T3.A13 - T3.A12) AS REAL) * 100 / T3.A12 FROM loan AS T1 INNER JOIN account AS T2 ON T1.account_id = T2.account_id INNER JOIN district AS T3 ON T2.district_id = T3.district_id WHERE T1.status = 'D'",
+      "baseline_pred": "SELECT district.A2, CAST((district.A13 - district.A12) * 100.0 / district.A12 AS REAL) FROM loan JOIN account ON loan.account_id = account.account_id JOIN client ON account.district_id = client.district_id JOIN district ON client.district_id = district.district_id WHERE loan.status = 'D'",
+      "alt_pred": "SELECT district.A2, CAST(((district.A13 - district.A12) / district.A12) * 100 AS REAL) FROM loan JOIN account ON loan.account_id = account.account_id JOIN client ON client.district_id = account.district_id JOIN district ON district.district_id = client.district_id WHERE loan.status = 'D'",
+      "alt_confidence": 0.0,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "helallao:gpt-5.2-thinking",
+      "elapsed_ms": 13738.410599999042
+    },
+    {
+      "question_id": 349,
+      "db_id": "card_games",
+      "difficulty": "moderate",
+      "question": "Name the card and artist with the most ruling information. Also state if the card is a promotional printing.",
+      "gold_sql": "SELECT T1.name, T1.artist, T1.isPromo FROM cards AS T1 INNER JOIN rulings AS T2 ON T1.uuid = T2.uuid WHERE T1.isPromo = 1 AND T1.artist = (SELECT artist FROM cards WHERE isPromo = 1 GROUP BY artist HAVING COUNT(DISTINCT uuid) = (SELECT MAX(count_uuid) FROM ( SELECT COUNT(DISTINCT uuid) AS count_uuid FROM cards WHERE isPromo = 1 GROUP BY artist ))) LIMIT 1",
+      "baseline_pred": "SELECT c.name, c.artist, c.isPromo FROM cards AS c JOIN rulings AS r ON c.uuid = r.uuid GROUP BY c.uuid ORDER BY COUNT(r.id) DESC LIMIT 1",
+      "alt_pred": "SELECT cards.name, cards.artist, cards.isPromo FROM cards INNER JOIN rulings ON rulings.uuid = cards.uuid GROUP BY cards.uuid ORDER BY COUNT(rulings.uuid) DESC LIMIT 1",
+      "alt_confidence": 0.0,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "helallao:gpt-5.2-thinking",
+      "elapsed_ms": 8525.899899999786
+    },
+    {
+      "question_id": 484,
+      "db_id": "card_games",
+      "difficulty": "moderate",
+      "question": "Please list the Italian names of the cards in the set Coldsnap with the highest converted mana cost.",
+      "gold_sql": "SELECT T2.name FROM foreign_data AS T1 INNER JOIN cards AS T2 ON T2.uuid = T1.uuid INNER JOIN sets AS T3 ON T3.code = T2.setCode WHERE T3.name = 'Coldsnap' AND T1.language = 'Italian' ORDER BY T2.convertedManaCost DESC",
+      "baseline_pred": "SELECT fd.name FROM cards AS c JOIN foreign_data AS fd ON c.uuid = fd.uuid JOIN sets AS s ON c.setCode = s.code WHERE s.name = 'Coldsnap' AND fd.language = 'Italian' ORDER BY c.convertedManaCost DESC LIMIT 1",
+      "alt_pred": "SELECT c.name FROM cards AS c JOIN foreign_data AS f ON f.uuid = c.uuid WHERE c.setCode = 'CSP' AND f.language = 'Italian' AND c.convertedManaCost = (SELECT MAX(convertedManaCost) FROM cards WHERE setCode = 'CSP')",
+      "alt_confidence": 0.0,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "helallao:gpt-5.2-thinking",
+      "elapsed_ms": 23108.9114000024
+    }
+  ]
+}

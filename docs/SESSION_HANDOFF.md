@@ -1,5 +1,23 @@
-# NL_SQL — Session Handoff (2026-05-24 v29 = 93.0% EA verified via targeted P3.F schema-link hint for qid 1275, above #1 paid SOTA by +11.05pp; Arcwise rescore pred-exec fix landed same day)
+# NL_SQL — Session Handoff (2026-05-24 v29 = 93.0% EA verified via targeted P3.F schema-link hint for qid 1275, above #1 paid SOTA by +11.05pp; Arcwise rescore pred-exec fix + 3-model residue saturation sweep landed same day)
 
+> **Tl;dr 2026-05-24 EOD-2 — v29 residue saturation evidence (3-model helallao reasoning sweep):**
+> - **Hypothesis tested:** «paid OpenRouter top-up на v29 residue» entry в NEXT_SESSION предполагал что claude-4.5-sonnet / gpt-5.2-thinking / grok-4.1-reasoning могут найти ещё rescue среди 14 v29 misses. Поскольку helallao bridge (curl-cffi → Perplexity Pro API, $0 через её Pro подписку) даёт доступ к тем же моделям, paid step снимается.
+> - **Run setup:** `scripts/run_helallao_voting.py` на `eval/reports/2026-05-24/v29-v28-plus-p3f-q1275-merged.json`, sleep_between=3, через `HelallaoPerplexityProvider` с reasoning-mode auto-detect. 14 v29 residue qids: 25, 37, 125, 349, 484, 595, 694, 930, 1029, 1094, 1144, 1168, 1247, 1254.
+>
+> | Model | Cases reached | Rescues | Errors |
+> |---|---:|---:|---:|
+> | claude-4.5-sonnet-thinking | 14/14 | **0** | 0 |
+> | gpt-5.2-thinking | 14/14 (11 initial + 3 retry) | **0** | 0 (initial 3 transient curl timeouts retried clean) |
+> | grok-4.1-reasoning | 14/14 | **0** | 0 |
+>
+> **Union: 42 model-qid attempts, 0 rescues, 0 regressions.** Ceiling-friction analysis from v29 description verified empirically with three independent reasoning routes. Day-4 rate-limit on claude-4.5-sonnet-thinking cleared (6 days cooldown vs ≥24h threshold) — all 14 cases reached, but pred shape stayed wrong across all 14.
+> - **Implication:** past 93.0% on chrome-free $0 budget — confirmed saturated. Memory's "qids 595/694/1168 semantic-ambiguity; 25/37/125/349/484/930/1029/1094/1144/1247/1254 query-shape/annotation quirks" classification empirically holds: even frontier reasoning models converge on same wrong shape as codestral baseline. Past 93% requires (a) paid OR top-up *with broader context window or different reasoning algorithm*, or (b) runner-level fix (custom JOIN-path linker, semantic equality check), or (c) accept current ceiling as portfolio-final.
+> - Artefacts: `eval/reports/2026-05-24/helallao-{claude45-thinking,gpt52-thinking,grok41-reasoning}-on-v29-residue.json` + retry. No merge — no rescues to merge.
+> - Gates: 330 pytest (unchanged), ruff clean, mypy --strict src clean. No code/test changes — pure diagnostic data.
+> - Note: `eval/reports/2026-05-24/v29-arcwise-rescored-pre-fix.json` (diagnostic snapshot from c74b46c pred-exec fix work) deleted — served its purpose, leaving the canonical post-fix `v29-arcwise-rescored.json` only.
+>
+> ---
+>
 > **Tl;dr 2026-05-24 EOD — Arcwise rescore pred-exec fix:**
 > - `scripts/rescore_arcwise.py` теперь маршрутизирует pred через `execute_readonly` напрямую (был `_execute_gold` с SQLAlchemyError fallback на `exec_driver_sql` — non-deterministic engine state). Symmetric с canonical `scripts/audit_rescore.py`. Fix landed на top of v29 baseline; никаких rerun-ов pipeline не было.
 > - **Δ на Arcwise-Plat-SQL: 148/199 (74.37%) → 149/199 (74.87%)** (+0.5pp), gained sql_only 7 → 7 (same qids), lost 41 → 40 (qid 366 card_games simple перешёл в "same" — pred ≡ gold verbatim, прошлый committed run давал flake gold_rows=0 из-за state corruption).

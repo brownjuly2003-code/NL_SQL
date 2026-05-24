@@ -97,23 +97,31 @@ dd20bb...r2.cloudflarestorage.com: no such host` после успешного m
 fetch). Local heterogeneous CSC lever остаётся parked.
 
 **Следующее (priority):**
-1. **Paid OpenRouter top-up ($5+)** на v29 residue (14 qids): claude-4.5-sonnet
-   / gpt-5.2-thinking / grok-4.1-reasoning. Сливать только `alt_match=True` +
-   audit-rescore. **Note:** ceiling friction теперь значительная — qid 1275 был
-   самый clean candidate в residue.
+1. ~~**Paid OpenRouter top-up ($5+)** на v29 residue~~ — **CLOSED 2026-05-24 EOD-2.**
+   3-model helallao reasoning sweep (claude-4.5-sonnet-thinking + gpt-5.2-thinking
+   + grok-4.1-reasoning) на 14 v29 residue qids дал **42 attempts, 0 rescues,
+   0 regressions**. Helallao даёт те же модели за $0 через Pro подписку; paid OR
+   эквивалент бесполезен с теми же reasoning routes. Past 93.0% требует либо
+   другой архитектуры (custom JOIN-path linker, semantic equality check), либо
+   принять текущий ceiling. Артефакты в `eval/reports/2026-05-24/helallao-*-on-v29-residue.json`.
 2. **Местный heterogeneous CSC:** retry `qwen2.5-coder:7b-instruct` pull когда
-   R2 reachable. `qwen2.5-coder:7b` тэг то же; пробовать оба.
+   R2 reachable. `qwen2.5-coder:7b` тэг то же; пробовать оба. **Note:** даже local
+   qwen2.5-coder вряд ли пробьёт ceiling, который не пробили claude/gpt-5.2/grok
+   reasoning — это структурная граница BIRD-quirks, не модельная.
 3. **Не строить generic FK linker** (v22 lesson).
 4. **Не пытаться чинить query-shape / BIRD-annotation-quirk / semantic-ambiguity
    failures** (qids 25, 37, 125, 349, 484, 595, 694, 930, 1029, 1094, 1144,
    1247, 1254, 1168): hint'ы либо не помогают, либо требуют такой формулировки
-   которая регрессирует другие qids.
+   которая регрессирует другие qids. **EOD-2 sweep подтвердил эмпирически:** ни
+   один из трёх reasoning models не вышел из same shape для всех 14.
 5. **GraceKelly browser-orchestrator fix НЕ нужен для NL_SQL** — voting на
    Perplexity Pro идёт через helallao HTTPS-bridge (curl-cffi reverse-engineered,
    bypassing browser). Cookies extracted один раз из D:/GraceKelly/chrome-profile
-   через `.tmp/extract_pplx_cookies.py`, дальше чистый API. Если cookies протухнут
-   — re-extract тем же скриптом, не трогать GraceKelly browser path. Запись с
-   "GraceKelly fix" удалена — это residue с v6 (до helallao).
+   через `.tmp/extract_pplx_cookies.py`, дальше чистый API (cookies live до
+   2026-06-16). Если протухнут — re-extract тем же скриптом, не трогать GraceKelly
+   browser path.
+
+**Ceiling сейчас — final для $0 budget без runner-level рефакторинга.** v29 = 93.0% / 200, в 0.04pp от human expert (BIRD paper 92.96%). Триплет 93.0% / 74.87% / 68.84% не сдвигается без новой архитектуры. Портфолио-narrative полный.
 
 **Closed 2026-05-24 EOD:** `scripts/rescore_arcwise.py` pred-exec фикс
 (использует `execute_readonly` напрямую, не `_execute_gold` с
