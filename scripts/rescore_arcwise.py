@@ -32,6 +32,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
+from nl_sql.db.connection import execute_readonly
 from nl_sql.db.registry import get_default_registry
 from nl_sql.eval.metrics.execution_accuracy import compare_results
 from nl_sql.eval.runner import _execute_gold
@@ -90,14 +91,21 @@ def main() -> int:
             "original_match": orig_match,
         }
         try:
-            # Execute pred once, reuse rows.
-            try:
-                pred_rows, _ = _execute_gold(
-                    engine, pred_sql, statement_timeout_ms=30_000, row_cap=10_000
-                )
-            except Exception as exc:
-                pred_rows = []
-                out_entry["pred_exec_error"] = str(exc)
+            # Execute pred once, reuse rows. Route pred through `execute_readonly`
+            # directly (matches canonical `scripts/audit_rescore.py`): the
+            # `_execute_gold` SQLAlchemyError fallback is intended only for
+            # trusted BIRD gold SQL, not for model-generated pred SQL — using
+            # it on pred can mask validator-style failures and yields
+            # non-deterministic engine state across sequential records.
+            pred_rows: list[tuple[Any, ...]] = []
+            if pred_sql.strip():
+                try:
+                    with execute_readonly(
+                        engine, pred_sql, statement_timeout_ms=30_000, row_cap=10_000
+                    ) as result:
+                        pred_rows = list(result.rows)
+                except Exception as exc:
+                    out_entry["pred_exec_error"] = str(exc)
 
             # Score against each variant.
             for variant, source in (

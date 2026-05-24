@@ -2,11 +2,11 @@
   "source_report": "eval\\reports\\2026-05-24\\v29-v28-plus-p3f-q1275-merged.json",
   "summary": {
     "original": {
-      "matched": 185,
+      "matched": 186,
       "total": 200
     },
     "sql_only": {
-      "matched": 148,
+      "matched": 149,
       "total": 199
     },
     "full": {
@@ -17,7 +17,7 @@
   "per_difficulty": {
     "original": {
       "simple": {
-        "matched": 64,
+        "matched": 65,
         "total": 67
       },
       "moderate": {
@@ -31,7 +31,7 @@
     },
     "sql_only": {
       "simple": {
-        "matched": 55,
+        "matched": 56,
         "total": 67
       },
       "moderate": {
@@ -185,11 +185,6 @@
       {
         "qid": 356,
         "variant": "full",
-        "difficulty": "simple"
-      },
-      {
-        "qid": 366,
-        "variant": "sql_only",
         "difficulty": "simple"
       },
       {
@@ -1258,12 +1253,12 @@
       "db_id": "card_games",
       "difficulty": "simple",
       "pred_sql": "SELECT T2.format FROM cards AS T1 INNER JOIN legalities AS T2 ON T1.uuid = T2.uuid WHERE T1.name = 'Benalish Knight'",
-      "original_match": false,
-      "original_reason": "set mismatch (unique rows differ): |gold|=0, |pred|=8",
-      "original_gold_rows": 0,
-      "sql_only_match": false,
-      "sql_only_reason": "set mismatch (unique rows differ): |gold|=0, |pred|=8",
-      "sql_only_gold_rows": 0,
+      "original_match": true,
+      "original_reason": "",
+      "original_gold_rows": 32,
+      "sql_only_match": true,
+      "sql_only_reason": "",
+      "sql_only_gold_rows": 32,
       "full_match": false,
       "full_reason": "set mismatch (unique rows differ): |gold|=1, |pred|=8",
       "full_gold_rows": 4,
@@ -1457,6 +1452,7 @@
       "difficulty": "moderate",
       "pred_sql": "SELECT format, COUNT(*) AS banned_count\n  FROM legalities\n  WHERE status = 'Banned'\n  GROUP BY format\n), max_banned AS (\n  SELECT MAX(banned_count) AS banned_count\n  FROM banned_counts\n)\nSELECT bc.format, c.name\nFROM banned_counts AS bc\nJOIN max_banned AS mb\n  ON bc.banned_count = mb.banned_count\nJOIN legalities AS l\n  ON l.format = bc.format AND l.status = 'Banned'\nJOIN cards AS c\n  ON c.uuid = l.uuid\nORDER BY bc.format, c.name",
       "original_match": true,
+      "pred_exec_error": "(sqlite3.OperationalError) near \")\": syntax error\n[SQL: SELECT format, COUNT(*) AS banned_count\n  FROM legalities\n  WHERE status = 'Banned'\n  GROUP BY format\n), max_banned AS (\n  SELECT MAX(banned_count) AS banned_count\n  FROM banned_counts\n)\nSELECT bc.format, c.name\nFROM banned_counts AS bc\nJOIN max_banned AS mb\n  ON bc.banned_count = mb.banned_count\nJOIN legalities AS l\n  ON l.format = bc.format AND l.status = 'Banned'\nJOIN cards AS c\n  ON c.uuid = l.uuid\nORDER BY bc.format, c.name]\n(Background on this error at: https://sqlalche.me/e/20/e3q8)",
       "original_reason": "",
       "original_gold_rows": 0,
       "sql_only_match": true,

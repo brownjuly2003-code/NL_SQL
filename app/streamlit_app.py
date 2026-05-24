@@ -71,7 +71,7 @@ I18N: dict[str, dict[str, str]] = {
             "Scored under "
             "<span class='nl-term' title='bird-bench/mini_dev evaluation_ex.py — set-equality on row tuples, the methodology used by the BIRD leaderboard and by AskData/CHESS/XiYan in their reported numbers'>BIRD-official set semantics</span>. "
             "+45.2pp over the GPT-4 zero-shot reference (47.8%), $0 external cost. "
-            "On <span class='nl-term' title='Jin et al., CIDR/VLDB 2026, arXiv:2601.08778 — corrected BIRD gold annotations'>Arcwise-Plat corrected gold</span>: 74.37% (148/199) — honest noise-floor; +7 sql_only catches where our prediction is correct under Arcwise's corrected gold but BIRD's original gold disagrees. "
+            "On <span class='nl-term' title='Jin et al., CIDR/VLDB 2026, arXiv:2601.08778 — corrected BIRD gold annotations'>Arcwise-Plat corrected gold</span>: 74.87% (149/199) — honest noise-floor; +7 sql_only catches where our prediction is correct under Arcwise's corrected gold but BIRD's original gold disagrees. "
             "Seven late-stage model rescues on v16→v22, two archive-audit rescores on v23/v24 (qid 1205 via archive sweep, qid 959 via archive-rescore after the day-5 bind-bug fix), and six targeted P3.F schema-link hints on v25→v29: qid 902 (driverStandings.position vs results.position), qid 1531 (yearmonth.Consumption subquery + SUM(Price/Amount) row-wise), qid 894 (lapTimes.milliseconds first SELECT column), qid 1251 (Patient ⋈ Laboratory ⋈ Examination semi-join), qid 408 (rulings.text filter via cards.uuid join + COUNT(DISTINCT cards.id)), qid 1275 (Laboratory.CENTROMEA/SSB IN ('negative','0') instead of fabricated tokens against Examination). Every cell verified via audit_rescore.py — 0 mismatches."
         ),
         "settings_header": "Settings",
@@ -152,7 +152,7 @@ I18N: dict[str, dict[str, str]] = {
             "Scoring — "
             "<span class='nl-term' title='bird-bench/mini_dev evaluation_ex.py — set-равенство на результирующих кортежах. Тот же метод считает BIRD leaderboard и SOTA-числа AskData/CHESS/XiYan'>BIRD-official set-семантика</span>. "
             "+45,2 п.п. над zero-shot GPT-4 (47,8%), внешние расходы — ноль. "
-            "На <span class='nl-term' title='Jin et al., CIDR/VLDB 2026, arXiv:2601.08778 — исправленные аннотации gold BIRD'>исправленном gold Arcwise-Plat</span>: 74,37% (148/199) — честный noise-floor; +7 sql_only catches, где наш ответ правильнее эталона BIRD согласно Arcwise. "
+            "На <span class='nl-term' title='Jin et al., CIDR/VLDB 2026, arXiv:2601.08778 — исправленные аннотации gold BIRD'>исправленном gold Arcwise-Plat</span>: 74,87% (149/199) — честный noise-floor; +7 sql_only catches, где наш ответ правильнее эталона BIRD согласно Arcwise. "
             "Семь late-stage rescue по моделям на пути v16→v22, плюс v23/v24 — archive-sweep и archive-rescore (qid 1205 / qid 959 после day-5 bind-bug fix), плюс v25→v29 — шесть узких P3.F schema-link hint'ов: qid 902 (driverStandings.position вместо results.position), qid 1531 (subquery по yearmonth.Consumption + SUM(Price/Amount) построчно), qid 894 (lapTimes.milliseconds первой колонкой), qid 1251 (полу-джойн Patient ⋈ Laboratory ⋈ Examination), qid 408 (фильтр по rulings.text через join cards.uuid + COUNT(DISTINCT cards.id)) и qid 1275 (Laboratory.CENTROMEA/SSB IN ('negative','0') вместо несуществующих Examination columns + invented '-'/'+-' tokens). Каждая ячейка верифицирована через audit_rescore.py — 0 mismatches."
         ),
         "settings_header": "Настройки",

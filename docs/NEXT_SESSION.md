@@ -110,6 +110,14 @@ fetch). Local heterogeneous CSC lever остаётся parked.
    1247, 1254, 1168): hint'ы либо не помогают, либо требуют такой формулировки
    которая регрессирует другие qids.
 
+**Closed 2026-05-24 EOD:** `scripts/rescore_arcwise.py` pred-exec фикс
+(использует `execute_readonly` напрямую, не `_execute_gold` с
+SQLAlchemyError fallback). Symmetric с canonical `scripts/audit_rescore.py`.
+Δ на v29 Arcwise sql_only: 148/199 (74.37%) → 149/199 (74.87%), BIRD
+original 185/200 → 186/200 (совпадает с canonical audit). Headline 93.0%
+не сдвигается, Arcwise headline +0.5pp. README + Streamlit + handoff
+обновлены.
+
 **Ceiling-caveat (portfolio honesty):** 93.0% free-tier — **в 0.04pp от human
 expert baseline (BIRD paper 92.96%)**. Реалистичный потолок без paid OR / без
 fine-tune скорее всего 93.0%. Past 93% — paid territory или новый
