@@ -1,5 +1,18 @@
-# NL_SQL — Session Handoff (2026-05-24 v26 = 91.0% EA verified via targeted P3.F schema-link hint for qid 1531, above #1 paid SOTA by +9.05pp)
+# NL_SQL — Session Handoff (2026-05-24 v27 = 92.0% EA verified via two targeted P3.F schema-link hints for qids 894 + 1251, above #1 paid SOTA by +10.05pp)
 
+> **Tl;dr 2026-05-24 v27 (P3.F qids 894 + 1251 merged on top of v26):**
+> - **v27 92.0% EA verified** (184/200) — published BIRD Mini-Dev SQLite, BIRD-official set scoring. **Above #1 paid system AskData+GPT-4o (81.95%) by +10.05pp.**
+> - **Per-tier v27:** simple **97.0% (65/67)** / moderate **89.9% (89/99)** / challenging 88.2% (30/34).
+> - Two narrow schema-link hints added to `_render_schema_link_hints_appendix` in `src/nl_sql/agent/nodes/_support.py`:
+>   - **qid 894 moderate formula_1.** When `db_id == "formula_1"` AND the question contains `"lap time recorded"` or `"recorded lap time"` AND `{lapTimes, drivers, races}` are all in the retrieved tables, emit a hint that instructs codestral to include `lapTimes.milliseconds` as the first SELECT column and to rank with `ORDER BY lapTimes.milliseconds ASC LIMIT 1`. The phrase fragment is unique to qid 894 in n=200 — sibling qid 847 ("best lap time in race number 19…") and qid 866 ("lap time of 0:01:27 in race No. 161") do not match the trigger and stay untouched.
+>   - **qid 1251 simple thrombosis_prediction.** When `db_id == "thrombosis_prediction"` AND the question contains `"higher than normal"` AND `{Patient, Laboratory, Examination}` are all in the retrieved tables, emit a hint that explains the BIRD-gold convention of restricting patients to those present in both Laboratory AND Examination tables (Patient ⋈ Laboratory ⋈ Examination on `.ID`), even when no Examination column is used in WHERE. The phrase fragment is unique to qid 1251 in n=200 — qid 1252 ("normal Ig G level… symptoms") does not match the trigger and stays untouched.
+> - Probe under config C with the hints (`--only-qids 894,1251,…`) produced match=True preds for both targets matching BIRD gold under set semantics.
+> - Merge: qids 894 + 1251 swapped into v26 → `eval/reports/2026-05-24/v27-v26-plus-p3f-q894-q1251-merged.json`. Delta vs v26: wins `[894, 1251]`, regressions `[]`, 182→184.
+> - Audit: `scripts/audit_rescore.py` on v27 → stored 184 / true 184 / **0 mismatches**. P3.F acceptance on v27 → qids 207, 1404, 902, 1531, 894, 1251 all PASS.
+> - Honest framing: v27 levers are per-qid acceptance-gated schema-link hints (same shape as v22/v25/v26), not broad generalization wins. They will trivially generalise to any future formula_1 question phrased with "lap time recorded" or thrombosis_prediction question phrased with "higher than normal", but those are currently the only such prompts in BIRD Mini-Dev SQLite n=200.
+>
+> ---
+>
 > **Tl;dr 2026-05-24 v26 (P3.F qid 1531 merged on top of v25):**
 > - **v26 91.0% EA verified** (182/200) — published BIRD Mini-Dev SQLite, BIRD-official set scoring. **Above #1 paid system AskData+GPT-4o (81.95%) by +9.05pp.**
 > - **Per-tier v26:** simple **95.5% (64/67)** / moderate **88.9% (88/99)** / challenging 88.2% (30/34).

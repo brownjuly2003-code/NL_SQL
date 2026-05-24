@@ -59,16 +59,40 @@ def test_p3f_acceptance_flags_current_failure_shapes() -> None:
                         "ORDER BY SUM(transactions_1k.Price) DESC LIMIT 1"
                     ),
                 },
+                {
+                    "question_id": 894,
+                    "match": False,
+                    "pred_sql": (
+                        "SELECT drivers.forename, drivers.surname, races.name "
+                        "FROM lapTimes "
+                        "JOIN drivers ON lapTimes.driverId = drivers.driverId "
+                        "JOIN races ON lapTimes.raceId = races.raceId "
+                        "WHERE lapTimes.milliseconds = "
+                        "(SELECT MIN(milliseconds) FROM lapTimes) LIMIT 1"
+                    ),
+                },
+                {
+                    "question_id": 1251,
+                    "match": False,
+                    "pred_sql": (
+                        "SELECT COUNT(DISTINCT Laboratory.ID) "
+                        "FROM Laboratory WHERE Laboratory.IGG >= 2000"
+                    ),
+                },
             ]
         )
     )
 
-    assert [r.qid for r in results] == [1404, 207, 902, 1531]
-    assert [r.accepted for r in results] == [False, False, False, False]
+    assert [r.qid for r in results] == [1404, 207, 902, 1531, 894, 1251]
+    assert [r.accepted for r in results] == [False, False, False, False, False, False]
     assert any("event.type" in reason for reason in results[0].reasons)
     assert any("connected.atom_id" in reason for reason in results[1].reasons)
     assert any("driverstandings.position" in reason for reason in results[2].reasons)
     assert any("yearmonth.consumption" in reason for reason in results[3].reasons)
+    # qid 894 pred has lapTimes.milliseconds via subquery — required-column check passes,
+    # but EA match is False, so still rejected.
+    assert any("EA match is false" in reason for reason in results[4].reasons)
+    assert any("examination.id" in reason for reason in results[5].reasons)
 
 
 def test_p3f_acceptance_accepts_ea_pass_with_target_columns() -> None:
@@ -118,11 +142,33 @@ def test_p3f_acceptance_accepts_ea_pass_with_target_columns() -> None:
                         "GROUP BY T2.CustomerID, T1.Currency"
                     ),
                 },
+                {
+                    "question_id": 894,
+                    "match": True,
+                    "pred_sql": (
+                        "SELECT lapTimes.milliseconds, drivers.forename, "
+                        "drivers.surname, races.name "
+                        "FROM lapTimes "
+                        "JOIN drivers ON lapTimes.driverId = drivers.driverId "
+                        "JOIN races ON lapTimes.raceId = races.raceId "
+                        "ORDER BY lapTimes.milliseconds ASC LIMIT 1"
+                    ),
+                },
+                {
+                    "question_id": 1251,
+                    "match": True,
+                    "pred_sql": (
+                        "SELECT COUNT(DISTINCT T1.ID) FROM Patient AS T1 "
+                        "INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID "
+                        "INNER JOIN Examination AS T3 ON T3.ID = T2.ID "
+                        "WHERE T2.IGG >= 2000"
+                    ),
+                },
             ]
         )
     )
 
-    assert [r.accepted for r in results] == [True, True, True, True]
+    assert [r.accepted for r in results] == [True, True, True, True, True, True]
 
 
 def test_p3f_acceptance_cli_requires_pass(tmp_path: Path, capsys) -> None:
@@ -135,6 +181,8 @@ def test_p3f_acceptance_cli_requires_pass(tmp_path: Path, capsys) -> None:
                     {"question_id": 207, "match": False, "pred_sql": "SELECT 1"},
                     {"question_id": 902, "match": False, "pred_sql": "SELECT 1"},
                     {"question_id": 1531, "match": False, "pred_sql": "SELECT 1"},
+                    {"question_id": 894, "match": False, "pred_sql": "SELECT 1"},
+                    {"question_id": 1251, "match": False, "pred_sql": "SELECT 1"},
                 ]
             )
         ),
@@ -154,4 +202,4 @@ def test_p3f_acceptance_rejects_missing_targets(tmp_path: Path, capsys) -> None:
     result = p3f_acceptance.main(["--report", str(report)])
 
     assert result == 3
-    assert "missing target qids: [1404, 207, 902, 1531]" in capsys.readouterr().err
+    assert "missing target qids: [1404, 207, 902, 1531, 894, 1251]" in capsys.readouterr().err

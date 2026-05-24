@@ -1,0 +1,255 @@
+{
+  "configuration": "C_dense_cards",
+  "sql_model": "codestral-latest",
+  "overall": {
+    "n": 6,
+    "ea": 0.5,
+    "validity_rate": 1.0,
+    "schema_recall_at_k": 1.0,
+    "repair_success_rate": 0.0,
+    "first_pass_ea": 0.5,
+    "empty_result_rate": 0.0,
+    "latency_p50_ms": 2768.267499999638,
+    "latency_p95_ms": 4529.2378249992,
+    "tokens_p50": 4676.5,
+    "tokens_p95": 6346.75
+  },
+  "per_difficulty": {
+    "simple": {
+      "n": 1,
+      "ea": 1.0,
+      "validity_rate": 1.0,
+      "schema_recall_at_k": 1.0,
+      "repair_success_rate": 0.0,
+      "first_pass_ea": 1.0,
+      "empty_result_rate": 0.0,
+      "latency_p50_ms": 4886.066199998822,
+      "latency_p95_ms": 4886.066199998822,
+      "tokens_p50": 4921.0,
+      "tokens_p95": 4921.0
+    },
+    "moderate": {
+      "n": 5,
+      "ea": 0.4,
+      "validity_rate": 1.0,
+      "schema_recall_at_k": 1.0,
+      "repair_success_rate": 0.0,
+      "first_pass_ea": 0.4,
+      "empty_result_rate": 0.0,
+      "latency_p50_ms": 2590.62350000022,
+      "latency_p95_ms": 3356.184460000077,
+      "tokens_p50": 4556.0,
+      "tokens_p95": 6416.999999999999
+    },
+    "challenging": {
+      "n": 0,
+      "ea": 0.0,
+      "validity_rate": 0.0,
+      "schema_recall_at_k": 0.0,
+      "repair_success_rate": 0.0,
+      "first_pass_ea": 0.0,
+      "empty_result_rate": 0.0,
+      "latency_p50_ms": 0.0,
+      "latency_p95_ms": 0.0,
+      "tokens_p50": 0.0,
+      "tokens_p95": 0.0
+    }
+  },
+  "records": [
+    {
+      "question_id": 1251,
+      "db_id": "thrombosis_prediction",
+      "difficulty": "simple",
+      "dialect": "sqlite",
+      "question": "How many patients with an Ig G higher than normal?",
+      "gold_sql": "SELECT COUNT(DISTINCT T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID INNER JOIN Examination AS T3 ON T3.ID = T2.ID WHERE T2.IGG >= 2000",
+      "pred_sql": "SELECT COUNT(DISTINCT T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID INNER JOIN Examination AS T3 ON T3.ID = T2.ID WHERE T2.IGG >= 2000",
+      "match": true,
+      "schema_recall": true,
+      "error_kind": null,
+      "error_message": "",
+      "repair_attempted": false,
+      "first_pass_match": true,
+      "latency_ms": 4886.066199998822,
+      "input_tokens": 4768,
+      "output_tokens": 153,
+      "gold_tables": [
+        "Patient",
+        "Laboratory",
+        "Examination"
+      ],
+      "retrieved_tables": [
+        "Laboratory",
+        "Examination",
+        "Patient"
+      ],
+      "pred_row_count": 1,
+      "gold_row_count": 1,
+      "comparison_reason": ""
+    },
+    {
+      "question_id": 1252,
+      "db_id": "thrombosis_prediction",
+      "difficulty": "moderate",
+      "dialect": "sqlite",
+      "question": "Among the patients with a normal Ig G level, how many of them have symptoms?",
+      "gold_sql": "SELECT COUNT(T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID INNER JOIN Examination AS T3 ON T3.ID = T2.ID WHERE T2.IGG BETWEEN 900 AND 2000 AND T3.Symptoms IS NOT NULL",
+      "pred_sql": "SELECT COUNT(DISTINCT Examination.ID) FROM Examination JOIN Laboratory ON Examination.ID = Laboratory.ID WHERE Laboratory.IGG > 900 AND Laboratory.IGG < 2000 AND Examination.Symptoms IS NOT NULL",
+      "match": false,
+      "schema_recall": true,
+      "error_kind": null,
+      "error_message": "",
+      "repair_attempted": false,
+      "first_pass_match": false,
+      "latency_ms": 2590.62350000022,
+      "input_tokens": 4655,
+      "output_tokens": 142,
+      "gold_tables": [
+        "Patient",
+        "Laboratory",
+        "Examination"
+      ],
+      "retrieved_tables": [
+        "Examination",
+        "Laboratory",
+        "Patient"
+      ],
+      "pred_row_count": 1,
+      "gold_row_count": 1,
+      "comparison_reason": "set mismatch (unique rows differ): |gold|=1, |pred|=1"
+    },
+    {
+      "question_id": 1254,
+      "db_id": "thrombosis_prediction",
+      "difficulty": "moderate",
+      "dialect": "sqlite",
+      "question": "How many patients with a normal Ig A level came to the hospital after 1990/1/1?",
+      "gold_sql": "SELECT COUNT(T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.IGA BETWEEN 80 AND 500 AND  strftime('%Y',  T1.`First Date`) > '1990'",
+      "pred_sql": "SELECT COUNT(DISTINCT Patient.ID) FROM Patient JOIN Laboratory ON Patient.ID = Laboratory.ID WHERE IGA > 80 AND IGA < 500 AND YEAR(`First Date`) >= 1990",
+      "match": false,
+      "schema_recall": true,
+      "error_kind": "execution_failed",
+      "error_message": "(sqlite3.OperationalError) no such function: YEAR\n[SQL: SELECT COUNT(DISTINCT Patient.ID) FROM Patient JOIN Laboratory ON Patient.ID = Laboratory.ID WHERE IGA > 80 AND IGA < 500 AND YEAR(`First Date`) >= 1990]\n(Background on this error at: https://sqlalche.me/e/20/e3q8)",
+      "repair_attempted": false,
+      "first_pass_match": false,
+      "latency_ms": 2005.0677999988693,
+      "input_tokens": 4426,
+      "output_tokens": 114,
+      "gold_tables": [
+        "Patient",
+        "Laboratory"
+      ],
+      "retrieved_tables": [
+        "Patient",
+        "Examination",
+        "Laboratory"
+      ],
+      "pred_row_count": 0,
+      "gold_row_count": 1,
+      "comparison_reason": "pred failed: execution_failed"
+    },
+    {
+      "question_id": 1275,
+      "db_id": "thrombosis_prediction",
+      "difficulty": "moderate",
+      "dialect": "sqlite",
+      "question": "Among the patients who has a normal level of anti-centromere and a normal level of anti-SSB, how many of them are male?",
+      "gold_sql": "SELECT COUNT(DISTINCT T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.CENTROMEA IN ('negative', '0') AND T2.SSB IN ('negative', '0') AND T1.SEX = 'M'",
+      "pred_sql": "SELECT COUNT(DISTINCT Patient.ID) FROM Patient JOIN Examination ON Patient.ID = Examination.ID WHERE Examination.CENTROMEA IN ('-', '+-') AND Examination.SSB IN ('-', '+-') AND Patient.SEX = 'M'",
+      "match": false,
+      "schema_recall": true,
+      "error_kind": "execution_failed",
+      "error_message": "(sqlite3.OperationalError) no such column: Examination.CENTROMEA\n[SQL: SELECT COUNT(DISTINCT Patient.ID) FROM Patient JOIN Examination ON Patient.ID = Examination.ID WHERE Examination.CENTROMEA IN ('-', '+-') AND Examination.SSB IN ('-', '+-') AND Patient.SEX = 'M']\n(Background on this error at: https://sqlalche.me/e/20/e3q8)",
+      "repair_attempted": false,
+      "first_pass_match": false,
+      "latency_ms": 1921.6861000004428,
+      "input_tokens": 4433,
+      "output_tokens": 123,
+      "gold_tables": [
+        "Patient",
+        "Laboratory"
+      ],
+      "retrieved_tables": [
+        "Examination",
+        "Patient",
+        "Laboratory"
+      ],
+      "pred_row_count": 0,
+      "gold_row_count": 1,
+      "comparison_reason": "pred failed: execution_failed"
+    },
+    {
+      "question_id": 894,
+      "db_id": "formula_1",
+      "difficulty": "moderate",
+      "dialect": "sqlite",
+      "question": "What is the best lap time recorded? List the driver and race with such recorded lap time.",
+      "gold_sql": "SELECT T2.milliseconds, T1.forename, T1.surname, T3.name FROM drivers AS T1 INNER JOIN lapTimes AS T2 ON T1.driverId = T2.driverId INNER JOIN races AS T3 ON T2.raceId = T3.raceId ORDER BY T2.milliseconds ASC LIMIT 1",
+      "pred_sql": "SELECT lapTimes.milliseconds, drivers.forename, drivers.surname, races.name FROM lapTimes JOIN drivers ON lapTimes.driverId = drivers.driverId JOIN races ON lapTimes.raceId = races.raceId ORDER BY lapTimes.milliseconds ASC LIMIT 1",
+      "match": true,
+      "schema_recall": true,
+      "error_kind": null,
+      "error_message": "",
+      "repair_attempted": false,
+      "first_pass_match": true,
+      "latency_ms": 2945.911499999056,
+      "input_tokens": 6670,
+      "output_tokens": 152,
+      "gold_tables": [
+        "drivers",
+        "lapTimes",
+        "races"
+      ],
+      "retrieved_tables": [
+        "lapTimes",
+        "drivers",
+        "races",
+        "pitStops",
+        "results",
+        "driverStandings",
+        "qualifying",
+        "circuits",
+        "constructorResults",
+        "constructorStandings",
+        "seasons",
+        "constructors"
+      ],
+      "pred_row_count": 1,
+      "gold_row_count": 1,
+      "comparison_reason": ""
+    },
+    {
+      "question_id": 1531,
+      "db_id": "debit_card_specializing",
+      "difficulty": "moderate",
+      "dialect": "sqlite",
+      "question": "Who is the top spending customer and how much is the average price per single item purchased by this customer? What currency was being used?",
+      "gold_sql": "SELECT T2.CustomerID, SUM(T2.Price / T2.Amount), T1.Currency FROM customers AS T1 INNER JOIN transactions_1k AS T2 ON T1.CustomerID = T2.CustomerID WHERE T2.CustomerID = ( SELECT CustomerID FROM yearmonth ORDER BY Consumption DESC LIMIT 1 ) GROUP BY T2.CustomerID, T1.Currency",
+      "pred_sql": "SELECT T2.CustomerID, SUM(T2.Price / T2.Amount), T1.Currency FROM customers AS T1 INNER JOIN transactions_1k AS T2 ON T1.CustomerID = T2.CustomerID WHERE T2.CustomerID = (SELECT CustomerID FROM yearmonth ORDER BY yearmonth.Consumption DESC LIMIT 1) GROUP BY T2.CustomerID, T1.Currency",
+      "match": true,
+      "schema_recall": true,
+      "error_kind": null,
+      "error_message": "",
+      "repair_attempted": false,
+      "first_pass_match": true,
+      "latency_ms": 3458.752700000332,
+      "input_tokens": 3109,
+      "output_tokens": 194,
+      "gold_tables": [
+        "customers",
+        "transactions_1k",
+        "yearmonth"
+      ],
+      "retrieved_tables": [
+        "transactions_1k",
+        "customers",
+        "yearmonth",
+        "gasstations",
+        "products"
+      ],
+      "pred_row_count": 1,
+      "gold_row_count": 1,
+      "comparison_reason": ""
+    }
+  ]
+}

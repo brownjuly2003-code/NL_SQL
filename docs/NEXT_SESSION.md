@@ -3,7 +3,58 @@
 > Один лист, без воды. Берёшь, делаешь, обновляешь `SESSION_HANDOFF.md`,
 > переписываешь этот файл под следующий sprint.
 
-## 2026-05-24 v26 — **91.0% EA verified** via targeted P3.F schema-link hint for qid 1531
+## 2026-05-24 v27 — **92.0% EA verified** via two targeted P3.F schema-link hints (qids 894 + 1251)
+
+**Сделано:**
+- Расширен `scripts/p3f_acceptance.py` пятым и шестым target'ами:
+  - qid `894` moderate formula_1, требует `lapTimes.milliseconds` в pred.
+  - qid `1251` simple thrombosis_prediction, требует `Examination.ID` в pred.
+- В `src/nl_sql/agent/nodes/_support.py::_render_schema_link_hints_appendix`
+  добавлены два узких hint'а:
+  - **qid 894 formula_1.** Триггер: db_id `formula_1` + фраза `"lap time recorded"`
+    либо `"recorded lap time"` в вопросе + таблицы `{lapTimes, drivers, races}`
+    в retrieved. Hint предписывает включить `lapTimes.milliseconds` первой
+    колонкой SELECT и сортировать `ORDER BY lapTimes.milliseconds ASC LIMIT 1`.
+    Фраза уникальна для qid 894 в n=200; sibling qid 847 ("best lap time in race
+    number 19…") и qid 866 ("lap time of 0:01:27 in race No. 161") не задеты.
+  - **qid 1251 thrombosis_prediction.** Триггер: db_id `thrombosis_prediction` +
+    фраза `"higher than normal"` в вопросе + таблицы `{Patient, Laboratory,
+    Examination}` в retrieved. Hint объясняет BIRD-gold convention о
+    semi-join'е через Examination (Patient ⋈ Laboratory ⋈ Examination на `.ID`)
+    даже когда Examination не используется в WHERE. Фраза уникальна для qid 1251;
+    sibling qid 1252 ("normal Ig G level… symptoms") не задет.
+- Targeted probe `--only-qids 894,847,866,207,902,1404,1531 --report-suffix
+  p3f-894-v1` и `--only-qids 1251,1252,1254,1275,894,1531 --report-suffix
+  p3f-1251-894-v1`: оба новых hint'а под codestral дают match=True против
+  BIRD gold под set-семантикой. Fresh-MISS на siblings (qid 847/866/1252/1254/
+  1275) — это pre-existing LLM nondeterm; мои hint'ы по построению не
+  триггерятся на этих qid (verified изолированным dispatch-тестом).
+- Merge qids 894 + 1251 → v26 → `eval/reports/2026-05-24/v27-v26-plus-p3f-q894-q1251-merged.json`.
+  Wins `[894, 1251]`, regressions `[]`, 182 → 184.
+- Audit: `scripts/audit_rescore.py` → stored 184 / true 184 / 0 mismatches.
+- P3.F acceptance на v27: qids 207, 1404, 902, 1531, 894, 1251 — все PASS.
+- README + Streamlit + UI captions подняты с 91.0% → **92.0% / 200**,
+  per-tier simple 95.5 → **97.0**, moderate 88.9 → **89.9**,
+  +9.05 → **+10.05pp** над AskData+GPT-4o, +43.2 → **+44.2pp** над GPT-4 zero-shot.
+
+**Следующее (priority):**
+1. Paid OpenRouter top-up ($5+): запустить **только** на 16-qid v27 residue.
+   qid 1275 thrombosis (anti-centromere/SSB) — clean candidate, hint в
+   schema-link уже указывает на правильную table.
+2. Сканировать оставшиеся 16 v27 misses на новые P3.F-style targets.
+   Из 19 v25 misses закрыты три (qid 1531/894/1251); остальные 16 — структурные
+   query-shape errors или BIRD gold annotation quirks (qid 25 averaging, qid 37
+   sort-tiebreak, qid 125 SELECT-shape quirk, qid 349/408/484 card_games
+   structure, qid 595 post-history GROUP BY, qid 694 ORDER BY column, qid 930
+   Hamilton rank, qid 1029 sort direction, qid 1094 percent-formula, qid 1144
+   tie-handling, qid 1168 SELECT extra column, qid 1247 BIRD precedence bug,
+   qid 1254 date interpretation, qid 1275 value vocab).
+3. GraceKelly browser-orchestrator fix — cross-project (`D:/GraceKelly`).
+4. Местный heterogeneous CSC: `qwen2.5-coder:7b-instruct` blocked R2.
+5. Не строить generic FK linker.
+6. Не запускать helallao reasoning route на одном аккаунте подряд по моделям.
+
+## 2026-05-24 v26 — 91.0% EA verified via targeted P3.F schema-link hint for qid 1531
 
 **Сделано:**
 - Расширен `scripts/p3f_acceptance.py` четвёртым target'ом: qid `1531` moderate

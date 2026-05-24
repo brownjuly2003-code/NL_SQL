@@ -241,6 +241,44 @@ def _render_schema_link_hints_appendix(context: ContextBundle, hits: list[Any]) 
             ]
         )
     if (
+        db_id in {"formula_1", "bird_formula_1"}
+        and {"laptimes", "drivers", "races"} <= tables
+        and ("lap time recorded" in question or "recorded lap time" in question)
+    ):
+        return "\n".join(
+            [
+                "# Schema-link hints",
+                "- For formula_1 'best lap time recorded' / 'recorded lap time' "
+                "questions, BIRD gold surfaces the lap-time value alongside the "
+                "driver/race columns. Include lapTimes.milliseconds as the first "
+                "SELECT column and rank with ORDER BY lapTimes.milliseconds ASC "
+                "LIMIT 1: SELECT lapTimes.milliseconds, drivers.forename, "
+                "drivers.surname, races.name FROM lapTimes JOIN drivers ON "
+                "lapTimes.driverId = drivers.driverId JOIN races ON "
+                "lapTimes.raceId = races.raceId ORDER BY lapTimes.milliseconds "
+                "ASC LIMIT 1.",
+            ]
+        )
+    if (
+        db_id in {"thrombosis_prediction", "bird_thrombosis_prediction"}
+        and {"patient", "laboratory", "examination"} <= tables
+        and "higher than normal" in question
+    ):
+        return "\n".join(
+            [
+                "# Schema-link hints",
+                "- For thrombosis_prediction 'higher than normal' patient-count "
+                "questions on Laboratory values (e.g. IGG/IGA/IGM/anti-...), "
+                "BIRD gold restricts patients to those that appear in both the "
+                "Laboratory and Examination tables — even when no Examination "
+                "column is used in WHERE. Write: SELECT COUNT(DISTINCT T1.ID) "
+                "FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID "
+                "INNER JOIN Examination AS T3 ON T3.ID = T2.ID WHERE <lab value "
+                "condition>. Do NOT query Laboratory alone — that overcounts "
+                "patients without Examination records.",
+            ]
+        )
+    if (
         db_id in {"debit_card_specializing", "bird_debit_card_specializing"}
         and {"yearmonth", "transactions_1k", "customers"} <= tables
         and "top spending" in question

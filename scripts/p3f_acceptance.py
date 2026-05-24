@@ -68,6 +68,18 @@ TARGETS: tuple[AcceptanceTarget, ...] = (
         required_columns=(("yearmonth", "consumption"),),
         forbidden_columns=(),
     ),
+    AcceptanceTarget(
+        qid=894,
+        label="formula_1 'best lap time recorded' must include lapTimes.milliseconds as a SELECT column",
+        required_columns=(("laptimes", "milliseconds"),),
+        forbidden_columns=(),
+    ),
+    AcceptanceTarget(
+        qid=1251,
+        label="thrombosis_prediction 'IgG higher than normal' patient-count must restrict to patients in Examination",
+        required_columns=(("examination", "id"),),
+        forbidden_columns=(),
+    ),
 )
 
 

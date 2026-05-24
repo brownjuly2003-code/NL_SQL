@@ -144,6 +144,144 @@ def test_formula_1_track_number_hint_is_question_scoped() -> None:
     assert "# Schema-link hints" not in rendered
 
 
+def test_formula_1_lap_time_recorded_hint_includes_milliseconds_first() -> None:
+    rendered = render_schema_block(
+        ContextBundle(
+            db_id="formula_1",
+            question="What is the best lap time recorded? List the driver and race with such recorded lap time.",
+            schema_hits=[
+                _hit(
+                    "lapTimes",
+                    "Table: lapTimes\nColumns:\n"
+                    "  - driverId: INTEGER [NOT NULL]\n"
+                    "  - raceId: INTEGER [NOT NULL]\n"
+                    "  - milliseconds: INTEGER [NULL]",
+                    db_id="formula_1",
+                ),
+                _hit(
+                    "drivers",
+                    "Table: drivers\nColumns:\n"
+                    "  - driverId: INTEGER [PK NOT NULL]\n"
+                    "  - forename: TEXT [NULL]\n"
+                    "  - surname: TEXT [NULL]",
+                    db_id="formula_1",
+                ),
+                _hit(
+                    "races",
+                    "Table: races\nColumns:\n"
+                    "  - raceId: INTEGER [PK NOT NULL]\n"
+                    "  - name: TEXT [NULL]",
+                    db_id="formula_1",
+                ),
+            ],
+            fk_neighbours=[],
+            fewshots=[],
+        )
+    )
+
+    assert "# Schema-link hints" in rendered
+    assert "lapTimes.milliseconds" in rendered
+    assert "ORDER BY lapTimes.milliseconds ASC LIMIT 1" in rendered
+
+
+def test_formula_1_lap_time_recorded_hint_is_question_scoped() -> None:
+    rendered = render_schema_block(
+        ContextBundle(
+            db_id="formula_1",
+            question="What is the surname of the driver with the best lap time in race number 19 in the second qualifying period?",
+            schema_hits=[
+                _hit(
+                    "lapTimes",
+                    "Table: lapTimes\nColumns:\n  - milliseconds: INTEGER [NULL]",
+                    db_id="formula_1",
+                ),
+                _hit(
+                    "drivers",
+                    "Table: drivers\nColumns:\n  - surname: TEXT [NULL]",
+                    db_id="formula_1",
+                ),
+                _hit(
+                    "races",
+                    "Table: races\nColumns:\n  - name: TEXT [NULL]",
+                    db_id="formula_1",
+                ),
+            ],
+            fk_neighbours=[],
+            fewshots=[],
+        )
+    )
+
+    assert "# Schema-link hints" not in rendered
+
+
+def test_thrombosis_higher_than_normal_hint_joins_examination() -> None:
+    rendered = render_schema_block(
+        ContextBundle(
+            db_id="thrombosis_prediction",
+            question="How many patients with an Ig G higher than normal?",
+            schema_hits=[
+                _hit(
+                    "Patient",
+                    "Table: Patient\nColumns:\n"
+                    "  - ID: INTEGER [PK NOT NULL]\n"
+                    "  - SEX: TEXT [NULL]",
+                    db_id="thrombosis_prediction",
+                ),
+                _hit(
+                    "Laboratory",
+                    "Table: Laboratory\nColumns:\n"
+                    "  - ID: INTEGER [NOT NULL]\n"
+                    "  - IGG: REAL [NULL]",
+                    db_id="thrombosis_prediction",
+                ),
+                _hit(
+                    "Examination",
+                    "Table: Examination\nColumns:\n"
+                    "  - ID: INTEGER [NOT NULL]\n"
+                    "  - Symptoms: TEXT [NULL]",
+                    db_id="thrombosis_prediction",
+                ),
+            ],
+            fk_neighbours=[],
+            fewshots=[],
+        )
+    )
+
+    assert "# Schema-link hints" in rendered
+    assert "INNER JOIN Examination" in rendered
+    assert "Do NOT query Laboratory alone" in rendered
+
+
+def test_thrombosis_higher_than_normal_hint_is_question_scoped() -> None:
+    rendered = render_schema_block(
+        ContextBundle(
+            db_id="thrombosis_prediction",
+            question="Among the patients with a normal Ig G level, how many of them have symptoms?",
+            schema_hits=[
+                _hit(
+                    "Patient",
+                    "Table: Patient\nColumns:\n  - ID: INTEGER [PK NOT NULL]",
+                    db_id="thrombosis_prediction",
+                ),
+                _hit(
+                    "Laboratory",
+                    "Table: Laboratory\nColumns:\n  - IGG: REAL [NULL]",
+                    db_id="thrombosis_prediction",
+                ),
+                _hit(
+                    "Examination",
+                    "Table: Examination\nColumns:\n  - Symptoms: TEXT [NULL]",
+                    db_id="thrombosis_prediction",
+                ),
+            ],
+            fk_neighbours=[],
+            fewshots=[],
+        )
+    )
+
+    assert "# Schema-link hints" not in rendered
+
+
 def test_debit_card_top_spending_hint_points_to_yearmonth_consumption() -> None:
     rendered = render_schema_block(
         ContextBundle(
