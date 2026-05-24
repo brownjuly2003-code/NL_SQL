@@ -3,6 +3,55 @@
 > Один лист, без воды. Берёшь, делаешь, обновляешь `SESSION_HANDOFF.md`,
 > переписываешь этот файл под следующий sprint.
 
+## Cold-pickup checklist (orient в 2 минуты)
+
+```powershell
+# 1. Что сейчас в репо?
+cd D:/NL_SQL
+git log --oneline -5
+# Expected top: 92c52f4 docs sync v27 / 99bae66 v27 92.0% / 2b06554 v26 / afac149 v25
+
+# 2. Где actual baseline merged report?
+ls eval/reports/2026-05-24/v27-v26-plus-p3f-q894-q1251-merged.json
+
+# 3. Verify baseline ещё чистый (replay every stored pred under current runner)
+uv run python scripts/audit_rescore.py --report eval/reports/2026-05-24/v27-v26-plus-p3f-q894-q1251-merged.json
+# Expected: stored 184 / true 184 / 0 mismatches
+
+# 4. Verify все 6 P3.F gates ещё PASS
+uv run python scripts/p3f_acceptance.py --report eval/reports/2026-05-24/v27-v26-plus-p3f-q894-q1251-merged.json --require-pass
+# Expected: 6 PASS, exit 0
+
+# 5. Tests + lint + type
+uv run pytest -q
+uv run ruff check src tests scripts app
+uv run mypy --strict src
+# Expected: 324 pass / clean / clean
+```
+
+**Текущее состояние:** repo + Streamlit + README + UI captions = **v27 92.0%** (184/200).
+**HF Space live URL <https://liovina-nl-sql.hf.space> = v17 86.0%** (last redeploy 2026-05-18).
+Repo впереди live HF на v18-v27 (+6.0pp); redeploy gated к user (external publish via `.deploy_hf.py`).
+
+## Cookbook: как добавить ещё один P3.F rescue (повторяющийся pattern)
+
+Все четыре landed P3.F hint'а (qids 902 v25, 1531 v26, 894+1251 v27) делались по
+одному шаблону. Если в next sprint найден clean candidate (например qid 408
+или qid 1275 после paid OR), повторить эти 8 шагов:
+
+1. **Verify uniqueness** in n=200: `python -c "import json; r=json.load(open('eval/reports/2026-05-24/v27-v26-plus-p3f-q894-q1251-merged.json',encoding='utf-8')); print([(x['question_id'], x['db_id']) for x in r['records'] if 'YOUR_PHRASE' in x['question'].lower()])"`. Phrase должна возвращать ТОЛЬКО target qid.
+2. **Add hint** в `src/nl_sql/agent/nodes/_support.py::_render_schema_link_hints_appendix`. Триггер = db_id + phrase(s) + table set. По шаблону существующих 6 if-блоков.
+3. **Add target** в `scripts/p3f_acceptance.py::TARGETS` — required_columns + forbidden_columns (опционально).
+4. **Probe** `uv run python scripts/eval_baseline.py --config C --only-qids <NEW>,894,1251,1531,902,1404,207 --report-suffix p3f-<new>-v1`. Все 6 prior targets должны PASS + новый match=True.
+5. **Merge** — inline Python (см. commit `99bae66` или `2b06554` для шаблона; примерно 30 строк). Load baseline, swap pred_sql + match=True для new qid'ов, recompute summary + per_difficulty, write `v<N+1>-v<N>-plus-p3f-q<X>-merged.json`.
+6. **Audit** `uv run python scripts/audit_rescore.py --report eval/reports/2026-05-24/<new merged>.json` — должен показать 0 mismatches.
+7. **p3f_acceptance --require-pass** — все targets зелёные.
+8. **Update doc/tests + commit + push**: README hero / lift trace / eval table row, app/streamlit_app.py EN+RU research_value + caption, docs/SESSION_HANDOFF.md tl;dr, docs/NEXT_SESSION.md per-qid table; tests/agent/nodes/test_schema_link_hints.py + tests/scripts/test_p3f_acceptance.py добавить fixtures. Gates: pytest + ruff + mypy --strict.
+
+**Ad-hoc merge — не helper-script.** Решено намеренно: каждый rescue имеет уникальные
+voted_by tag и delta, inline Python даёт control + audit trail. Не выносить в
+`scripts/merge_p3f.py` без явного запроса.
+
 ## 2026-05-24 v27 — **92.0% EA verified** via two targeted P3.F schema-link hints (qids 894 + 1251)
 
 **Сделано:**
