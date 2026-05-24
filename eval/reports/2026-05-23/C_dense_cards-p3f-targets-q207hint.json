@@ -1,0 +1,128 @@
+{
+  "configuration": "C_dense_cards",
+  "sql_model": "codestral-latest",
+  "overall": {
+    "n": 2,
+    "ea": 1.0,
+    "validity_rate": 1.0,
+    "schema_recall_at_k": 1.0,
+    "repair_success_rate": 0.0,
+    "first_pass_ea": 1.0,
+    "empty_result_rate": 0.0,
+    "latency_p50_ms": 1422.692999999981,
+    "latency_p95_ms": 2650.8462299999337,
+    "tokens_p50": 3777.0,
+    "tokens_p95": 4750.8
+  },
+  "per_difficulty": {
+    "simple": {
+      "n": 0,
+      "ea": 0.0,
+      "validity_rate": 0.0,
+      "schema_recall_at_k": 0.0,
+      "repair_success_rate": 0.0,
+      "first_pass_ea": 0.0,
+      "empty_result_rate": 0.0,
+      "latency_p50_ms": 0.0,
+      "latency_p95_ms": 0.0,
+      "tokens_p50": 0.0,
+      "tokens_p95": 0.0
+    },
+    "moderate": {
+      "n": 1,
+      "ea": 1.0,
+      "validity_rate": 1.0,
+      "schema_recall_at_k": 1.0,
+      "repair_success_rate": 0.0,
+      "first_pass_ea": 1.0,
+      "empty_result_rate": 0.0,
+      "latency_p50_ms": 58.07830000003378,
+      "latency_p95_ms": 58.07830000003378,
+      "tokens_p50": 4859.0,
+      "tokens_p95": 4859.0
+    },
+    "challenging": {
+      "n": 1,
+      "ea": 1.0,
+      "validity_rate": 1.0,
+      "schema_recall_at_k": 1.0,
+      "repair_success_rate": 0.0,
+      "first_pass_ea": 1.0,
+      "empty_result_rate": 0.0,
+      "latency_p50_ms": 2787.3076999999284,
+      "latency_p95_ms": 2787.3076999999284,
+      "tokens_p50": 2695.0,
+      "tokens_p95": 2695.0
+    }
+  },
+  "records": [
+    {
+      "question_id": 1404,
+      "db_id": "student_club",
+      "difficulty": "moderate",
+      "dialect": "sqlite",
+      "question": "Identify the type of expenses and their total value approved for 'October Meeting' event.",
+      "gold_sql": "SELECT T1.type, SUM(T3.cost) FROM event AS T1 INNER JOIN budget AS T2 ON T1.event_id = T2.link_to_event INNER JOIN expense AS T3 ON T2.budget_id = T3.link_to_budget WHERE T1.event_name = 'October Meeting'",
+      "pred_sql": "SELECT event.type, SUM(expense.cost) AS total_value FROM expense JOIN budget ON expense.link_to_budget = budget.budget_id JOIN event ON budget.link_to_event = event.event_id WHERE event.event_name = 'October Meeting' AND expense.approved = 'true' GROUP BY event.type",
+      "match": true,
+      "schema_recall": true,
+      "error_kind": null,
+      "error_message": "",
+      "repair_attempted": false,
+      "first_pass_match": true,
+      "latency_ms": 58.07830000003378,
+      "input_tokens": 4689,
+      "output_tokens": 170,
+      "gold_tables": [
+        "event",
+        "budget",
+        "expense"
+      ],
+      "retrieved_tables": [
+        "event",
+        "expense",
+        "budget",
+        "income",
+        "member",
+        "attendance",
+        "major",
+        "zip_code"
+      ],
+      "pred_row_count": 1,
+      "gold_row_count": 1,
+      "comparison_reason": ""
+    },
+    {
+      "question_id": 207,
+      "db_id": "toxicology",
+      "difficulty": "challenging",
+      "dialect": "sqlite",
+      "question": "What elements are in a double type bond?",
+      "gold_sql": "SELECT DISTINCT T1.element FROM atom AS T1 INNER JOIN bond AS T2 ON T1.molecule_id = T2.molecule_id INNER JOIN connected AS T3 ON T1.atom_id = T3.atom_id WHERE T2.bond_type = '='",
+      "pred_sql": "SELECT DISTINCT a.element FROM atom a JOIN bond b ON a.molecule_id = b.molecule_id JOIN connected c ON c.atom_id = a.atom_id WHERE b.bond_type = '='",
+      "match": true,
+      "schema_recall": true,
+      "error_kind": null,
+      "error_message": "",
+      "repair_attempted": false,
+      "first_pass_match": true,
+      "latency_ms": 2787.3076999999284,
+      "input_tokens": 2573,
+      "output_tokens": 122,
+      "gold_tables": [
+        "atom",
+        "bond",
+        "connected"
+      ],
+      "retrieved_tables": [
+        "bond",
+        "connected",
+        "atom",
+        "molecule"
+      ],
+      "pred_row_count": 13,
+      "gold_row_count": 13,
+      "comparison_reason": ""
+    }
+  ]
+}

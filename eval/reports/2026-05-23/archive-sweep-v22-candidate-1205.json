@@ -1,0 +1,23 @@
+{
+  "alt_model": "archive-sweep",
+  "baseline": "eval/reports/2026-05-23/v22-v21-plus-p3f-207-1404-merged.json",
+  "summary": {
+    "voted_better": 1,
+    "voted_worse": 0,
+    "voted_same": 0
+  },
+  "records": [
+    {
+      "question_id": 1205,
+      "db_id": "thrombosis_prediction",
+      "difficulty": "moderate",
+      "baseline_match": false,
+      "alt_match": true,
+      "vote_match": true,
+      "alt_pred": "SELECT CASE WHEN (L.UA > 8.0 AND P.SEX = 'M') OR (L.UA > 6.5 AND P.SEX = 'F') THEN 1 ELSE 0 END AS is_normal FROM Laboratory L JOIN Patient P ON L.ID = P.ID WHERE L.ID = 57266",
+      "alt_model": "archive-sweep",
+      "source_report": "eval/reports/2026-05-10/A_full_schema-n50.json",
+      "source_sql_model": "codestral-latest"
+    }
+  ]
+}

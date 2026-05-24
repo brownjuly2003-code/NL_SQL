@@ -1,0 +1,96 @@
+{
+  "configuration": "C_dense_cards",
+  "sql_model": "codestral-latest",
+  "overall": {
+    "n": 1,
+    "ea": 0.0,
+    "validity_rate": 1.0,
+    "schema_recall_at_k": 1.0,
+    "repair_success_rate": 0.0,
+    "first_pass_ea": 0.0,
+    "empty_result_rate": 0.0,
+    "latency_p50_ms": 15528.420200000255,
+    "latency_p95_ms": 15528.420200000255,
+    "tokens_p50": 4895.0,
+    "tokens_p95": 4895.0
+  },
+  "per_difficulty": {
+    "simple": {
+      "n": 0,
+      "ea": 0.0,
+      "validity_rate": 0.0,
+      "schema_recall_at_k": 0.0,
+      "repair_success_rate": 0.0,
+      "first_pass_ea": 0.0,
+      "empty_result_rate": 0.0,
+      "latency_p50_ms": 0.0,
+      "latency_p95_ms": 0.0,
+      "tokens_p50": 0.0,
+      "tokens_p95": 0.0
+    },
+    "moderate": {
+      "n": 1,
+      "ea": 0.0,
+      "validity_rate": 1.0,
+      "schema_recall_at_k": 1.0,
+      "repair_success_rate": 0.0,
+      "first_pass_ea": 0.0,
+      "empty_result_rate": 0.0,
+      "latency_p50_ms": 15528.420200000255,
+      "latency_p95_ms": 15528.420200000255,
+      "tokens_p50": 4895.0,
+      "tokens_p95": 4895.0
+    },
+    "challenging": {
+      "n": 0,
+      "ea": 0.0,
+      "validity_rate": 0.0,
+      "schema_recall_at_k": 0.0,
+      "repair_success_rate": 0.0,
+      "first_pass_ea": 0.0,
+      "empty_result_rate": 0.0,
+      "latency_p50_ms": 0.0,
+      "latency_p95_ms": 0.0,
+      "tokens_p50": 0.0,
+      "tokens_p95": 0.0
+    }
+  },
+  "records": [
+    {
+      "question_id": 1399,
+      "db_id": "student_club",
+      "difficulty": "moderate",
+      "dialect": "sqlite",
+      "question": "Did Maya Mclean attend the 'Women's Soccer' event?",
+      "gold_sql": "SELECT CASE WHEN T3.event_name = 'Women''s Soccer' THEN 'YES' END AS result FROM member AS T1 INNER JOIN attendance AS T2 ON T1.member_id = T2.link_to_member INNER JOIN event AS T3 ON T2.link_to_event = T3.event_id WHERE T1.first_name = 'Maya' AND T1.last_name = 'Mclean'",
+      "pred_sql": "SELECT CASE WHEN attendance.link_to_event IS NOT NULL THEN 'YES' ELSE 'NO' END FROM member LEFT JOIN attendance ON member.member_id = attendance.link_to_member AND attendance.link_to_event = (SELECT event_id FROM event WHERE event_name = 'Women''s Soccer') WHERE member.first_name = 'Maya' AND member.last_name = 'Mclean'",
+      "match": false,
+      "schema_recall": true,
+      "error_kind": null,
+      "error_message": "",
+      "repair_attempted": false,
+      "first_pass_match": false,
+      "latency_ms": 15528.420200000255,
+      "input_tokens": 4738,
+      "output_tokens": 157,
+      "gold_tables": [
+        "member",
+        "attendance",
+        "event"
+      ],
+      "retrieved_tables": [
+        "event",
+        "attendance",
+        "member",
+        "major",
+        "budget",
+        "expense",
+        "income",
+        "zip_code"
+      ],
+      "pred_row_count": 1,
+      "gold_row_count": 14,
+      "comparison_reason": "set mismatch (unique rows differ): |gold|=2, |pred|=1"
+    }
+  ]
+}

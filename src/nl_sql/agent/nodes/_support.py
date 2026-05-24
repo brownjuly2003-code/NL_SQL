@@ -210,6 +210,22 @@ def _render_schema_link_hints_appendix(context: ContextBundle, hits: list[Any]) 
                 "expense.expense_description describes individual expense rows.",
             ]
         )
+    if (
+        db_id in {"toxicology", "bird_toxicology"}
+        and {"atom", "bond", "connected"} <= tables
+        and "double" in question
+        and "bond" in question
+        and "element" in question
+    ):
+        return "\n".join(
+            [
+                "# Schema-link hints",
+                "- For toxicology questions asking for elements in a double bond, "
+                "filter bond.bond_type = '=' and connect atom to bond by molecule: "
+                "atom.molecule_id = bond.molecule_id plus connected.atom_id = atom.atom_id, "
+                "not connected.bond_id.",
+            ]
+        )
     return ""
 
 

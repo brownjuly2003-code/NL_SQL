@@ -1,0 +1,93 @@
+{
+  "alt_model": "orchestrator-browser:claude-sonnet-4-6:ultrashort-birdgrain",
+  "summary": {
+    "voted_better": 1,
+    "voted_worse": 0,
+    "voted_same": 0
+  },
+  "records": [
+    {
+      "question_id": 1399,
+      "db_id": "student_club",
+      "difficulty": "moderate",
+      "question": "Did Maya Mclean attend the 'Women's Soccer' event?",
+      "gold_sql": "SELECT CASE WHEN T3.event_name = 'Women''s Soccer' THEN 'YES' END AS result FROM member AS T1 INNER JOIN attendance AS T2 ON T1.member_id = T2.link_to_member INNER JOIN event AS T3 ON T2.link_to_event = T3.event_id WHERE T1.first_name = 'Maya' AND T1.last_name = 'Mclean'",
+      "baseline_pred": "SELECT COUNT(*) > 0 AS attended FROM attendance AS a JOIN member AS m ON a.link_to_member = m.member_id JOIN event AS e ON a.link_to_event = e.event_id WHERE m.first_name = 'Maya' AND m.last_name = 'Mclean' AND e.event_name = 'Women''s Soccer'",
+      "alt_pred": "SELECT\nCASE WHEN e.event_name = 'Women''s Soccer' THEN 'YES' END AS result\nFROM member AS m\nJOIN attendance AS a ON a.link_to_member = m.member_id\nJOIN event AS e ON e.event_id = a.link_to_event\nWHERE m.first_name = 'Maya'\nAND m.last_name = 'Mclean'",
+      "alt_confidence": null,
+      "baseline_match": false,
+      "alt_match": true,
+      "vote_match": true,
+      "vote_source": "orchestrator-browser:claude-sonnet-4-6:ultrashort-birdgrain",
+      "elapsed_ms": 30313.382500000444,
+      "orchestrator_task_id": "2ef3c10d-af86-45fb-9184-e80f64ae5583",
+      "orchestrator_flags": {
+        "execution_mode": "browser",
+        "model_id": "claude-sonnet-4-6",
+        "actual_model_label": "Claude Sonnet 4.6",
+        "thinking_enabled": true,
+        "model_selection_verified": true,
+        "response_used_body_fallback": false,
+        "response_source": "main div.prose",
+        "actual_label_source": "verified_button"
+      },
+      "raw_output": "Following the BIRD benchmark row-grain pattern exactly as specified — filter to Maya McLean first, then project a CASE expression per attendance row — here is the single query:\nsql\nSELECT\nCASE WHEN e.event_name = 'Women''s Soccer' THEN 'YES' END AS result\nFROM member AS m\nJOIN attendance AS a ON a.link_to_member = m.member_id\nJOIN event AS e ON e.event_id = a.link_to_event\nWHERE m.first_name = 'Maya'\nAND m.last_name = 'Mclean'\nHow it works\nWHERE clause filters down to Maya McLean's rows only, matching the BIRD grain requirement.\nsqlite\nJOIN attendance expands one row per event she attended, using the foreign key link_to_member → member_id.\nsqlite\nJOIN event brings in event_name via link_to_event → event_id.\nsqlite\nCASE WHEN event_name = 'Women''s Soccer' THEN 'YES' END projects 'YES' for that specific event row and NULL for all others — the standard BIRD single-column result pattern.\nsqlite\nWhy no ELSE or aggregation?\nThe BIRD benchmark intentionally leaves non-matching rows as NULL (no ELSE clause) rather than 'NO', and uses no GROUP BY or MAX() — it returns one result row per attendance record for Maya, letting the evaluator inspect the result set directly.\nsqlite",
+      "gold_row_count": 14,
+      "alt_row_count": 14,
+      "gold_rows_preview": [
+        [
+          "YES"
+        ],
+        [
+          null
+        ],
+        [
+          null
+        ],
+        [
+          null
+        ],
+        [
+          null
+        ],
+        [
+          null
+        ],
+        [
+          null
+        ],
+        [
+          null
+        ]
+      ],
+      "alt_rows_preview": [
+        [
+          "YES"
+        ],
+        [
+          null
+        ],
+        [
+          null
+        ],
+        [
+          null
+        ],
+        [
+          null
+        ],
+        [
+          null
+        ],
+        [
+          null
+        ],
+        [
+          null
+        ]
+      ],
+      "alt_error": "",
+      "extraction_note": "Extracted SELECT block before Perplexity prose starting at \"How it works\"."
+    }
+  ]
+}

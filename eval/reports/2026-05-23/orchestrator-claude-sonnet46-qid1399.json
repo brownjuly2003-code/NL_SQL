@@ -1,0 +1,136 @@
+{
+  "alt_model": "orchestrator-browser:claude-sonnet-4-6",
+  "summary": {
+    "voted_better": 0,
+    "voted_worse": 0,
+    "voted_same": 1
+  },
+  "records": [
+    {
+      "question_id": 1399,
+      "db_id": "student_club",
+      "difficulty": "moderate",
+      "question": "Did Maya Mclean attend the 'Women's Soccer' event?",
+      "gold_sql": "SELECT CASE WHEN T3.event_name = 'Women''s Soccer' THEN 'YES' END AS result FROM member AS T1 INNER JOIN attendance AS T2 ON T1.member_id = T2.link_to_member INNER JOIN event AS T3 ON T2.link_to_event = T3.event_id WHERE T1.first_name = 'Maya' AND T1.last_name = 'Mclean'",
+      "baseline_pred": "SELECT COUNT(*) > 0 AS attended FROM attendance AS a JOIN member AS m ON a.link_to_member = m.member_id JOIN event AS e ON a.link_to_event = e.event_id WHERE m.first_name = 'Maya' AND m.last_name = 'Mclean' AND e.event_name = 'Women''s Soccer'",
+      "alt_pred": "Set up Computer",
+      "alt_confidence": 0.0,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "orchestrator-browser:claude-sonnet-4-6",
+      "elapsed_ms": 27219.148299999688,
+      "alt_error": "",
+      "gold_row_count": 14,
+      "alt_row_count": 0,
+      "gold_rows_preview": [
+        [
+          "YES"
+        ],
+        [
+          null
+        ],
+        [
+          null
+        ],
+        [
+          null
+        ],
+        [
+          null
+        ]
+      ],
+      "alt_rows_preview": [],
+      "trace": [
+        {
+          "node": "context_builder",
+          "tables": [
+            "event",
+            "attendance",
+            "member",
+            "major",
+            "budget",
+            "expense",
+            "income",
+            "zip_code"
+          ],
+          "fewshots": 3,
+          "truncated": false,
+          "extended_sample_tables": []
+        },
+        {
+          "node": "generate_sql",
+          "model": "orchestrator:claude-sonnet-4-6",
+          "confidence": 0.0,
+          "tables_used": [],
+          "input_tokens": 0,
+          "output_tokens": 0
+        },
+        {
+          "node": "validate",
+          "ok": false,
+          "violations": [
+            "not_select"
+          ]
+        },
+        {
+          "node": "repair_once",
+          "model": "orchestrator:claude-sonnet-4-6",
+          "confidence": 0.0,
+          "previous_error": "top-level statement must be SELECT/UNION; got Command",
+          "input_tokens": 0,
+          "output_tokens": 0
+        },
+        {
+          "node": "validate",
+          "ok": false,
+          "violations": [
+            "not_select"
+          ]
+        },
+        {
+          "node": "deterministic_format",
+          "shape": "error_sentence"
+        },
+        {
+          "node": "explain_trace",
+          "fallback": true
+        }
+      ],
+      "orchestrator_calls": [
+        {
+          "task_id": "4e79b447-4391-4a81-89cd-c992490ae7cb",
+          "duration_ms": 13080,
+          "status": "completed",
+          "flags": {
+            "execution_mode": "browser",
+            "model_id": "claude-sonnet-4-6",
+            "actual_model_label": "Claude Sonnet 4.6",
+            "thinking_enabled": true,
+            "model_selection_verified": true,
+            "response_used_body_fallback": true,
+            "actual_label_source": "verified_button"
+          },
+          "raw_output_prefix": "Set up Computer\nComputer can run LLM evals, compare APIs, and write up what changed\nConnect your apps\nCreate your first task\nTurn on notifications",
+          "cleaned_output": "Set up Computer\nComputer can run LLM evals, compare APIs, and write up what changed\nConnect your apps\nCreate your first task\nTurn on notifications"
+        },
+        {
+          "task_id": "2987357f-9711-452a-8092-fc93a8a36dea",
+          "duration_ms": 13255,
+          "status": "completed",
+          "flags": {
+            "execution_mode": "browser",
+            "model_id": "claude-sonnet-4-6",
+            "actual_model_label": "Claude Sonnet 4.6",
+            "thinking_enabled": true,
+            "model_selection_verified": true,
+            "response_used_body_fallback": true,
+            "actual_label_source": "verified_button"
+          },
+          "raw_output_prefix": "Set up Computer\nComputer can run LLM evals, compare APIs, and write up what changed\nConnect your apps\nCreate your first task\nTurn on notifications",
+          "cleaned_output": "Set up Computer\nComputer can run LLM evals, compare APIs, and write up what changed\nConnect your apps\nCreate your first task\nTurn on notifications"
+        }
+      ]
+    }
+  ]
+}

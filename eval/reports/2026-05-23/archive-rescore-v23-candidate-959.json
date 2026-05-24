@@ -1,0 +1,24 @@
+{
+  "alt_model": "archive-rescore",
+  "baseline": "eval/reports/2026-05-23/v23-v22-plus-archive-1205-merged.json",
+  "summary": {
+    "voted_better": 1,
+    "voted_worse": 0,
+    "voted_same": 0
+  },
+  "records": [
+    {
+      "question_id": 959,
+      "db_id": "formula_1",
+      "difficulty": "simple",
+      "baseline_match": false,
+      "alt_match": true,
+      "vote_match": true,
+      "alt_pred": "SELECT r.fastestLap FROM results r JOIN races ra ON r.raceId = ra.raceId JOIN drivers d ON r.driverId = d.driverId WHERE ra.year = 2009 AND r.positionOrder = 1",
+      "alt_model": "archive-rescore",
+      "source_report": "eval/reports/2026-05-10/C_dense_cards-sortblock-s3-tightprompt.json",
+      "source_field": "pred_sql",
+      "fresh_rescore_note": "Found by executing all unique historical SQL candidates for remaining v23 misses against current gold/scorer."
+    }
+  ]
+}
