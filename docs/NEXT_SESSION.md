@@ -101,14 +101,19 @@ fetch). Local heterogeneous CSC lever остаётся parked.
    / gpt-5.2-thinking / grok-4.1-reasoning. Сливать только `alt_match=True` +
    audit-rescore. **Note:** ceiling friction теперь значительная — qid 1275 был
    самый clean candidate в residue.
-2. **GraceKelly browser-orchestrator fix** — cross-project (`D:/GraceKelly`).
-3. **Местный heterogeneous CSC:** retry `qwen2.5-coder:7b-instruct` pull когда
+2. **Местный heterogeneous CSC:** retry `qwen2.5-coder:7b-instruct` pull когда
    R2 reachable. `qwen2.5-coder:7b` тэг то же; пробовать оба.
-4. **Не строить generic FK linker** (v22 lesson).
-5. **Не пытаться чинить query-shape / BIRD-annotation-quirk / semantic-ambiguity
+3. **Не строить generic FK linker** (v22 lesson).
+4. **Не пытаться чинить query-shape / BIRD-annotation-quirk / semantic-ambiguity
    failures** (qids 25, 37, 125, 349, 484, 595, 694, 930, 1029, 1094, 1144,
    1247, 1254, 1168): hint'ы либо не помогают, либо требуют такой формулировки
    которая регрессирует другие qids.
+5. **GraceKelly browser-orchestrator fix НЕ нужен для NL_SQL** — voting на
+   Perplexity Pro идёт через helallao HTTPS-bridge (curl-cffi reverse-engineered,
+   bypassing browser). Cookies extracted один раз из D:/GraceKelly/chrome-profile
+   через `.tmp/extract_pplx_cookies.py`, дальше чистый API. Если cookies протухнут
+   — re-extract тем же скриптом, не трогать GraceKelly browser path. Запись с
+   "GraceKelly fix" удалена — это residue с v6 (до helallao).
 
 **Closed 2026-05-24 EOD:** `scripts/rescore_arcwise.py` pred-exec фикс
 (использует `execute_readonly` напрямую, не `_execute_gold` с
