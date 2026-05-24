@@ -356,6 +356,67 @@ def test_debit_card_top_spending_hint_is_question_scoped() -> None:
     assert "# Schema-link hints" not in rendered
 
 
+def test_card_games_triggered_ability_hint_points_to_rulings_text() -> None:
+    rendered = render_schema_block(
+        ContextBundle(
+            db_id="card_games",
+            question="How many unknown power cards contain info about the triggered ability",
+            schema_hits=[
+                _hit(
+                    "cards",
+                    "Table: cards\nColumns:\n"
+                    "  - id: INTEGER [PK NOT NULL]\n"
+                    "  - uuid: TEXT [NOT NULL]\n"
+                    "  - power: TEXT [NULL]\n"
+                    "  - text: TEXT [NULL]",
+                    db_id="card_games",
+                ),
+                _hit(
+                    "rulings",
+                    "Table: rulings\nColumns:\n"
+                    "  - uuid: TEXT [NOT NULL]\n"
+                    "  - text: TEXT [NULL]\n"
+                    "  - date: TEXT [NULL]",
+                    db_id="card_games",
+                ),
+            ],
+            fk_neighbours=[],
+            fewshots=[],
+        )
+    )
+
+    assert "# Schema-link hints" in rendered
+    assert "INNER JOIN rulings ON cards.uuid = rulings.uuid" in rendered
+    assert "rulings.text LIKE '%triggered ability%'" in rendered
+    assert "NOT cards.text" in rendered
+    assert "COUNT(DISTINCT cards.id)" in rendered
+
+
+def test_card_games_triggered_ability_hint_is_question_scoped() -> None:
+    rendered = render_schema_block(
+        ContextBundle(
+            db_id="card_games",
+            question="How many cards have infinite power?",
+            schema_hits=[
+                _hit(
+                    "cards",
+                    "Table: cards\nColumns:\n  - power: TEXT [NULL]",
+                    db_id="card_games",
+                ),
+                _hit(
+                    "rulings",
+                    "Table: rulings\nColumns:\n  - text: TEXT [NULL]",
+                    db_id="card_games",
+                ),
+            ],
+            fk_neighbours=[],
+            fewshots=[],
+        )
+    )
+
+    assert "# Schema-link hints" not in rendered
+
+
 def _hit(table_name: str, text: str, *, db_id: str = "student_club") -> SchemaQueryHit:
     return SchemaQueryHit(
         chunk_id=f"{db_id}::{table_name}",

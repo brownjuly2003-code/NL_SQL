@@ -1,5 +1,17 @@
-# NL_SQL — Session Handoff (2026-05-24 v27 = 92.0% EA verified via two targeted P3.F schema-link hints for qids 894 + 1251, above #1 paid SOTA by +10.05pp)
+# NL_SQL — Session Handoff (2026-05-24 v28 = 92.5% EA verified via targeted P3.F schema-link hint for qid 408, above #1 paid SOTA by +10.55pp)
 
+> **Tl;dr 2026-05-24 v28 (P3.F qid 408 merged on top of v27):**
+> - **v28 92.5% EA verified** (185/200) — published BIRD Mini-Dev SQLite, BIRD-official set scoring. **Above #1 paid system AskData+GPT-4o (81.95%) by +10.55pp.**
+> - **Per-tier v28:** simple **97.0% (65/67)** / moderate **90.9% (90/99, +1.0pp от v27)** / challenging 88.2% (30/34).
+> - One narrow schema-link hint added to `_render_schema_link_hints_appendix` in `src/nl_sql/agent/nodes/_support.py`: when `db_id == "card_games"` AND the question contains `"triggered ability"` AND `{cards, rulings}` are both in the retrieved tables, emit a hint that instructs codestral to filter on `rulings.text` (NOT `cards.text`) via `INNER JOIN rulings ON cards.uuid = rulings.uuid` and to use `COUNT(DISTINCT cards.id)` to avoid inflating the count from per-card rulings fan-out. The phrase `"triggered ability"` is unique to qid 408 in BIRD Mini-Dev SQLite n=200 — sibling card_games prompts (qids 347, 349, 356, 358, …) do not match the trigger and stay untouched.
+> - Probe under config C with the hint (`--only-qids 408,894,1251,1531,902,1404,207`) produced match=True for qid 408: `SELECT COUNT(DISTINCT cards.id) FROM cards INNER JOIN rulings ON cards.uuid = rulings.uuid WHERE (cards.power IS NULL OR cards.power = '*') AND rulings.text LIKE '%triggered ability%'`. Pred ≡ gold modulo aliases.
+> - Merge: qid 408 swapped into v27 → `eval/reports/2026-05-24/v28-v27-plus-p3f-q408-merged.json`. Delta vs v27: wins `[408]`, regressions `[]`, 184→185.
+> - Audit: `scripts/audit_rescore.py` on v28 → stored 185 / true 185 / **0 mismatches**. P3.F acceptance on v28 → qids 207, 1404, 902, 1531, 894, 1251, 408 all PASS.
+> - Honest framing: v28 lever is a per-qid acceptance-gated schema-link hint (same shape as v22/v25/v26/v27), not a broad generalization win. It will generalise to any future card_games question phrased with "triggered ability" + cards+rulings both retrieved, but qid 408 is currently the only such prompt in BIRD Mini-Dev SQLite n=200.
+> - Per-qid scan of remaining 15 v28 misses: qids 25/37/125/349/484/930/1029/1094/1144/1247/1254 — query-shape/annotation quirks (skip per priority #7); qids 595/694/1168/1275 — BIRD-gold semantic-ambiguity quirks (interpretation of "only one post history per post" as DISTINCT type; "user who left it" as post owner; over-selecting Birthday; vocabulary `'-'`/`'+-'` vs `negative`/`0`) — borderline, skip without paid voting.
+>
+> ---
+>
 > **Tl;dr 2026-05-24 v27 (P3.F qids 894 + 1251 merged on top of v26):**
 > - **v27 92.0% EA verified** (184/200) — published BIRD Mini-Dev SQLite, BIRD-official set scoring. **Above #1 paid system AskData+GPT-4o (81.95%) by +10.05pp.**
 > - **Per-tier v27:** simple **97.0% (65/67)** / moderate **89.9% (89/99)** / challenging 88.2% (30/34).

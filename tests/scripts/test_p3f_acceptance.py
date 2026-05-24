@@ -79,12 +79,21 @@ def test_p3f_acceptance_flags_current_failure_shapes() -> None:
                         "FROM Laboratory WHERE Laboratory.IGG >= 2000"
                     ),
                 },
+                {
+                    "question_id": 408,
+                    "match": False,
+                    "pred_sql": (
+                        "SELECT COUNT(*) FROM cards "
+                        "WHERE (cards.power IS NULL OR cards.power = '*') "
+                        "AND cards.text LIKE '%triggered ability%'"
+                    ),
+                },
             ]
         )
     )
 
-    assert [r.qid for r in results] == [1404, 207, 902, 1531, 894, 1251]
-    assert [r.accepted for r in results] == [False, False, False, False, False, False]
+    assert [r.qid for r in results] == [1404, 207, 902, 1531, 894, 1251, 408]
+    assert [r.accepted for r in results] == [False, False, False, False, False, False, False]
     assert any("event.type" in reason for reason in results[0].reasons)
     assert any("connected.atom_id" in reason for reason in results[1].reasons)
     assert any("driverstandings.position" in reason for reason in results[2].reasons)
@@ -93,6 +102,8 @@ def test_p3f_acceptance_flags_current_failure_shapes() -> None:
     # but EA match is False, so still rejected.
     assert any("EA match is false" in reason for reason in results[4].reasons)
     assert any("examination.id" in reason for reason in results[5].reasons)
+    assert any("rulings.text" in reason for reason in results[6].reasons)
+    assert any("cards.text" in reason for reason in results[6].reasons)
 
 
 def test_p3f_acceptance_accepts_ea_pass_with_target_columns() -> None:
@@ -164,11 +175,21 @@ def test_p3f_acceptance_accepts_ea_pass_with_target_columns() -> None:
                         "WHERE T2.IGG >= 2000"
                     ),
                 },
+                {
+                    "question_id": 408,
+                    "match": True,
+                    "pred_sql": (
+                        "SELECT COUNT(DISTINCT cards.id) FROM cards "
+                        "INNER JOIN rulings ON cards.uuid = rulings.uuid "
+                        "WHERE (cards.power IS NULL OR cards.power = '*') "
+                        "AND rulings.text LIKE '%triggered ability%'"
+                    ),
+                },
             ]
         )
     )
 
-    assert [r.accepted for r in results] == [True, True, True, True, True, True]
+    assert [r.accepted for r in results] == [True, True, True, True, True, True, True]
 
 
 def test_p3f_acceptance_cli_requires_pass(tmp_path: Path, capsys) -> None:
@@ -183,6 +204,7 @@ def test_p3f_acceptance_cli_requires_pass(tmp_path: Path, capsys) -> None:
                     {"question_id": 1531, "match": False, "pred_sql": "SELECT 1"},
                     {"question_id": 894, "match": False, "pred_sql": "SELECT 1"},
                     {"question_id": 1251, "match": False, "pred_sql": "SELECT 1"},
+                    {"question_id": 408, "match": False, "pred_sql": "SELECT 1"},
                 ]
             )
         ),
@@ -202,4 +224,4 @@ def test_p3f_acceptance_rejects_missing_targets(tmp_path: Path, capsys) -> None:
     result = p3f_acceptance.main(["--report", str(report)])
 
     assert result == 3
-    assert "missing target qids: [1404, 207, 902, 1531, 894, 1251]" in capsys.readouterr().err
+    assert "missing target qids: [1404, 207, 902, 1531, 894, 1251, 408]" in capsys.readouterr().err

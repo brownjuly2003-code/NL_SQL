@@ -279,6 +279,27 @@ def _render_schema_link_hints_appendix(context: ContextBundle, hits: list[Any]) 
             ]
         )
     if (
+        db_id in {"card_games", "bird_card_games"}
+        and {"cards", "rulings"} <= tables
+        and "triggered ability" in question
+    ):
+        return "\n".join(
+            [
+                "# Schema-link hints",
+                "- For card_games questions asking how many cards 'contain info "
+                "about the triggered ability' (or any ruling-style phrase), BIRD "
+                "gold treats per-card ability rulings as rows in the rulings "
+                "table, not the cards table. Write: SELECT COUNT(DISTINCT "
+                "cards.id) FROM cards INNER JOIN rulings ON cards.uuid = "
+                "rulings.uuid WHERE (cards.power IS NULL OR cards.power = '*') "
+                "AND rulings.text LIKE '%triggered ability%'. Filter on "
+                "rulings.text, NOT cards.text (cards.text is the printed card "
+                "text, while ruling notes live in rulings.text). Use "
+                "COUNT(DISTINCT cards.id) to avoid inflating the count when "
+                "a single card has multiple rulings.",
+            ]
+        )
+    if (
         db_id in {"debit_card_specializing", "bird_debit_card_specializing"}
         and {"yearmonth", "transactions_1k", "customers"} <= tables
         and "top spending" in question

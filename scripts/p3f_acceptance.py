@@ -80,6 +80,12 @@ TARGETS: tuple[AcceptanceTarget, ...] = (
         required_columns=(("examination", "id"),),
         forbidden_columns=(),
     ),
+    AcceptanceTarget(
+        qid=408,
+        label="card_games 'triggered ability' info-count must filter rulings.text, not cards.text",
+        required_columns=(("rulings", "text"), ("rulings", "uuid")),
+        forbidden_columns=(("cards", "text"),),
+    ),
 )
 
 
