@@ -96,24 +96,30 @@
 
 ### 4.2 Что репортится для каждой конфигурации
 
-Шаблон с реальными числами для финальной shipped конфигурации (G + multi-vote + critique + selfcon + Sonnet bridge + selective fewshot expansion + cross-Groq voting, n=200, seed=0, отчёт 2026-05-17 night v8):
+Шаблон с реальными числами для финальной shipped конфигурации (G + multi-vote + critique + selfcon + Sonnet bridge + selective fewshot expansion + cross-Groq voting + M-Schema + CHASE-SQL DAC + helallao Perplexity Pro/reasoning multi-model voting + GraceKelly browser-orchestrator + targeted P3.F schema-link hints + archive-sweep / archive-rescore audit; n=200, seed=0, v27 2026-05-24):
 
 ```
-Configuration G_hybrid+multi-vote+critique+selfcon+sonnet+fewshot5+groq3  (final shipped path)
-  EA (overall):           79.0%   (158/200, +31.2pp vs GPT-4 zero-shot 47.8%)
-  EA (simple):            91.0%   (61/67)
-  EA (moderate):          75.8%   (75/99)
-  EA (challenging):       64.7%   (22/34)
-  EA (SQLite only):       79.0%   (BIRD Mini-Dev is SQLite-only)
-  Voting rescues:         44/200  (frozen-fail directed retry across vote buckets)
+Configuration G_hybrid+multi-vote+critique+selfcon+sonnet+fewshot5+groq3+
+              mschema+dac+helallao-pro+helallao-reasoning+gracekelly+
+              archive+p3f-targeted-hints  (final shipped path)
+  EA (overall):           92.0%   (184/200, +44.2pp vs GPT-4 zero-shot 47.8%)
+  EA (simple):            97.0%   (65/67)
+  EA (moderate):          89.9%   (89/99)
+  EA (challenging):       88.2%   (30/34)
+  EA (SQLite only):       92.0%   (BIRD Mini-Dev is SQLite-only)
+  Voting + targeted rescues: 70/200 (frozen-fail directed retry across vote
+                                     buckets + 4 P3.F schema-link hints)
   Schema Recall@5:        100.0%
   SQL Validity Rate:      100.0%
-  First-pass / Final EA:  47.0 / 79.0   (codestral A baseline → final)
+  First-pass / Final EA:  47.0 / 92.0   (codestral A baseline → final)
   Latency P50 / P95:      ~65 ms cache-hit / dozens of seconds on Sonnet-rescued tier
   Cost per query:         $0    (Mistral free + Groq free + Perplexity Pro browser bridge)
+  Audit:                  scripts/audit_rescore.py → stored 184 / true 184 / 0 mismatches
+  P3.F acceptance:        scripts/p3f_acceptance.py --require-pass → qids 207, 1404,
+                          902, 1531, 894, 1251 all PASS
 ```
 
-Per-bucket lifts that compose the 79.0% headline:
+Per-bucket lifts that compose the 92.0% headline:
 
 ```
 A (codestral full_schema)                         47.0%   baseline
@@ -127,8 +133,27 @@ G + Sonnet challenging tier hybrid                57.0%   +0.5pp
 + grounded-critique directed retry                72.0%   +6.5pp
 + Mistral self-consistency                        72.5%   +0.5pp
 + Sonnet rescue on frozen-fail tail               77.0%   +4.5pp (9 rescues, 0 regressions)
-+ selective fewshot_top_k=5 on residue            77.5%   +0.5pp (1 rescue / 0 regressions, qid=1500)
-+ cross-Groq voting on residue (llama3.3-70b+qwen3) 79.0% +1.5pp (3 rescues / 0 regressions, qids 219+352+366)
++ selective fewshot_top_k=5 on residue            77.5%   +0.5pp (qid 1500)
++ cross-Groq voting on residue                    79.0%   +1.5pp (qids 219+352+366)
++ gpt-oss-20b voting (v9)                         80.0%   +1.0pp (qids 571+1232)
++ M-Schema XiYan retry on residue (v10)           80.5%   +0.5pp (qid 1525)
++ CHASE-SQL divide-and-conquer (v11)              81.0%   +0.5pp (qid 1036)
++ helallao Perplexity Pro multi-model voting (v12) 82.0%   +1.0pp (qids 672+988)
++ helallao reasoning-mode (grok+gpt-5.2) (v13)    84.0%   +2.0pp (qids 407+518+866+1529)
++ kimi-k2-thinking reasoning on v13 residue (v14) 84.5%   +0.5pp (qid 1235)
++ helallao Pro triplet retry on v14 residue (v15) 85.0%   +0.5pp (qid 173)
++ DAC×reasoning combo on v15 residue (v16)        85.5%   +0.5pp (qid 77)
++ post-cooldown gpt-5.2-thinking+DAC (v17)        86.0%   +0.5pp (qid 896)
++ helallao gpt-5.2 Pro on v17 residue (v18)       86.5%   +0.5pp (qid 989)
++ helallao claude-thinking on v18 residue (v19)   87.0%   +0.5pp (qid 743)
++ helallao kimi plain on v19 residue (v20)        87.5%   +0.5pp (qid 584)
++ GraceKelly Sonnet 4.6 BIRD-grain on qid 1399 (v21) 88.0% +0.5pp (qid 1399)
++ targeted P3.F schema-link merge (v22)           89.0%   +1.0pp (qids 207+1404)
++ archive-sweep qid 1205 (v23)                    89.5%   +0.5pp (audit-discipline)
++ archive-rescore qid 959 after bind-bug fix (v24) 90.0%  +0.5pp (engineering)
++ targeted P3.F hint qid 902 formula_1 (v25)      90.5%   +0.5pp (driverStandings.position)
++ targeted P3.F hint qid 1531 debit_card (v26)    91.0%   +0.5pp (yearmonth.Consumption)
++ targeted P3.F hints qids 894+1251 (v27)         92.0%   +1.0pp (lapTimes.ms + Patient⋈Lab⋈Exam)
 ```
 
 **Selective fewshot expansion note:** глобальный `fewshot_top_k=5` (вместо

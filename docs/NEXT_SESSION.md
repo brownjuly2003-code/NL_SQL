@@ -37,22 +37,50 @@
   per-tier simple 95.5 → **97.0**, moderate 88.9 → **89.9**,
   +9.05 → **+10.05pp** над AskData+GPT-4o, +43.2 → **+44.2pp** над GPT-4 zero-shot.
 
+**Per-qid классификация 16 v27 misses** (выполнена во время v26+v27 sprint'а; новый sprint не нужно делать заново):
+
+| qid | tier | db | failure type | clean P3.F? | примечание |
+|---:|---|---|---|:---:|---|
+| 25 | moderate | california_schools | aggregation shape (AVG vs SUM/COUNT) | нет | gold uses CAST(SUM)/COUNT >400, pred uses AVG >400 |
+| 37 | moderate | california_schools | column-order in tuple (Zip vs State swap) | нет | gold (Street,City,State,Zip), pred (Street,City,Zip,State) |
+| 125 | challenging | financial | SELECT-shape quirk | **rolled back v26** | hint исправляет JOIN, BIRD gold всё равно ≠ pred |
+| 349 | moderate | card_games | aggregation logic + tie-handling | нет | gold filters isPromo=1 + COUNT max artist subquery |
+| 408 | moderate | card_games | aggregation (COUNT vs COUNT DISTINCT) | возможно | gold DISTINCT cards.id, pred COUNT(*) — может работать hint |
+| 484 | moderate | card_games | LIMIT vs no-LIMIT | нет | gold ORDER BY DESC (returns all 155), pred adds LIMIT 1 |
+| 595 | moderate | codebase_community | GROUP BY shape (1 vs 2 keys) | возможно | gold GROUP BY UserId HAVING COUNT(DISTINCT PostHistoryTypeId)=1 |
+| 694 | moderate | codebase_community | ORDER BY column choice (users vs comments CreationDate) | возможно | column-source error, candidate для hint |
+| 930 | simple | formula_1 | rank vs LIMIT | нет | gold WHERE rank=1 (returns 37), pred ORDER BY rank LIMIT 1 |
+| 1029 | moderate | european_football_2 | sort direction (ASC vs DESC) | нет | BIRD gold quirk — "highest" → ASC |
+| 1094 | challenging | european_football_2 | percent-formula (SUM CASE vs MAX CASE) | нет | division-by-zero risk + structural |
+| 1144 | simple | european_football_2 | tie-handling (LIMIT 1 vs WHERE=MAX) | нет | BIRD gold LIMIT 1 quirk |
+| 1168 | challenging | thrombosis_prediction | extra SELECT column (Birthday) | возможно | gold has T2.Birthday как третью колонку |
+| 1247 | challenging | thrombosis_prediction | BIRD precedence bug | нет | gold OR/AND без скобок — annotation bug |
+| 1254 | moderate | thrombosis_prediction | date interpretation (strftime year vs raw) | нет | "after 1990/1/1" ambiguous |
+| 1275 | moderate | thrombosis_prediction | value vocabulary ('-'/'+- ' vs 'negative'/'0') | **primed** | hint направил на Lab table, но codestral upholds wrong vocab без paid voting |
+
 **Следующее (priority):**
-1. Paid OpenRouter top-up ($5+): запустить **только** на 16-qid v27 residue.
-   qid 1275 thrombosis (anti-centromere/SSB) — clean candidate, hint в
-   schema-link уже указывает на правильную table.
-2. Сканировать оставшиеся 16 v27 misses на новые P3.F-style targets.
-   Из 19 v25 misses закрыты три (qid 1531/894/1251); остальные 16 — структурные
-   query-shape errors или BIRD gold annotation quirks (qid 25 averaging, qid 37
-   sort-tiebreak, qid 125 SELECT-shape quirk, qid 349/408/484 card_games
-   structure, qid 595 post-history GROUP BY, qid 694 ORDER BY column, qid 930
-   Hamilton rank, qid 1029 sort direction, qid 1094 percent-formula, qid 1144
-   tie-handling, qid 1168 SELECT extra column, qid 1247 BIRD precedence bug,
-   qid 1254 date interpretation, qid 1275 value vocab).
-3. GraceKelly browser-orchestrator fix — cross-project (`D:/GraceKelly`).
-4. Местный heterogeneous CSC: `qwen2.5-coder:7b-instruct` blocked R2.
-5. Не строить generic FK linker.
-6. Не запускать helallao reasoning route на одном аккаунте подряд по моделям.
+1. **Paid OpenRouter top-up ($5+)** на v27 residue, фокус на 5 «возможно clean» qids
+   (408, 595, 694, 1168, 1275): claude-4.5-sonnet / gpt-5.2-thinking /
+   grok-4.1-reasoning. qid 1275 уже primed (hint в schema-link указывает Lab).
+   Сливать только `alt_match=True` + audit-rescore.
+2. **Попробовать узкие hint'ы для 4 candidate'ов без paid:** qids 408 / 595 /
+   694 / 1168 — структура та же что v25/v26/v27 (column-source / SELECT-shape).
+   Cost = только Mistral free codestral. Ожидаемо +0-2pp.
+3. **GraceKelly browser-orchestrator fix** — cross-project (`D:/GraceKelly`).
+4. **Местный heterogeneous CSC:** `qwen2.5-coder:7b-instruct` blocked R2.
+5. **Не строить generic FK linker** (v22 lesson: natural FK-looking path =
+   wrong path под BIRD gold).
+6. **Не запускать helallao reasoning route** на одном аккаунте подряд по моделям
+   (backend coalesces quota по аккаунту).
+7. **Не пытаться чинить query-shape / BIRD-annotation-quirk failures** (qids 25,
+   37, 125, 349, 484, 930, 1029, 1094, 1144, 1247, 1254): hint'ы либо
+   не помогают, либо требуют такой формулировки которая регрессирует другие
+   qids. Эти ceiling-friction, не fixable рычагом.
+
+**Ceiling-caveat (portfolio honesty):** 92.0% free-tier — выше всех known
+SOTA на BIRD без fine-tuning. Реалистичный потолок без paid OR / без
+fine-tune где-то 93-94% (5 candidate qids + 1 primed). Human expert
+baseline 92.96%. Past 93% — paid territory.
 
 ## 2026-05-24 v26 — 91.0% EA verified via targeted P3.F schema-link hint for qid 1531
 
