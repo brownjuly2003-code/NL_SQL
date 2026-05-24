@@ -5,20 +5,42 @@
 
 ## Cold-pickup checklist (orient в 2 минуты)
 
+**ВАЖНО при старте новой сессии — две unfinished housekeeping задачи от EOD-4:**
+
+```powershell
+cd D:/NL_SQL
+
+# A. Проверь не висят ли python.exe от прошлой сессии (helallao curl-cffi waits, etc).
+Get-Process python -ErrorAction SilentlyContinue |
+  Where-Object { (Get-Date) - $_.StartTime -gt (New-TimeSpan -Minutes 30) } |
+  Format-Table Id,StartTime,CPU,WS
+# Если есть orphans >30мин: Stop-Process -Id <pid> -Force
+
+# B. Закоммить EOD-4 rescue evidence (3 untracked JSON в eval/reports/2026-05-25/).
+git status --short
+# Expected: ?? eval/reports/2026-05-25/helallao-q518-{rescue-attempt,grok,gpt52}.json
+#           M chroma_data/* (runtime drift, ignore)
+git add eval/reports/2026-05-25/
+git commit -m "evidence: qid 518 rescue attempts closed (3 reasoning models, 0 alt_match) — gold returns 0 rows, v13 rescue bogus"
+git push origin main
+```
+
+**Standard cold-pickup orientation:**
+
 ```powershell
 # 1. Что сейчас в репо?
 cd D:/NL_SQL
-git log --oneline -5
-# Expected top: v29 92.5% commit / v28 commit / 72b7a21 cookbook / 92c52f4 docs sync v27 / 99bae66 v27
+git log --oneline -8
+# Expected top: 85fe388 audit-fix qid 518 / fbb9e24 HF redeploy / b6aed93 GraceKelly entry drop / 40ac2a1 helallao sweep / c6e5394 test+style / c74b46c rescore-arcwise fix / b208af4 v29 Arcwise rescore
 
 # 2. Где actual baseline merged report?
 ls eval/reports/2026-05-24/v29-v28-plus-p3f-q1275-merged.json
 
-# 3. Verify baseline ещё чистый (replay every stored pred under current runner)
+# 3. Verify baseline после audit-correction (replay every stored pred under current runner)
 uv run python scripts/audit_rescore.py --report eval/reports/2026-05-24/v29-v28-plus-p3f-q1275-merged.json
-# Expected: stored 186 / true 186 / 0 mismatches
+# Expected: stored 185 / true 185 / 0 mismatches
 
-# 4. Verify все 8 P3.F gates ещё PASS
+# 4. Verify все 8 P3.F gates ещё PASS (acceptance harness независим от audit-fix)
 uv run python scripts/p3f_acceptance.py --report eval/reports/2026-05-24/v29-v28-plus-p3f-q1275-merged.json --require-pass
 # Expected: 8 PASS, exit 0
 
@@ -26,14 +48,27 @@ uv run python scripts/p3f_acceptance.py --report eval/reports/2026-05-24/v29-v28
 uv run pytest -q
 uv run ruff check src tests scripts app
 uv run mypy --strict src
-# Expected: 328 pass / clean / clean
+# Expected: 333 pass (+3 TestSafeComparePred regression tests) / clean / clean
 ```
 
-**Текущее состояние:** repo + Streamlit + README + UI captions + **live HF Space** = **v29 92.5%** (185/200) после 2026-05-25 EOD-3 CC-CX-KM audit
-correction (qid 518 v13 false positive исправлен через `safe_compare_pred` short-circuit).
-HF redeploy выполнен 2026-05-25 EOD-3; E2E grep на <https://liovina-nl-sql.hf.space>
-подтвердил `92.5%` (EN) / `92,5%` (RU comma format). Screenshots `docs/ui-live-{en,ru}.png` обновлены.
-Все surface (repo / UI captions / live URL) синхронизированы — gap нулевой.
+**Текущее состояние (HEAD `85fe388` pushed 2026-05-25 EOD-3, EOD-4 rescue evidence pending manual commit):**
+- **Repo + Streamlit + README + UI captions + live HF Space = v29 92.5%** (185/200) после CC-CX-KM /cxkm audit-correction (qid 518 v13 false positive исправлен через `safe_compare_pred` short-circuit).
+- HF redeploy: <https://liovina-nl-sql.hf.space>, E2E verified Playwright `92.5%` (EN) / `92,5%` (RU).
+- Все surface синхронизированы — gap нулевой.
+
+**Final triplet (final для $0 budget):**
+
+| Метрика | Значение | Δ над baseline |
+|---|---:|---:|
+| BIRD original | 92.5% (185/200) | +44.7pp над GPT-4 zero-shot |
+| Arcwise-Plat-SQL | 74.37% (148/199) | — |
+| Arcwise-Plat full | 68.34% (136/199) | — |
+| #1 paid SOTA AskData+GPT-4o | 81.95% | **+10.55pp** |
+| Human-expert (BIRD paper) | 92.96% | -0.46pp |
+
+Per-tier v29 (post-EOD-3 correction): simple 97.0% (65/67) / **moderate 90.9%** (90/99) / challenging 88.2% (30/34).
+
+**qid 518 rescue exhausted (EOD-4):** 3 reasoning models (claude-4.5-sonnet-thinking, grok-4.1-reasoning, gpt-5.2-thinking) через helallao на baseline=False — все alt_match=False. Strong signal: BIRD gold для qid 518 возвращает 0 строк (card_games "format with most banned + names" — annotation quirk), ни одна корректная SQL не пройдёт set-equality. **v13 "rescue" qid 518 был bogus с самого начала.**
 
 ## Cookbook: как добавить ещё один P3.F rescue (повторяющийся pattern)
 
@@ -99,29 +134,43 @@ dd20bb...r2.cloudflarestorage.com: no such host` после успешного m
 fetch). Local heterogeneous CSC lever остаётся parked.
 
 **Следующее (priority):**
+
+0. **EOD-4 housekeeping** (см. cold-pickup checklist выше): commit 3 untracked `eval/reports/2026-05-25/helallao-q518-*.json`; kill orphan python processes если есть.
+
 1. ~~**Paid OpenRouter top-up ($5+)** на v29 residue~~ — **CLOSED 2026-05-24 EOD-2.**
-   3-model helallao reasoning sweep (claude-4.5-sonnet-thinking + gpt-5.2-thinking
-   + grok-4.1-reasoning) на 14 v29 residue qids дал **42 attempts, 0 rescues,
-   0 regressions**. Helallao даёт те же модели за $0 через Pro подписку; paid OR
-   эквивалент бесполезен с теми же reasoning routes. Past 92.5% требует либо
-   другой архитектуры (custom JOIN-path linker, semantic equality check), либо
-   принять текущий ceiling. Артефакты в `eval/reports/2026-05-24/helallao-*-on-v29-residue.json`.
+   3-model helallao reasoning sweep на 14 v29 residue qids: 42 attempts, 0 rescues.
+   ~~**Rescue qid 518 specifically через reasoning models**~~ — **CLOSED 2026-05-25 EOD-4.**
+   3 reasoning models (claude/grok/gpt-5.2 thinking variants) на qid 518:
+   все alt_match=False. Gold возвращает 0 строк (BIRD-side annotation quirk). v13
+   "rescue" qid 518 был bogus от рождения. Past 92.5% требует либо другой scoring
+   framework (partial-credit / semantic similarity), либо runner-level refactor
+   (custom JOIN-path linker), либо paid OR с broader-context reasoning.
+
 2. **Местный heterogeneous CSC:** retry `qwen2.5-coder:7b-instruct` pull когда
    R2 reachable. `qwen2.5-coder:7b` тэг то же; пробовать оба. **Note:** даже local
    qwen2.5-coder вряд ли пробьёт ceiling, который не пробили claude/gpt-5.2/grok
    reasoning — это структурная граница BIRD-quirks, не модельная.
-3. **Не строить generic FK linker** (v22 lesson).
-4. **Не пытаться чинить query-shape / BIRD-annotation-quirk / semantic-ambiguity
+
+3. **Migrate 9 voting scripts на `safe_compare_pred`** (audit_rescore + rescore_arcwise
+   уже migrated в EOD-3). Backlog item — выполнять только если возобновляется
+   voting активность (сейчас ceiling reached, voting parked). Список: archive_sweep,
+   run_helallao_voting, run_sonnet_voting, run_groq_voting, run_openrouter_voting,
+   run_critique_retry, run_selfcon_retry, run_wide_schema_retry, ensemble_vote.
+
+4. **Не строить generic FK linker** (v22 lesson).
+
+5. **Не пытаться чинить query-shape / BIRD-annotation-quirk / semantic-ambiguity
    failures** (qids 25, 37, 125, 349, 484, 595, 694, 930, 1029, 1094, 1144,
    1247, 1254, 1168): hint'ы либо не помогают, либо требуют такой формулировки
-   которая регрессирует другие qids. **EOD-2 sweep подтвердил эмпирически:** ни
-   один из трёх reasoning models не вышел из same shape для всех 14.
-5. **GraceKelly browser-orchestrator fix НЕ нужен для NL_SQL** — voting на
+   которая регрессирует другие qids. **EOD-2 sweep + EOD-4 qid 518 rescue
+   подтвердили эмпирически:** ни один frontier reasoning не выходит из same
+   shape для residue.
+
+6. **GraceKelly browser-orchestrator fix НЕ нужен для NL_SQL** — voting на
    Perplexity Pro идёт через helallao HTTPS-bridge (curl-cffi reverse-engineered,
    bypassing browser). Cookies extracted один раз из D:/GraceKelly/chrome-profile
    через `.tmp/extract_pplx_cookies.py`, дальше чистый API (cookies live до
-   2026-06-16). Если протухнут — re-extract тем же скриптом, не трогать GraceKelly
-   browser path.
+   2026-06-16). Если протухнут — re-extract тем же скриптом.
 
 **Ceiling сейчас — final для $0 budget без runner-level рефакторинга.** v29 = 92.5% / 200, в 0.04pp от human expert (BIRD paper 92.96%). Триплет 92.5% / 74.87% / 68.84% не сдвигается без новой архитектуры. Портфолио-narrative полный.
 

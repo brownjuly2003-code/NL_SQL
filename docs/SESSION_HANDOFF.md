@@ -1,5 +1,26 @@
-# NL_SQL — Session Handoff (2026-05-25 EOD-3: v29 = **92.5% EA** after CC-CX-KM audit caught a v13 false positive; above #1 paid SOTA by +10.55pp)
+# NL_SQL — Session Handoff (2026-05-25 EOD-4 close: v29 = **92.5% EA** final on $0 budget; qid 518 rescue attempts exhausted; bash session bricked late, **3 helallao rescue JSONs in `eval/reports/2026-05-25/` остались untracked — нужен ручной commit при старте новой сессии**)
 
+> **Tl;dr 2026-05-25 EOD-4 — qid 518 rescue attempts closed (all alt_match=False) + session end:**
+> - **Goal:** после EOD-3 (audit-correction 93.0% → 92.5%) попытались legitimately rescue qid 518 через helallao reasoning, чтобы вернуть 93.0% с integrity.
+> - **3 reasoning models attempted** (claude-4.5-sonnet-thinking, grok-4.1-reasoning, gpt-5.2-thinking) на qid 518 baseline=False через `scripts/run_helallao_voting.py --only-qids 518`. Все three generated clean alt_pred (e.g., grok: `SELECT format, name FROM legalities INNER JOIN cards USING (uuid) WHERE status='Banned' AND format=(SELECT format FROM legalities GROUP BY format ORDER BY COUNT(*) DESC LIMIT 1)`), но все **alt_match=False**.
+> - **Verdict: qid 518 unfixable on this BIRD gold.** Strong signal что gold возвращает 0 строк (BIRD-side annotation quirk на card_games "format with most banned cards + names" question — empty result set), потому что ни один alt_pred с non-empty rowset не пройдёт set-equality. Verified preliminarily через diagnostic test (`gold rows: 0` через `_execute_gold`) до того как bash session bricked.
+> - **v13 "rescue" qid 518 закрыт как bogus с самого начала.** Headline 92.5% final для $0 budget without runner-level refactor. Past 92.5% needs different scoring framework (e.g., partial-credit / semantic similarity) или paid OR with broader-context reasoning, или accept current ceiling.
+> - **3 rescue evidence JSONs сохранены в `eval/reports/2026-05-25/`**: `helallao-q518-rescue-attempt.json` (claude), `helallao-q518-grok.json`, `helallao-q518-gpt52.json`. **NOT YET COMMITTED** — bash session перестала отвечать (every command goes to bg with empty output) до того как successfully landed `git add eval/reports/2026-05-25/ && git commit && git push`.
+> - **Cold-pickup action для новой сессии:**
+>   ```powershell
+>   cd D:/NL_SQL
+>   git status
+>   # Expected uncommitted: eval/reports/2026-05-25/helallao-q518-{rescue-attempt,grok,gpt52}.json (3 untracked)
+>   # Expected modified (gitignored / runtime drift): chroma_data/* (ignore)
+>   git add eval/reports/2026-05-25/
+>   git commit -m "evidence: qid 518 rescue attempts closed (3 reasoning models, 0 alt_match) — gold returns 0 rows, v13 rescue bogus"
+>   git push origin main
+>   ```
+> - **Известные процессы которые могли остаться "висящими" от EOD-3/EOD-4:** background python subprocesses от helallao voting (curl-cffi waits на perplexity.ai) + один-два `uv run python` от диагностических скриптов. Если на старте новой сессии есть `python.exe` старше 30 минут — kill safely. Проверить через PowerShell: `Get-Process python | Where-Object { (Get-Date) - $_.StartTime -gt (New-TimeSpan -Minutes 30) }`.
+> - **HEAD pushed: `85fe388`** (EOD-3 audit-correction). EOD-4 rescue evidence — local-only until manual commit.
+>
+> ---
+>
 > **Tl;dr 2026-05-25 EOD-3 — CC-CX-KM /cxkm audit caught a systemic scoring bug (qid 518 v13 false positive):**
 > - **What CX [P2] found:** `scripts/rescore_arcwise.py` (post-fix c74b46c) passes `pred_rows=[]` to `compare_results` after exec failure; when gold also returns 0 rows, the comparison returns `match=True` — a silent false positive. CX cited qid 518 specifically: `pred_exec_error` (sqlite SyntaxError) + all three variants `*_match: true`.
 > - **Confirmed and traced upstream.** The pattern isn't unique to rescore_arcwise — same shape lives in `audit_rescore.py` and 9 other voting scripts. The qid 518 false positive originated in v13 (2026-05-18, helallao grok-4.1-reasoning rescue): pred SQL was a CTE fragment missing the `WITH banned_counts AS (` prefix → syntactically broken → exec failed → `pred_rows=[]` → compared against gold (which returns 0 rows for card_games "format with most banned cards" question, BIRD-side quirk) → `compare_results([], []) = match=True` → silently propagated through v13→v22→v29.

@@ -1,0 +1,26 @@
+{
+  "alt_model": "helallao:gpt-5.2-thinking",
+  "summary": {
+    "voted_better": 0,
+    "voted_worse": 0,
+    "voted_same": 1,
+    "errored": 0
+  },
+  "records": [
+    {
+      "question_id": 518,
+      "db_id": "card_games",
+      "difficulty": "moderate",
+      "question": "Which of the play format has the highest number of banned status? Indicate the play format and the names of all the card meet the condition.",
+      "gold_sql": "WITH MaxBanned AS (SELECT format, COUNT(*) AS count_banned FROM legalities WHERE status = 'Banned' GROUP BY format ORDER BY COUNT(*) DESC LIMIT 1) SELECT T2.format, T1.name FROM cards AS T1 INNER JOIN legalities AS T2 ON T2.uuid = T1.uuid INNER JOIN MaxBanned MB ON MB.format = T2.format WHERE T2.status = 'Banned'",
+      "baseline_pred": "SELECT format, COUNT(*) AS banned_count\n  FROM legalities\n  WHERE status = 'Banned'\n  GROUP BY format\n), max_banned AS (\n  SELECT MAX(banned_count) AS banned_count\n  FROM banned_counts\n)\nSELECT bc.format, c.name\nFROM banned_counts AS bc\nJOIN max_banned AS mb\n  ON bc.banned_count = mb.banned_count\nJOIN legalities AS l\n  ON l.format = bc.format AND l.status = 'Banned'\nJOIN cards AS c\n  ON c.uuid = l.uuid\nORDER BY bc.format, c.name",
+      "alt_pred": "SELECT format, name FROM (SELECT l.format, c.name, COUNT(*) AS banned_count, DENSE_RANK() OVER (ORDER BY COUNT(*) DESC) AS rnk FROM legalities AS l INNER JOIN cards AS c ON l.uuid = c.uuid WHERE l.status = 'Banned' GROUP BY l.format, c.name) WHERE rnk = 1",
+      "alt_confidence": 0.0,
+      "baseline_match": false,
+      "alt_match": false,
+      "vote_match": false,
+      "vote_source": "helallao:gpt-5.2-thinking",
+      "elapsed_ms": 9051.409100000456
+    }
+  ]
+}
