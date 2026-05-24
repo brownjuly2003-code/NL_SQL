@@ -1,5 +1,17 @@
-# NL_SQL — Session Handoff (2026-05-24 v29 = 93.0% EA verified via targeted P3.F schema-link hint for qid 1275, above #1 paid SOTA by +11.05pp; Arcwise rescore pred-exec fix + 3-model residue saturation sweep landed same day)
+# NL_SQL — Session Handoff (2026-05-25 EOD: v29 = 93.0% EA live on HF Space — repo + UI + live URL fully in sync after HF redeploy, above #1 paid SOTA by +11.05pp)
 
+> **Tl;dr 2026-05-25 EOD — HF Space redeploy v17 → v29 (live UI in sync with repo):**
+> - **What:** ran `.deploy_hf.py` to push current repo (HEAD 40ac2a1) to <https://liovina-nl-sql.hf.space>. Build BUILDING → APP_STARTING → RUNNING in ~90s.
+> - **Why:** live URL was stuck on v17 86.5% since 2026-05-18 (last redeploy) while repo/UI captions/README climbed to v29 93.0%. Hire-аудитория, кликая на портфолио link, видела старое число — 7pp gap.
+> - **E2E verify (per `feedback_deploy_e2e_gate`):** Playwright headless 1440×900 на live URL, dump page body, grep for headline:
+>   - EN: `93.0%` present ✓
+>   - RU: `93,0%` (RU comma format, корректная локаль) present ✓ — initial grep на `93.0%` дал false negative из-за форматтинга, перепроверил `.tmp/verify_v29_ru.py` с обоими вариантами.
+> - **Side update:** `.deploy_hf.py` HF README frontmatter `short_description` обновлён с `"NL to SQL RU/EN, 86.5% BIRD published / 72.36% audited"` на `"NL to SQL RU/EN, 93.0% BIRD / 74.87% Arcwise"` (60-char limit OK). `.deploy_hf.py` остаётся gitignored (`.deploy_*.py`), так что правка локальная — но если кто-то re-clone'ит репу и захочет redeploy, нужно будет применить ту же правку.
+> - **Screenshots refreshed:** `docs/ui-live-en.png` + `docs/ui-live-ru.png` сняты со свежего deploy, 1440×900, default DB `bird_california_schools`. README hero блок теперь показывает реальный v29 UI.
+> - **Triplet полностью в sync:** repo 93.0% / UI captions 93.0% / live URL 93.0% / Arcwise 74.87% — никаких отстающих чисел в системе.
+>
+> ---
+>
 > **Tl;dr 2026-05-24 EOD-2 — v29 residue saturation evidence (3-model helallao reasoning sweep):**
 > - **Hypothesis tested:** «paid OpenRouter top-up на v29 residue» entry в NEXT_SESSION предполагал что claude-4.5-sonnet / gpt-5.2-thinking / grok-4.1-reasoning могут найти ещё rescue среди 14 v29 misses. Поскольку helallao bridge (curl-cffi → Perplexity Pro API, $0 через её Pro подписку) даёт доступ к тем же моделям, paid step снимается.
 > - **Run setup:** `scripts/run_helallao_voting.py` на `eval/reports/2026-05-24/v29-v28-plus-p3f-q1275-merged.json`, sleep_between=3, через `HelallaoPerplexityProvider` с reasoning-mode auto-detect. 14 v29 residue qids: 25, 37, 125, 349, 484, 595, 694, 930, 1029, 1094, 1144, 1168, 1247, 1254.

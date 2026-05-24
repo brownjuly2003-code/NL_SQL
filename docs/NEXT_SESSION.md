@@ -29,9 +29,10 @@ uv run mypy --strict src
 # Expected: 328 pass / clean / clean
 ```
 
-**Текущее состояние:** repo + Streamlit + README + UI captions = **v29 93.0%** (186/200).
-**HF Space live URL <https://liovina-nl-sql.hf.space> = v17 86.0%** (last redeploy 2026-05-18).
-Repo впереди live HF на v18-v29 (+7.0pp); redeploy gated к user (external publish via `.deploy_hf.py`).
+**Текущее состояние:** repo + Streamlit + README + UI captions + **live HF Space** = **v29 93.0%** (186/200).
+HF redeploy выполнен 2026-05-25 (`.deploy_hf.py`); E2E grep на <https://liovina-nl-sql.hf.space>
+подтвердил `93.0%` (EN) / `93,0%` (RU comma format). Screenshots `docs/ui-live-{en,ru}.png` обновлены.
+Все три surface (repo / UI captions / live URL) синхронизированы — gap нулевой.
 
 ## Cookbook: как добавить ещё один P3.F rescue (повторяющийся pattern)
 
