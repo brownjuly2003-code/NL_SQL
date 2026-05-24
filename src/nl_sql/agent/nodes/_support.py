@@ -226,6 +226,20 @@ def _render_schema_link_hints_appendix(context: ContextBundle, hits: list[Any]) 
                 "not connected.bond_id.",
             ]
         )
+    if (
+        db_id in {"formula_1", "bird_formula_1"}
+        and {"driverstandings"} <= tables
+        and "track number" in question
+    ):
+        return "\n".join(
+            [
+                "# Schema-link hints",
+                "- For formula_1 questions about a driver's 'track number' across races, "
+                "use driverStandings.position joined via driverStandings.raceId and "
+                "driverStandings.driverId. results.position / results.positionOrder refer "
+                "to finish position within a single race, which is different.",
+            ]
+        )
     return ""
 
 

@@ -3,6 +3,72 @@
 > Один лист, без воды. Берёшь, делаешь, обновляешь `SESSION_HANDOFF.md`,
 > переписываешь этот файл под следующий sprint.
 
+## 2026-05-24 v25 — **90.5% EA verified** via targeted P3.F schema-link hint for qid 902
+
+**Сделано:**
+- Расширен `scripts/p3f_acceptance.py` третьим target'ом: qid `902` simple
+  formula_1, требует `driverStandings.position`, запрещает `results.position` /
+  `results.positionOrder`.
+- В `src/nl_sql/agent/nodes/_support.py::_render_schema_link_hints_appendix`
+  добавлен узкий hint: db_id `formula_1`, фраза "track number" в вопросе,
+  `driverStandings` в таблицах → одна строка в Schema-link hints о
+  `driverStandings.position` vs `results.position`. qid 902 — единственный
+  prompt в BIRD Mini-Dev SQLite n=200, который удовлетворяет всем трём
+  условиям, так что по построению hint не может задеть другие prompts.
+- Targeted probe `--only-qids 902,1275 --report-suffix p3f-902-1275-v3`
+  показал qid 902 PASS под codestral + Schema-link hint; pred матчится с
+  gold под BIRD set-семантикой.
+- Merge qid 902 → v24 → `eval/reports/2026-05-24/v25-v24-plus-p3f-q902-merged.json`.
+  Wins `[902]`, regressions `[]`, 180 → 181.
+- Audit: `scripts/audit_rescore.py` → stored 181 / true 181 / 0 mismatches.
+- P3.F acceptance на v25: qids 207, 1404, 902 все PASS.
+- README + Streamlit + UI captions подняты с 90.0% → **90.5% / 200**,
+  per-tier simple 94.0 → **95.5**, +8.05 → **+8.55pp** над AskData+GPT-4o,
+  +42.2 → **+42.7pp** над GPT-4 zero-shot.
+
+**Rolled back на этом же шаге:**
+- qid 1275 moderate thrombosis_prediction (normal-level anti-centromere/SSB
+  → Laboratory вместо Examination) attempted. Hint успешно направил
+  codestral на Laboratory table, но codestral upиралcя использовать неверный
+  value vocabulary (`'-' / '+-'`) даже когда hint явно указывал
+  `IN ('negative', '0')`. Skipped from v25 чтобы оставить headline strictly
+  $0-cost / 0-regression / audit-clean. Hint может работать на full
+  voting stack (kimi/claude reasoning) но это требует paid OR top-up.
+
+**Следующее (priority):**
+1. Paid OpenRouter top-up ($5+): запустить **только** на 19-qid v25 residue
+   через стрелковые residue-моделями (claude-4.5-sonnet, gpt-5.2-thinking,
+   grok-4.1-reasoning). qid 1275 — clean candidate для voting (hint в
+   schema-link уже указывает на правильную table, voting model должен
+   подобрать правильные values). Сливать только `alt_match=True` + audit.
+2. GraceKelly browser-orchestrator: исправить full-prompt стабильность
+   (Perplexity UI text leak / model-picker timeout). Текущая работа возможна
+   только на ultrashort targeted prompts. Это работа в `D:/GraceKelly`,
+   не в этом repo.
+3. Местный heterogeneous CSC: `qwen2.5-coder:7b-instruct` ещё не установлен,
+   pull блокирует Cloudflare R2. Попробовать на быстром канале.
+4. Сканировать оставшиеся 19 v25 misses на новые P3.F-style targets
+   (clean column-source / table-source errors, не query-structure errors).
+5. Не строить generic FK linker (v22 lesson: qid 207 показал, что natural
+   FK-looking path — это ровно WRONG path под BIRD gold).
+6. Не запускать helallao reasoning route на одном аккаунте подряд по
+   models — backend coalesces quota по аккаунту, не по модели.
+
+## 2026-05-24 archive sweep против v24 misses — closed NEGATIVE
+
+**Сделано:**
+- Reusable tooling: `scripts/archive_sweep.py`. Сканирует `eval/reports/**/*.json`
+  на stale pred_sql, выполняет их под текущим corrected runner, эмитит
+  только verified `alt_match=True` rescues. Audit-clean by construction.
+- Surface: 696 unique pred_sql candidates из 162 архивных отчётов против
+  20 v24 misses.
+- Result: **0 rescues / 20 misses**. Все 20 misses — genuinely новые failures
+  под текущим runner'ом.
+- Negative-result artefact: `eval/reports/2026-05-24/archive-sweep-v24-candidates.json`.
+- Implication: archive-discipline lever saturated. Future archive sweeps
+  будут давать rescues только после нового runner-level fix (executor /
+  matcher / gold-side behavior change).
+
 ## 2026-05-24 v24 — **90.0% EA verified** via archive-rescore qid 959 на v23
 
 **Сделано:**

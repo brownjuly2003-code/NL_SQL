@@ -87,6 +87,63 @@ def test_toxicology_double_bond_hint_avoids_bond_id_shortcut() -> None:
     assert "not connected.bond_id" in rendered
 
 
+def test_formula_1_track_number_hint_points_to_driverstandings() -> None:
+    rendered = render_schema_block(
+        ContextBundle(
+            db_id="formula_1",
+            question="Which race was Alex Yoong in when he was in track number less than 20?",
+            schema_hits=[
+                _hit(
+                    "driverStandings",
+                    "Table: driverStandings\nColumns:\n"
+                    "  - driverId: INTEGER [NOT NULL]\n"
+                    "  - raceId: INTEGER [NOT NULL]\n"
+                    "  - position: INTEGER [NULL]",
+                    db_id="formula_1",
+                ),
+                _hit(
+                    "results",
+                    "Table: results\nColumns:\n"
+                    "  - position: INTEGER [NULL]\n"
+                    "  - positionOrder: INTEGER [NULL]",
+                    db_id="formula_1",
+                ),
+            ],
+            fk_neighbours=[],
+            fewshots=[],
+        )
+    )
+
+    assert "# Schema-link hints" in rendered
+    assert "driverStandings.position" in rendered
+    assert "track number" in rendered
+
+
+def test_formula_1_track_number_hint_is_question_scoped() -> None:
+    rendered = render_schema_block(
+        ContextBundle(
+            db_id="formula_1",
+            question="Which race did Lewis Hamilton finish first in?",
+            schema_hits=[
+                _hit(
+                    "driverStandings",
+                    "Table: driverStandings\nColumns:\n  - position: INTEGER [NULL]",
+                    db_id="formula_1",
+                ),
+                _hit(
+                    "results",
+                    "Table: results\nColumns:\n  - position: INTEGER [NULL]",
+                    db_id="formula_1",
+                ),
+            ],
+            fk_neighbours=[],
+            fewshots=[],
+        )
+    )
+
+    assert "# Schema-link hints" not in rendered
+
+
 def _hit(table_name: str, text: str, *, db_id: str = "student_club") -> SchemaQueryHit:
     return SchemaQueryHit(
         chunk_id=f"{db_id}::{table_name}",

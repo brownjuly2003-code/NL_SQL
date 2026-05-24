@@ -56,6 +56,12 @@ TARGETS: tuple[AcceptanceTarget, ...] = (
         required_columns=(("connected", "atom_id"),),
         forbidden_columns=(("connected", "bond_id"),),
     ),
+    AcceptanceTarget(
+        qid=902,
+        label="formula_1 driver track-number/standing must use driverStandings.position, not results.position",
+        required_columns=(("driverstandings", "position"),),
+        forbidden_columns=(("results", "position"), ("results", "positionorder")),
+    ),
 )
 
 

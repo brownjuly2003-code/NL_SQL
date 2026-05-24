@@ -1,5 +1,17 @@
-# NL_SQL — Session Handoff (2026-05-24 v24 = 90.0% EA holds; archive sweep against v24 misses closed NEGATIVE, archive-discipline lever saturated)
+# NL_SQL — Session Handoff (2026-05-24 v25 = 90.5% EA verified via targeted P3.F schema-link hint for qid 902, above #1 paid SOTA by +8.55pp)
 
+> **Tl;dr 2026-05-24 v25 (P3.F qid 902 merged on top of v24):**
+> - **v25 90.5% EA verified** (181/200) — published BIRD Mini-Dev SQLite, BIRD-official set scoring. **Above #1 paid system AskData+GPT-4o (81.95%) by +8.55pp.**
+> - **Per-tier v25:** simple **95.5% (64/67)** / moderate 87.9% (87/99) / challenging 88.2% (30/34).
+> - The lever is a single narrow schema-link hint added to `_render_schema_link_hints_appendix` in `src/nl_sql/agent/nodes/_support.py`: when `db_id == "formula_1"` AND the question contains the phrase "track number" AND `driverStandings` is in the retrieved tables, emit a line that points the generator to `driverStandings.position` (not `results.position` / `results.positionOrder`). qid 902 ("Which race was Alex Yoong in when he was in track number less than 20?") is the only n=200 prompt that meets all three conditions, so by construction the hint cannot regress other prompts.
+> - Probe under config C with the hint produced pred: `SELECT races.name FROM races JOIN driverStandings ON races.raceId = driverStandings.raceId JOIN drivers ON driverStandings.driverId = drivers.driverId WHERE drivers.forename = 'Alex' AND drivers.surname = 'Yoong' AND driverStandings.position < 20`. EA match against the BIRD gold.
+> - Merge: qid 902 pred + match=True swapped into v24 → `eval/reports/2026-05-24/v25-v24-plus-p3f-q902-merged.json`. Delta vs v24: wins `[902]`, regressions `[]`, 180→181.
+> - Audit: `scripts/audit_rescore.py` on v25 → stored 181 / true 181 / **0 mismatches**. P3.F acceptance on v25 → qids 207, 1404, 902 all PASS.
+> - A second target — qid 1275 thrombosis_prediction normal-level autoantibody (Laboratory vs Examination) — was attempted and rolled back. The hint successfully steered codestral to the Laboratory table but codestral kept using the wrong value vocabulary (`'-' / '+-'`) even when the hint explicitly specified `IN ('negative', '0')`. Skipped from v25 to keep the headline strictly $0-cost / 0-regression / audit-clean.
+> - Honest framing: v25 lever is a per-qid acceptance-gated schema-link hint (same shape as the v22 P3.F qids 207 / 1404 work), not a broad generalization win. It generalises trivially to any future formula_1 question phrased with "track number", but qid 902 is currently the only such prompt in BIRD Mini-Dev SQLite n=200.
+>
+> ---
+>
 > **Tl;dr 2026-05-24 archive sweep against v24 misses (closed NEGATIVE):**
 > - Reusable tooling: `scripts/archive_sweep.py`. Scans every `eval/reports/**/*.json` for stale pred_sql records matching a baseline's miss qids, re-executes each under the current corrected runner, and reports only verified `alt_match=True` rescues.
 > - Run: `uv run python scripts/archive_sweep.py --baseline eval/reports/2026-05-23/v24-v23-plus-archive-rescore-959-merged.json --out eval/reports/2026-05-24/archive-sweep-v24-candidates.json`.

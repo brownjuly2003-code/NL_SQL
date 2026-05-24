@@ -1,0 +1,130 @@
+{
+  "configuration": "C_dense_cards",
+  "sql_model": "codestral-latest",
+  "overall": {
+    "n": 2,
+    "ea": 0.5,
+    "validity_rate": 1.0,
+    "schema_recall_at_k": 1.0,
+    "repair_success_rate": 0.0,
+    "first_pass_ea": 0.5,
+    "empty_result_rate": 0.0,
+    "latency_p50_ms": 11475.048549997155,
+    "latency_p95_ms": 13877.03015500083,
+    "tokens_p50": 5864.0,
+    "tokens_p95": 6710.900000000001
+  },
+  "per_difficulty": {
+    "simple": {
+      "n": 1,
+      "ea": 1.0,
+      "validity_rate": 1.0,
+      "schema_recall_at_k": 1.0,
+      "repair_success_rate": 0.0,
+      "first_pass_ea": 1.0,
+      "empty_result_rate": 0.0,
+      "latency_p50_ms": 8806.180099993071,
+      "latency_p95_ms": 8806.180099993071,
+      "tokens_p50": 6805.0,
+      "tokens_p95": 6805.0
+    },
+    "moderate": {
+      "n": 1,
+      "ea": 0.0,
+      "validity_rate": 1.0,
+      "schema_recall_at_k": 1.0,
+      "repair_success_rate": 0.0,
+      "first_pass_ea": 0.0,
+      "empty_result_rate": 0.0,
+      "latency_p50_ms": 14143.917000001238,
+      "latency_p95_ms": 14143.917000001238,
+      "tokens_p50": 4923.0,
+      "tokens_p95": 4923.0
+    },
+    "challenging": {
+      "n": 0,
+      "ea": 0.0,
+      "validity_rate": 0.0,
+      "schema_recall_at_k": 0.0,
+      "repair_success_rate": 0.0,
+      "first_pass_ea": 0.0,
+      "empty_result_rate": 0.0,
+      "latency_p50_ms": 0.0,
+      "latency_p95_ms": 0.0,
+      "tokens_p50": 0.0,
+      "tokens_p95": 0.0
+    }
+  },
+  "records": [
+    {
+      "question_id": 902,
+      "db_id": "formula_1",
+      "difficulty": "simple",
+      "dialect": "sqlite",
+      "question": "Which race was Alex Yoong in when he was in track number less than 20?",
+      "gold_sql": "SELECT T1.name FROM races AS T1 INNER JOIN driverStandings AS T2 ON T2.raceId = T1.raceId INNER JOIN drivers AS T3 ON T3.driverId = T2.driverId WHERE T3.forename = 'Alex' AND T3.surname = 'Yoong' AND T2.position < 20",
+      "pred_sql": "SELECT races.name FROM races JOIN driverStandings ON races.raceId = driverStandings.raceId JOIN drivers ON driverStandings.driverId = drivers.driverId WHERE drivers.forename = 'Alex' AND drivers.surname = 'Yoong' AND driverStandings.position < 20",
+      "match": true,
+      "schema_recall": true,
+      "error_kind": null,
+      "error_message": "",
+      "repair_attempted": false,
+      "first_pass_match": true,
+      "latency_ms": 8806.180099993071,
+      "input_tokens": 6641,
+      "output_tokens": 164,
+      "gold_tables": [
+        "races",
+        "driverStandings",
+        "drivers"
+      ],
+      "retrieved_tables": [
+        "races",
+        "drivers",
+        "driverStandings",
+        "lapTimes",
+        "qualifying",
+        "circuits",
+        "constructorResults",
+        "constructorStandings",
+        "pitStops",
+        "results",
+        "seasons",
+        "constructors"
+      ],
+      "pred_row_count": 15,
+      "gold_row_count": 15,
+      "comparison_reason": ""
+    },
+    {
+      "question_id": 1275,
+      "db_id": "thrombosis_prediction",
+      "difficulty": "moderate",
+      "dialect": "sqlite",
+      "question": "Among the patients who has a normal level of anti-centromere and a normal level of anti-SSB, how many of them are male?",
+      "gold_sql": "SELECT COUNT(DISTINCT T1.ID) FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.CENTROMEA IN ('negative', '0') AND T2.SSB IN ('negative', '0') AND T1.SEX = 'M'",
+      "pred_sql": "SELECT COUNT(DISTINCT Patient.ID) FROM Patient JOIN Laboratory ON Patient.ID = Laboratory.ID WHERE Laboratory.CENTROMEA IN ('-', '+-') AND Laboratory.SSB IN ('-', '+-') AND Patient.SEX = 'M'",
+      "match": false,
+      "schema_recall": true,
+      "error_kind": null,
+      "error_message": "",
+      "repair_attempted": false,
+      "first_pass_match": false,
+      "latency_ms": 14143.917000001238,
+      "input_tokens": 4788,
+      "output_tokens": 135,
+      "gold_tables": [
+        "Patient",
+        "Laboratory"
+      ],
+      "retrieved_tables": [
+        "Examination",
+        "Patient",
+        "Laboratory"
+      ],
+      "pred_row_count": 1,
+      "gold_row_count": 1,
+      "comparison_reason": "set mismatch (unique rows differ): |gold|=1, |pred|=1"
+    }
+  ]
+}
