@@ -123,12 +123,12 @@ def test_pred_routes_through_execute_readonly_not_execute_gold(
 
     def _spy_execute_gold(
         engine: Any, sql: str, **_: Any
-    ) -> tuple[list[tuple[Any, ...]], list[str]]:
+    ) -> tuple[list[tuple[Any, ...]], list[str], bool]:
         execute_gold_calls.append(sql)
-        return [], []
+        return [], [], False
 
     monkeypatch.setattr(rescore_arcwise, "execute_readonly", _spy_execute_readonly)
-    monkeypatch.setattr(rescore_arcwise, "_execute_gold", _spy_execute_gold)
+    monkeypatch.setattr(rescore_arcwise, "_execute_gold_with_status", _spy_execute_gold)
 
     monkeypatch.setattr(
         sys,
@@ -186,8 +186,8 @@ def test_empty_pred_skips_execution(
     monkeypatch.setattr(rescore_arcwise, "execute_readonly", _spy_execute_readonly)
     monkeypatch.setattr(
         rescore_arcwise,
-        "_execute_gold",
-        lambda *a, **k: ([], []),
+        "_execute_gold_with_status",
+        lambda *a, **k: ([], [], False),
     )
 
     monkeypatch.setattr(

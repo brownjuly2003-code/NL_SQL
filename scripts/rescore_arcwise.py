@@ -35,7 +35,7 @@ from typing import Any
 from nl_sql.db.connection import execute_readonly
 from nl_sql.db.registry import get_default_registry
 from nl_sql.eval.metrics.execution_accuracy import safe_compare_pred
-from nl_sql.eval.runner import _execute_gold
+from nl_sql.eval.runner import _execute_gold_with_status
 
 
 def _load_arcwise(path: Path) -> dict[int, dict[str, Any]]:
@@ -117,15 +117,25 @@ def main() -> int:
             ):
                 if not source:
                     continue
+                gold_failed = False
                 try:
-                    gold_rows, _ = _execute_gold(
+                    gold_rows, _, gold_failed = _execute_gold_with_status(
                         engine, source, statement_timeout_ms=30_000, row_cap=10_000
                     )
+                    if gold_failed:
+                        out_entry[f"{variant}_gold_exec_error"] = (
+                            "gold SQL crashed in both execute_readonly and raw-connection paths"
+                        )
                 except Exception as exc:
                     gold_rows = []
+                    gold_failed = True
                     out_entry[f"{variant}_gold_exec_error"] = str(exc)
                 cmp = safe_compare_pred(
-                    gold_rows, pred_rows, gold_sql=source, pred_failed=pred_failed
+                    gold_rows,
+                    pred_rows,
+                    gold_sql=source,
+                    pred_failed=pred_failed,
+                    gold_failed=gold_failed,
                 )
                 is_match = bool(cmp.match)
                 out_entry[f"{variant}_match"] = is_match

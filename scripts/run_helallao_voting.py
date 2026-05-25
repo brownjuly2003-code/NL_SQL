@@ -30,8 +30,8 @@ from nl_sql.agent.graph import PipelineConfig, build_pipeline, run_pipeline
 from nl_sql.config import get_settings
 from nl_sql.db.registry import get_default_registry
 from nl_sql.eval.dataset import load_bird_mini_dev
-from nl_sql.eval.metrics.execution_accuracy import compare_results
-from nl_sql.eval.runner import _compose_question, _execute_gold
+from nl_sql.eval.metrics.execution_accuracy import safe_compare_pred
+from nl_sql.eval.runner import _compose_question, _execute_gold_with_status
 from nl_sql.execution.runner import execute_validated
 from nl_sql.llm.cache import CachingEmbeddingProvider
 from nl_sql.llm.providers.helallao_perplexity import HelallaoPerplexityProvider
@@ -180,6 +180,7 @@ def main() -> int:
 
             alt_sql = alt.sql or ""
             alt_rows: list[Any] = []
+            pred_failed = False
             try:
                 outcome = execute_validated(
                     engine,
@@ -190,15 +191,25 @@ def main() -> int:
                 )
                 if outcome.result:
                     alt_rows = list(outcome.result.rows)
+                else:
+                    pred_failed = True
             except Exception:
-                pass
+                pred_failed = True
+            gold_failed = False
             try:
-                gold_rows, _ = _execute_gold(
+                gold_rows, _, gold_failed = _execute_gold_with_status(
                     engine, ex.sql, statement_timeout_ms=30_000, row_cap=10_000
                 )
             except Exception:
                 gold_rows = []
-            alt_cmp = compare_results(gold_rows, alt_rows, gold_sql=ex.sql)
+                gold_failed = True
+            alt_cmp = safe_compare_pred(
+                gold_rows,
+                alt_rows,
+                gold_sql=ex.sql,
+                pred_failed=pred_failed,
+                gold_failed=gold_failed,
+            )
             alt_match = bool(alt_cmp.match)
 
             if alt_match and not br.get("match"):

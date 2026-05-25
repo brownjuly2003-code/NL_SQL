@@ -29,12 +29,82 @@ from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Any
 
+from nl_sql.db.registry import get_default_registry
+from nl_sql.eval.metrics.execution_accuracy import safe_compare_pred
+from nl_sql.eval.runner import _execute_gold_with_status
+from nl_sql.execution.runner import execute_validated
+
+
+def _reverify_candidate(
+    baseline_record: dict[str, Any],
+    alt_pred: str,
+    registry: Any,
+) -> tuple[bool, str]:
+    """Re-execute alt pred + gold; return (verified_match, reason).
+
+    Voting reports produced before commit c74b46c (`safe_compare_pred` fix)
+    can carry stale `alt_match=True` for empty-pred + empty-gold cases.
+    Re-running closes that loophole — Codex audit 2026-05-25 #2.
+    """
+    db_id = baseline_record.get("db_id")
+    gold_sql = baseline_record.get("gold_sql")
+    if not db_id or not gold_sql:
+        return False, "baseline record missing db_id or gold_sql"
+    try:
+        engine = registry.engine_for(db_id)
+    except Exception as exc:
+        return False, f"engine unavailable for db_id={db_id}: {exc}"
+    pred_rows: list[tuple[Any, ...]] = []
+    pred_failed = False
+    if alt_pred.strip():
+        try:
+            outcome = execute_validated(
+                engine,
+                alt_pred,
+                dialect="sqlite",
+                statement_timeout_ms=30_000,
+                row_cap=10_000,
+            )
+            if outcome.result:
+                pred_rows = list(outcome.result.rows)
+            else:
+                pred_failed = True
+        except Exception:
+            pred_failed = True
+    else:
+        pred_failed = True
+    try:
+        gold_rows, _, gold_failed = _execute_gold_with_status(
+            engine, gold_sql, statement_timeout_ms=30_000, row_cap=10_000
+        )
+    except Exception:
+        gold_rows = []
+        gold_failed = True
+    cmp = safe_compare_pred(
+        gold_rows,
+        pred_rows,
+        gold_sql=gold_sql,
+        pred_failed=pred_failed,
+        gold_failed=gold_failed,
+    )
+    return bool(cmp.match), cmp.reason
+
 
 def main() -> int:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--baseline", type=Path, required=True)
     p.add_argument("--voting", type=Path, nargs="+", required=True)
     p.add_argument("--out", type=Path, required=True)
+    p.add_argument(
+        "--no-reverify",
+        action="store_true",
+        help=(
+            "Trust the stored alt_match flag from voting reports without "
+            "re-executing pred+gold via safe_compare_pred. Default is to "
+            "reverify so pre-fix voting JSONs (empty-empty false positives) "
+            "are rejected at merge time. Codex audit 2026-05-25 #2."
+        ),
+    )
     args = p.parse_args()
 
     base = json.loads(args.baseline.read_text(encoding="utf-8"))
@@ -62,13 +132,33 @@ def main() -> int:
             candidates[qid].append({"alt_model": alt_model, "alt_pred": vr["alt_pred"]})
 
     # Apply: first valid candidate wins (we iterate in CLI order).
+    # Default behavior re-verifies each candidate via safe_compare_pred so
+    # stale empty-empty false positives in pre-fix voting JSONs cannot
+    # silently inflate baseline EA (Codex audit 2026-05-25 #2).
     rescues = 0
+    rejected_stale = 0
     rescue_models: Counter[str] = Counter()
+    registry = None if args.no_reverify else get_default_registry()
     for qid, cands in candidates.items():
         br = by_qid[qid]
         if br.get("match"):
             continue
-        winner = cands[0]
+        winner = None
+        for cand in cands:
+            if args.no_reverify:
+                winner = cand
+                break
+            verified, reason = _reverify_candidate(br, cand["alt_pred"], registry)
+            if verified:
+                winner = cand
+                break
+            rejected_stale += 1
+            print(
+                f"  reject qid={qid} alt_model={cand['alt_model']}: {reason}",
+                file=sys.stderr,
+            )
+        if winner is None:
+            continue
         br["pred_sql"] = winner["alt_pred"]
         br["match"] = True
         br["voted_by"] = winner["alt_model"]
@@ -113,6 +203,11 @@ def main() -> int:
     args.out.write_text(json.dumps(base, indent=2, default=str), encoding="utf-8")
 
     print(f"Rescues applied: {rescues}", file=sys.stderr)
+    if rejected_stale and not args.no_reverify:
+        print(
+            f"Stale-voting rejections (failed reverify via safe_compare_pred): {rejected_stale}",
+            file=sys.stderr,
+        )
     for model_name, count in rescue_models.most_common():
         print(f"  by {model_name}: {count}", file=sys.stderr)
     print(f"\nEA: {matched}/{n} = {matched / n * 100:.1f}%", file=sys.stderr)
