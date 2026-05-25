@@ -129,6 +129,17 @@ class PipelineConfig:
     """When True, run a cheap post-execution row-shape critique before
     deterministic formatting and route one failed critique to `repair_once`.
     """
+    use_m_schema: bool = False
+    """When True, render the schema block as M-Schema (XiYan-SQL compact
+    one-line-per-column with inline samples + trailing FK pairs block) instead
+    of the default verbose card layout. Replaces the legacy `NLSQL_M_SCHEMA=1`
+    env toggle; `api/main.py` reads the env once at boot and threads it here so
+    individual nodes no longer touch `os.environ` at runtime."""
+    use_dac_prompt: bool = False
+    """When True, use the CHASE-SQL divide-and-conquer prompt
+    (`generate_sql_dac.txt`) which decomposes multi-clause questions into
+    sub-questions before composing SQL. Replaces the legacy `NLSQL_DAC=1`
+    env toggle; `api/main.py` reads the env once at boot and threads it here."""
 
 
 @dataclass(slots=True)
@@ -172,6 +183,8 @@ def build_pipeline(config: PipelineConfig) -> CompiledStateGraph[Any, Any, Any, 
             config.sql_provider,
             sort_schema_block=config.sort_schema_block,
             temperature=config.sql_temperature,
+            use_m_schema=config.use_m_schema,
+            use_dac_prompt=config.use_dac_prompt,
         ),
         "validate": make_validate_node(),
         "repair_once": make_repair_once_node(

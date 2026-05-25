@@ -27,6 +27,8 @@ def make_generate_sql_node(
     max_tokens: int = 1024,
     temperature: float = 0.0,
     sort_schema_block: bool = False,
+    use_m_schema: bool = False,
+    use_dac_prompt: bool = False,
 ) -> Callable[[PipelineState], PipelineState]:
     def node(state: PipelineState) -> PipelineState:
         question = state.get("question", "")
@@ -34,20 +36,17 @@ def make_generate_sql_node(
         context = state.get("context")
         plan_raw = (state.get("plan") or "").strip()
         plan_block = plan_raw if plan_raw else "(no plan — generate SQL directly from question)"
-        # Experimental: M-Schema serialization (XiYan-SQL style) — compact
-        # one-line-per-column with inline samples + trailing FK pairs block.
-        # Toggle via env NLSQL_M_SCHEMA=1 to A/B against verbose card layout.
-        import os
-
-        if os.environ.get("NLSQL_M_SCHEMA") == "1":
+        # Schema rendering: M-Schema (XiYan-SQL compact) vs verbose card layout.
+        # Driven by `PipelineConfig.use_m_schema`; api/main.py bootstraps the
+        # flag from `NLSQL_M_SCHEMA=1` env so existing eval scripts keep working.
+        if use_m_schema:
             schema_text = render_m_schema(context)
         else:
             schema_text = render_schema_block(context, sort_alphabetically=sort_schema_block)
-        # Experimental: CHASE-SQL divide-and-conquer prompt — decompose
-        # multi-clause questions into sub-questions before composing SQL.
-        # Toggle via env NLSQL_DAC=1. Targeted at residue retry layer for
-        # the challenging tier (multi-part conditional questions).
-        prompt_name = "generate_sql_dac" if os.environ.get("NLSQL_DAC") == "1" else "generate_sql"
+        # CHASE-SQL divide-and-conquer prompt — decomposes multi-clause questions
+        # into sub-questions before composing SQL. Driven by
+        # `PipelineConfig.use_dac_prompt`; api/main.py bootstraps from `NLSQL_DAC=1`.
+        prompt_name = "generate_sql_dac" if use_dac_prompt else "generate_sql"
         prompt = load_prompt(
             prompt_name,
             dialect=dialect,

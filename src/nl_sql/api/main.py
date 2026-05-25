@@ -225,8 +225,12 @@ def _build_pipeline_components(
 def _make_singletons() -> tuple[Any, DatabaseRegistry, SchemaIndex, LLMProvider]:
     """Lazy: build the pipeline only when the first /ask hits — keeps /healthz
     fast and avoids touching Chroma when the API is used for status probes."""
+    import os
+
     settings = get_settings()
     registry, schema_index, sql_provider, explain_provider = _build_pipeline_components(settings)
+    # Eval-script env toggles bootstrap into PipelineConfig once at boot;
+    # individual nodes never read os.environ at runtime (see graph.py docstrings).
     config = PipelineConfig(
         sql_provider=sql_provider,
         explain_provider=explain_provider,
@@ -236,6 +240,8 @@ def _make_singletons() -> tuple[Any, DatabaseRegistry, SchemaIndex, LLMProvider]
         sort_schema_block=True,
         cross_db_fewshot=True,
         verify_retry_on_empty=True,
+        use_m_schema=os.environ.get("NLSQL_M_SCHEMA") == "1",
+        use_dac_prompt=os.environ.get("NLSQL_DAC") == "1",
     )
     pipeline = build_pipeline(config)
     return pipeline, registry, schema_index, sql_provider

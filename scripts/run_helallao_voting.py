@@ -97,6 +97,8 @@ def main() -> int:
     )
     idx = SchemaIndex(persist_dir="chroma_data", embedder=emb)
 
+    import os
+
     cfg = PipelineConfig(
         sql_provider=sql_provider,
         explain_provider=sql_provider,
@@ -107,6 +109,8 @@ def main() -> int:
         cross_db_fewshot=True,
         verify_retry_on_empty=False,
         enable_grounded_critique=False,
+        use_m_schema=os.environ.get("NLSQL_M_SCHEMA") == "1",
+        use_dac_prompt=os.environ.get("NLSQL_DAC") == "1",
     )
     pipeline = build_pipeline(cfg)
 
