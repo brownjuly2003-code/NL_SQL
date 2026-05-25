@@ -41,6 +41,25 @@ class TestSafeComparePred:
         assert cmp.gold_rows == 2
         assert cmp.pred_rows == 0
 
+    def test_gold_failed_short_circuits_to_false_even_when_both_empty(self) -> None:
+        # Codex audit 2026-05-25 #1 — gold-side mirror of the qid 518 bug.
+        # _execute_gold returned ([], []) when BIRD gold crashed; if pred also
+        # happened to return zero rows, compare_results([], []) blessed match=True.
+        cmp = safe_compare_pred([], [], pred_failed=False, gold_failed=True)
+        assert not cmp.match
+        assert cmp.reason == "gold execution failed"
+        # gold_failed takes precedence over pred_failed in the reason field
+        # because gold-side failure invalidates the whole scoring attempt.
+        cmp2 = safe_compare_pred([], [], pred_failed=True, gold_failed=True)
+        assert not cmp2.match
+        assert cmp2.reason == "gold execution failed"
+
+    def test_gold_failed_with_nonempty_pred_still_false(self) -> None:
+        cmp = safe_compare_pred([], [(1, "a")], pred_failed=False, gold_failed=True)
+        assert not cmp.match
+        assert cmp.gold_rows == 0
+        assert cmp.pred_rows == 1
+
 
 class TestCompareResults:
     def test_identical_rows_match_set_eq(self) -> None:

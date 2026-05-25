@@ -191,6 +191,33 @@ def test_run_config_a_handles_broken_gold_sql(
     assert rec.gold_row_count == 0
 
 
+def test_run_config_a_gold_fail_with_empty_pred_does_not_false_positive(
+    chinook_registry: DatabaseRegistry,
+) -> None:
+    """Regression: gold-fail + empty-pred must NOT be blessed as match=True.
+
+    Codex audit 2026-05-25 #1, mirror of the qid 518 pred-side bug fixed in
+    c74b46c. Pre-fix `_execute_gold` returned ([], []) on gold SQL crash, and
+    if pred happened to also return zero rows (e.g. `SELECT * WHERE 0=1`),
+    `compare_results([], [])` blessed match=True under BIRD set-equality.
+    """
+    pred = json.dumps(
+        {
+            "sql": "SELECT AlbumId FROM Album WHERE 1=0",
+            "tables_used": ["Album"],
+        }
+    )
+    llm = ScriptedLLM([pred])
+    # Bogus gold — both `execute_readonly` and the raw-connection fallback
+    # raise SQLAlchemyError → `_execute_gold_with_status` returns gold_failed=True.
+    examples = [_example(99, "q", "SELECT * FROM TableThatDoesNotExist")]
+    run = run_config_a(examples, sql_provider=llm, registry=chinook_registry)
+
+    rec = run.records[0]
+    assert rec.match is False
+    assert rec.comparison_reason == "gold execution failed"
+
+
 def test_progress_callback_invoked(chinook_registry: DatabaseRegistry) -> None:
     correct = json.dumps({"sql": "SELECT COUNT(*) FROM Album"})
     llm = ScriptedLLM([correct, correct])

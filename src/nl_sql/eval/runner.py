@@ -558,13 +558,15 @@ def _run_one_config_a(
             statement_timeout_ms=statement_timeout_ms,
             row_cap=row_cap,
         )
-        gold_rows, _gold_columns = _execute_gold(
+        gold_rows, _gold_columns, gold_failed = _execute_gold_with_status(
             engine,
             example.sql,
             statement_timeout_ms=statement_timeout_ms,
             row_cap=row_cap,
         )
-        comparison = _compare_outcome(outcome, gold_rows, gold_sql=example.sql)
+        comparison = _compare_outcome(
+            outcome, gold_rows, gold_sql=example.sql, gold_failed=gold_failed
+        )
         gold_tables = tuple(extract_gold_tables(example.sql))
         retrieved = tuple(c.table_name for c in chunks)
         recall = schema_recall_at_k(gold_tables, retrieved)
@@ -650,7 +652,7 @@ def _run_one_via_pipeline(
                 gold_row_count=0,
                 comparison_reason=f"pipeline raised: {exc!r}",
             )
-        gold_rows, _ = _execute_gold(
+        gold_rows, _, gold_failed = _execute_gold_with_status(
             gold_engine,
             example.sql,
             statement_timeout_ms=statement_timeout_ms,
@@ -659,7 +661,18 @@ def _run_one_via_pipeline(
         # The pipeline's outcome is what `match` should reflect — but the
         # comparison runs against the gold rows we just fetched. Build a
         # synthetic outcome view for `_compare_outcome`, or pull rows out.
-        if result.outcome is not None and result.outcome.result is not None:
+        if gold_failed:
+            comparison = ResultComparison(
+                match=False,
+                reason="gold execution failed",
+                gold_rows=0,
+                pred_rows=(
+                    len(result.outcome.result.rows)
+                    if result.outcome is not None and result.outcome.result is not None
+                    else 0
+                ),
+            )
+        elif result.outcome is not None and result.outcome.result is not None:
             comparison = compare_results(
                 gold_rows,
                 result.outcome.result.rows,
@@ -772,13 +785,24 @@ def _run_one_self_consistency(
 
         winner = vote(candidates)
         result = winner.result
-        gold_rows, _ = _execute_gold(
+        gold_rows, _, gold_failed = _execute_gold_with_status(
             gold_engine,
             example.sql,
             statement_timeout_ms=statement_timeout_ms,
             row_cap=row_cap,
         )
-        if result.outcome is not None and result.outcome.result is not None:
+        if gold_failed:
+            comparison = ResultComparison(
+                match=False,
+                reason="gold execution failed",
+                gold_rows=0,
+                pred_rows=(
+                    len(result.outcome.result.rows)
+                    if result.outcome is not None and result.outcome.result is not None
+                    else 0
+                ),
+            )
+        elif result.outcome is not None and result.outcome.result is not None:
             comparison = compare_results(
                 gold_rows, result.outcome.result.rows, gold_sql=example.sql
             )
@@ -926,23 +950,26 @@ def _compose_question(example: BirdExample) -> str:
     return f"{example.question}\n\nHint: {example.evidence}"
 
 
-def _execute_gold(
+def _execute_gold_with_status(
     engine: Engine,
     sql: str,
     *,
     statement_timeout_ms: int,
     row_cap: int,
-) -> tuple[list[tuple[Any, ...]], list[str]]:
-    """Run gold SQL with the same row cap / timeout as predictions.
+) -> tuple[list[tuple[Any, ...]], list[str], bool]:
+    """Run gold SQL and return `(rows, columns, gold_failed)`.
 
-    Bypasses the validator (gold is trusted, BIRD ships it). Errors propagate
-    as empty result + sentinel — the EA comparison will then fail naturally.
+    Mirror of `_execute_gold` that surfaces the failure flag. Used by the
+    runner internals so `_compare_outcome` can short-circuit gold-failure
+    instead of letting `compare_results([], [])` bless an empty pred as
+    match=True (Codex audit 2026-05-25 #1, same defect class as the qid 518
+    pred-side bug already fixed in `safe_compare_pred`).
     """
     try:
         with execute_readonly(
             engine, sql, statement_timeout_ms=statement_timeout_ms, row_cap=row_cap
         ) as result:
-            return list(result.rows), list(result.columns)
+            return list(result.rows), list(result.columns), False
     except (SQLAlchemyError, MemoryError):
         # Last-resort: try the raw connection to surface gold-SQL bugs in
         # logs without crashing the runner. BIRD ships ~1% gold SQLs that
@@ -955,9 +982,31 @@ def _execute_gold(
                 cols = list(cursor.keys())
                 rows = [tuple(r) for r in cursor.fetchmany(row_cap)]
                 cursor.close()
-                return rows, cols
+                return rows, cols, False
         except (SQLAlchemyError, MemoryError):
-            return [], []
+            return [], [], True
+
+
+def _execute_gold(
+    engine: Engine,
+    sql: str,
+    *,
+    statement_timeout_ms: int,
+    row_cap: int,
+) -> tuple[list[tuple[Any, ...]], list[str]]:
+    """Run gold SQL with the same row cap / timeout as predictions.
+
+    Bypasses the validator (gold is trusted, BIRD ships it). Errors propagate
+    as empty result + sentinel — the EA comparison will then fail naturally.
+
+    Legacy 2-tuple wrapper retained for the dozen+ scripts that import this
+    name; new runner-internal callsites should use `_execute_gold_with_status`
+    so the gold-failure flag can route to `safe_compare_pred(gold_failed=True)`.
+    """
+    rows, cols, _gold_failed = _execute_gold_with_status(
+        engine, sql, statement_timeout_ms=statement_timeout_ms, row_cap=row_cap
+    )
+    return rows, cols
 
 
 def _compare_outcome(
@@ -965,7 +1014,15 @@ def _compare_outcome(
     gold_rows: list[tuple[Any, ...]],
     *,
     gold_sql: str,
+    gold_failed: bool = False,
 ) -> ResultComparison:
+    if gold_failed:
+        return ResultComparison(
+            match=False,
+            reason="gold execution failed",
+            gold_rows=0,
+            pred_rows=0 if outcome.result is None else len(outcome.result.rows),
+        )
     if outcome.result is None:
         return ResultComparison(
             match=False,

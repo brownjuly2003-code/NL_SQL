@@ -110,8 +110,9 @@ def safe_compare_pred(
     *,
     gold_sql: str | None = None,
     pred_failed: bool,
+    gold_failed: bool = False,
 ) -> ResultComparison:
-    """Comparison wrapper that short-circuits pred execution failures.
+    """Comparison wrapper that short-circuits pred OR gold execution failures.
 
     Plain `compare_results` is row-level: it treats `pred_rows=[]` identically
     whether pred returned zero rows or pred raised before producing any. When
@@ -119,17 +120,31 @@ def safe_compare_pred(
     Banned legalities, etc.), `compare_results([], [])` returns match=True —
     a silent false positive for malformed pred SQL.
 
-    The runner's `_run_one` already handles this (see eval/runner.py:662 —
-    explicit ResultComparison(match=False) when result.outcome is None).
-    Voting and rescoring scripts that bypass the runner must use this helper
-    instead of calling compare_results directly.
+    Symmetric defect on the gold side: `_execute_gold` historically returned
+    `([], [])` when BIRD's gold SQL crashed (~1% of cases), and any pred that
+    happened to also return zero rows would then be blessed as match=True.
+
+    The runner's `_run_one` and `_run_one_via_pipeline` paths already route
+    pred-failure and gold-failure through `_compare_outcome` / direct
+    `ResultComparison(match=False)`. Voting and rescoring scripts that bypass
+    the runner must use this helper instead of calling `compare_results`
+    directly. Pass `pred_failed=True` when pred SQL raised, `gold_failed=True`
+    when gold SQL raised.
 
     Discovered via Codex review of c74b46c → qid 518 (card_games moderate
     "format with most banned cards"): pred CTE missing the WITH prefix,
     SyntaxError on every execution, gold returns 0 rows for that DB, scoring
     blessed it as match=True since v13 (helallao grok-4.1-reasoning rescue).
     Re-merge v22-v29 + 2026-05-25 EOD fix lands the correction.
+    Gold-side mirror is Codex audit 2026-05-25 #1 (`runner.py:960`).
     """
+    if gold_failed:
+        return ResultComparison(
+            match=False,
+            reason="gold execution failed",
+            gold_rows=0,
+            pred_rows=len(pred_rows),
+        )
     if pred_failed:
         return ResultComparison(
             match=False,
