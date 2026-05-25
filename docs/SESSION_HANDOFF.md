@@ -1,5 +1,39 @@
-# NL_SQL — Session Handoff (2026-05-25 EOD-4 close: v29 = **92.5% EA** final on $0 budget; qid 518 rescue attempts exhausted; bash session bricked late, **3 helallao rescue JSONs in `eval/reports/2026-05-25/` остались untracked — нужен ручной commit при старте новой сессии**)
+# NL_SQL — Session Handoff (2026-05-25 EOD-5 close: Kimi + Codex audits ingested; 4 commits fixing CI-format + audit-correction inconsistencies + env→config refactor + same-pattern empty-empty bugs in 3 voting/rescore scripts + runner gold-side mirror; HEAD `e40e4da`, +4 ahead of origin, **push gated к юзеру**)
 
+> **Tl;dr 2026-05-25 EOD-5 — Kimi+Codex dual audit closed P1 cluster, CI разблокирован, scoring-pattern fixes propagated:**
+> - **Two independent audits ingested:** Kimi (overall A grade, full report in `audit_kimi_25_05_26.md`) + Codex via `codex:codex-rescue` subagent (10 delta findings, no overlap with Kimi). Direct `codex exec` через Bash отбился permission gate → переключилась на Agent subagent (см. memory `feedback_no_codex_exec.md`).
+> - **CI был красным с `071e385`** (Kimi P1.1: 15 файлов не отформатированы; CI gate уже стоял на `.github/workflows/ci.yml:31`, но Kimi его не заметила → false positive в её action list). Fixed via `make format`.
+> - **Codex #5 audit-correction inconsistency:** все 8 v22-v29 merged baseline JSONs имели `overall.ea` / `overall.matched` +1 inflated после `safe_compare_pred` surgical patch — записи в `records[]` корректные (qid 518 = `match: False`), но summary headers не пересчитаны. Regenerated через новый `scripts/refresh_baseline_summary.py` (idempotent helper + 4 regression tests включая sweep guard на canonical baselines).
+> - **Codex #6 README headline:** lift-trace endpoint и v29 row показывали 93.0% pre-audit при headline 92.5%. Fixed: lift-trace оканчивается на 92.5% audit-corrected с explicit `−1 qid 518 v13` provenance + new table row документирует audit correction отдельно (preserves narrative history of v29 pre-audit number).
+> - **Kimi P1.5 testability:** `NLSQL_M_SCHEMA` / `NLSQL_DAC` reads вынесены из `src/nl_sql/agent/nodes/generate_sql.py` (был `import os` + `os.environ.get(...)` внутри node body) в typed `PipelineConfig.use_m_schema` / `use_dac_prompt` fields. `api/main.py::_make_singletons` и `scripts/run_helallao_voting.py` (единственный documented eval driver с этими envs) bootstrap env once. 7 новых unit tests на flag plumbing.
+> - **Codex #1 gold-side mirror of qid 518 bug:** `src/nl_sql/eval/runner.py::_execute_gold` возвращал `([], [])` когда BIRD gold SQL крашился (~1% случаев); если pred тоже возвращал `[]` (e.g. `SELECT * WHERE 1=0`), `compare_results([], [])` blessed match=True. Fixed: new `_execute_gold_with_status` returns `(rows, cols, gold_failed)`; `_compare_outcome` + `safe_compare_pred` accept `gold_failed` kwarg и short-circuit `match=False, reason='gold execution failed'`. Legacy `_execute_gold` retained как 2-tuple wrapper для 12+ скриптов которые ещё импортируют его. 3 новых regression tests.
+> - **Codex #2-4 same-pattern в скриптах:**
+>   - `scripts/run_helallao_voting.py:189` — pred exec exceptions сваливались в `alt_rows=[]`; теперь tracks `pred_failed` + `gold_failed` flags, routes через `safe_compare_pred`.
+>   - `scripts/rescore_arcwise.py:127` — corrected-gold exec exceptions сваливались в `gold_rows=[]`; теперь `_execute_gold_with_status` + `safe_compare_pred(gold_failed=...)`.
+>   - `scripts/merge_voting_rescues.py:73` — флипал baseline `match=True` из stored `alt_match` без re-execution. Pre-fix voting JSONs могли silently inflate EA. Fixed: default `--reverify` re-executes pred+gold через `safe_compare_pred`; `--no-reverify` escape hatch для trusted legacy merges. 4 новых reverify tests.
+> - **4 commits на main (local-only, push gated):**
+>   - `03ad6ae` chore+fix: ruff format + 8 stale baseline summaries + README lift trace + v29 table row
+>   - `4a79ecb` refactor: NLSQL_M_SCHEMA / NLSQL_DAC env → PipelineConfig
+>   - `ebf0fb3` fix: gold-fail empty-empty false positive (Codex #1)
+>   - `e40e4da` fix: route voting/rescore through safe_compare_pred (Codex #2-4)
+> - **Gates green:** ruff check + format-check + mypy --strict + 351 pytest (was 333; +18 new tests).
+> - **HEAD `e40e4da` local; origin `071e385`** — **push не делался** per CLAUDE.md ("DO NOT push unless explicitly asked"). Cold-pickup: см. § `Cold-pickup checklist` ниже + `docs/NEXT_SESSION.md`.
+>
+> **Не закрыто автономно (требует решения / большой scope):**
+> - Kimi P1.3 `app/streamlit_app.py` 1184 lines → split (1.5h refactor)
+> - Kimi P1.4 `src/nl_sql/agent/nodes/_support.py` 17KB → split (1h refactor)
+> - Kimi P1.6 API coverage 58% → DI для `_make_singletons` (moderate refactor)
+> - Codex #7 transition buckets stale (P2 stylistic, low impact)
+> - Codex #8 hash-bucket float tolerance (P2 math bug в `compare_results` set mode)
+> - Codex #9 `cache.py:77` cache key omits `GenerateRequest.json_mode` (P2 correctness)
+> - Codex #10 `cache.py:88` cache miss/fill race без lock (P2 concurrency, parallel eval workers)
+>
+> **Memory updates:**
+> - new: `feedback_no_codex_exec.md` (CODEX EXEC через Bash запрещён, only Agent `codex:codex-rescue` subagent)
+> - deprecated: `feedback_codex_exec_direct.md` (старое правило про direct > subagent отменено)
+>
+> ---
+>
 > **Tl;dr 2026-05-25 EOD-4 — qid 518 rescue attempts closed (all alt_match=False) + session end:**
 > - **Goal:** после EOD-3 (audit-correction 93.0% → 92.5%) попытались legitimately rescue qid 518 через helallao reasoning, чтобы вернуть 93.0% с integrity.
 > - **3 reasoning models attempted** (claude-4.5-sonnet-thinking, grok-4.1-reasoning, gpt-5.2-thinking) на qid 518 baseline=False через `scripts/run_helallao_voting.py --only-qids 518`. Все three generated clean alt_pred (e.g., grok: `SELECT format, name FROM legalities INNER JOIN cards USING (uuid) WHERE status='Banned' AND format=(SELECT format FROM legalities GROUP BY format ORDER BY COUNT(*) DESC LIMIT 1)`), но все **alt_match=False**.

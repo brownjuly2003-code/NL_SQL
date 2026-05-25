@@ -5,56 +5,52 @@
 
 ## Cold-pickup checklist (orient в 2 минуты)
 
-**ВАЖНО при старте новой сессии — две unfinished housekeeping задачи от EOD-4:**
+**Open housekeeping (EOD-5):** push 4 local commits на origin когда юзер даст явное add. Иначе ничего.
 
 ```powershell
 cd D:/NL_SQL
 
-# A. Проверь не висят ли python.exe от прошлой сессии (helallao curl-cffi waits, etc).
+# 1. Что сейчас в репо?
+git log --oneline -8
+# Expected top 4 local (push gated к юзеру):
+#   e40e4da fix: route voting/rescore through safe_compare_pred (Codex audit #2-4)
+#   ebf0fb3 fix: gold-fail empty-empty false positive (Codex audit 2026-05-25 #1)
+#   4a79ecb refactor: NLSQL_M_SCHEMA / NLSQL_DAC env reads → PipelineConfig fields
+#   03ad6ae chore+fix: ruff format pass + regenerate stale baseline-summary headers
+# Origin tip: 071e385
+
+# 2. Push когда захочешь (origin/main гейтится явным запросом юзера)
+# git push origin main
+
+# 3. Orphan python procs от прошлых helallao runs (CPU guard)
 Get-Process python -ErrorAction SilentlyContinue |
   Where-Object { (Get-Date) - $_.StartTime -gt (New-TimeSpan -Minutes 30) } |
   Format-Table Id,StartTime,CPU,WS
 # Если есть orphans >30мин: Stop-Process -Id <pid> -Force
 
-# B. Закоммить EOD-4 rescue evidence (3 untracked JSON в eval/reports/2026-05-25/).
-git status --short
-# Expected: ?? eval/reports/2026-05-25/helallao-q518-{rescue-attempt,grok,gpt52}.json
-#           M chroma_data/* (runtime drift, ignore)
-git add eval/reports/2026-05-25/
-git commit -m "evidence: qid 518 rescue attempts closed (3 reasoning models, 0 alt_match) — gold returns 0 rows, v13 rescue bogus"
-git push origin main
-```
-
-**Standard cold-pickup orientation:**
-
-```powershell
-# 1. Что сейчас в репо?
-cd D:/NL_SQL
-git log --oneline -8
-# Expected top: 85fe388 audit-fix qid 518 / fbb9e24 HF redeploy / b6aed93 GraceKelly entry drop / 40ac2a1 helallao sweep / c6e5394 test+style / c74b46c rescore-arcwise fix / b208af4 v29 Arcwise rescore
-
-# 2. Где actual baseline merged report?
-ls eval/reports/2026-05-24/v29-v28-plus-p3f-q1275-merged.json
-
-# 3. Verify baseline после audit-correction (replay every stored pred under current runner)
+# 4. Verify baseline всё ещё консистентен после refresh_baseline_summary.py регенерации
 uv run python scripts/audit_rescore.py --report eval/reports/2026-05-24/v29-v28-plus-p3f-q1275-merged.json
 # Expected: stored 185 / true 185 / 0 mismatches
 
-# 4. Verify все 8 P3.F gates ещё PASS (acceptance harness независим от audit-fix)
+# 5. Все 8 P3.F gates PASS
 uv run python scripts/p3f_acceptance.py --report eval/reports/2026-05-24/v29-v28-plus-p3f-q1275-merged.json --require-pass
 # Expected: 8 PASS, exit 0
 
-# 5. Tests + lint + type
+# 6. Gates
 uv run pytest -q
 uv run ruff check src tests scripts app
+uv run ruff format --check src tests scripts app
 uv run mypy --strict src
-# Expected: 333 pass (+3 TestSafeComparePred regression tests) / clean / clean
+# Expected: 351 pass (was 333 + 18 EOD-5 new: 4 refresh_summary + 7 generate_sql_flags + 3 metrics gold_failed + 1 runner gold-fail end-to-end + 4 merge_voting reverify − 1 helallao_voting test unchanged) / ruff clean / format clean / mypy clean
 ```
 
-**Текущее состояние (HEAD `85fe388` pushed 2026-05-25 EOD-3, EOD-4 rescue evidence pending manual commit):**
-- **Repo + Streamlit + README + UI captions + live HF Space = v29 92.5%** (185/200) после CC-CX-KM /cxkm audit-correction (qid 518 v13 false positive исправлен через `safe_compare_pred` short-circuit).
-- HF redeploy: <https://liovina-nl-sql.hf.space>, E2E verified Playwright `92.5%` (EN) / `92,5%` (RU).
-- Все surface синхронизированы — gap нулевой.
+**Текущее состояние (HEAD `e40e4da` local, +4 ahead of origin `071e385`):**
+- **v29 = 92.5% (185/200) headline final** на $0 budget. Repo + Streamlit + README + UI captions + HF Space всё ещё 92.5% (deploy synced на EOD-3).
+- **Scoring integrity fully propagated:** `safe_compare_pred` теперь покрывает оба направления (pred-fail и gold-fail) и применяется во всех 3 voting/rescore путях. `merge_voting_rescues` имеет `--reverify` gate против stale pre-fix JSON.
+- **CI разблокирован** (был красным с `071e385` из-за format-check; fix landed в `03ad6ae`).
+- **Все baseline JSON summary headers** консистентны с per-record state (Codex #5 fix через `scripts/refresh_baseline_summary.py`).
+- **Test infra:** 351 pytest pass, mypy strict 0 issues, ruff check/format clean.
+- HF Spaces: <https://liovina-nl-sql.hf.space>, E2E verified Playwright `92.5%` (EN) / `92,5%` (RU) на EOD-3.
 
 **Final triplet (final для $0 budget):**
 
@@ -133,9 +129,25 @@ voted_by tag и delta, inline Python даёт control + audit trail. Не вын
 dd20bb...r2.cloudflarestorage.com: no such host` после успешного manifest
 fetch). Local heterogeneous CSC lever остаётся parked.
 
-**Следующее (priority):**
+**Следующее (priority, EOD-5 → next sprint):**
 
-0. **EOD-4 housekeeping** (см. cold-pickup checklist выше): commit 3 untracked `eval/reports/2026-05-25/helallao-q518-*.json`; kill orphan python processes если есть.
+0. **Push 4 EOD-5 commits** на `origin/main` когда юзер захочет (gated per CLAUDE.md). HEAD `e40e4da`, +4 ahead.
+
+1. **Open audit items (Kimi + Codex, не закрыто автономно):**
+
+| # | Severity | Scope | Estimate |
+|---|---|---|---|
+| Kimi P1.3 | P1 | `app/streamlit_app.py` 1184 lines → split (`components/`, `theme.py`, `i18n/`) | 1.5h |
+| Kimi P1.4 | P1 | `src/nl_sql/agent/nodes/_support.py` 17KB → split (`render_schema.py`, `parse_output.py`, `schema_hints.py`) | 1h |
+| Kimi P1.6 | P1 | API coverage 58% → DI для `_make_singletons` + mock provider в API tests | 1.5h |
+| Codex #7 | P2 | `scripts/rescore_arcwise.py:82` transition buckets используют stale `rec["match"]` вместо recomputed match | 30min |
+| Codex #8 | P2 | `execution_accuracy.py:206` unordered float comparison через hash-bucket — два tolerant-equivalent rows могут попасть в разные buckets, set-mode EA false-negative | 1h (replace hash-bucket с tolerance-aware row matching) |
+| Codex #9 | P2 | `cache.py:77` cache key omits `GenerateRequest.json_mode` — JSON-mode call может replay non-JSON cached response | 30min (bump cache version key + include json_mode + other provider-affecting params) |
+| Codex #10 | P2 | `cache.py:88` cache miss/fill не locked — parallel eval workers могут race, duplicate paid calls, last-writer-wins | 1h (per-key diskcache lock или atomic memoization) |
+
+2. **HF Spaces redeploy** — на EOD-3 был synced на 92.5%, ничего не сдвинулось. Если юзер захочет регрес-проверить — `D:/NL_SQL/.deploy_hf.py` (gitignored, локальный).
+
+3. **Past 92.5% headline (gated к юзеру, см. EOD-4):** runner-level CTE/SchemaAware Lite или paid OR with broader-context reasoning. Headroom ~0.5pp (next clean qid). Принципиальное решение оставлено за юзером — saturation подтверждена 3-моделями reasoning sweep + Pro retries на residue.
 
 1. ~~**Paid OpenRouter top-up ($5+)** на v29 residue~~ — **CLOSED 2026-05-24 EOD-2.**
    3-model helallao reasoning sweep на 14 v29 residue qids: 42 attempts, 0 rescues.
