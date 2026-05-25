@@ -222,16 +222,12 @@ def test_thrombosis_higher_than_normal_hint_joins_examination() -> None:
             schema_hits=[
                 _hit(
                     "Patient",
-                    "Table: Patient\nColumns:\n"
-                    "  - ID: INTEGER [PK NOT NULL]\n"
-                    "  - SEX: TEXT [NULL]",
+                    "Table: Patient\nColumns:\n  - ID: INTEGER [PK NOT NULL]\n  - SEX: TEXT [NULL]",
                     db_id="thrombosis_prediction",
                 ),
                 _hit(
                     "Laboratory",
-                    "Table: Laboratory\nColumns:\n"
-                    "  - ID: INTEGER [NOT NULL]\n"
-                    "  - IGG: REAL [NULL]",
+                    "Table: Laboratory\nColumns:\n  - ID: INTEGER [NOT NULL]\n  - IGG: REAL [NULL]",
                     db_id="thrombosis_prediction",
                 ),
                 _hit(
@@ -367,9 +363,7 @@ def test_thrombosis_anti_centromere_hint_points_to_laboratory() -> None:
             schema_hits=[
                 _hit(
                     "Patient",
-                    "Table: Patient\nColumns:\n"
-                    "  - ID: INTEGER [PK NOT NULL]\n"
-                    "  - SEX: TEXT [NULL]",
+                    "Table: Patient\nColumns:\n  - ID: INTEGER [PK NOT NULL]\n  - SEX: TEXT [NULL]",
                     db_id="thrombosis_prediction",
                 ),
                 _hit(

@@ -111,7 +111,12 @@ def main() -> int:
     )
     p.add_argument("--temperatures", nargs="+", type=float, default=[0.2, 0.4, 0.6, 0.8])
     p.add_argument("--gen-model", default="codestral-latest", help="Mistral model id")
-    p.add_argument("--sleep-between", type=float, default=0.0, help="seconds between pipeline calls (use for mistral-large rate limits)")
+    p.add_argument(
+        "--sleep-between",
+        type=float,
+        default=0.0,
+        help="seconds between pipeline calls (use for mistral-large rate limits)",
+    )
     p.add_argument(
         "--api-keys",
         default=None,

@@ -36,9 +36,7 @@ from nl_sql.eval.runner import _execute_gold
 def main() -> int:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--baseline", type=Path, required=True)
-    p.add_argument(
-        "--reports-root", type=Path, default=Path("eval/reports")
-    )
+    p.add_argument("--reports-root", type=Path, default=Path("eval/reports"))
     p.add_argument("--out", type=Path, required=True)
     p.add_argument(
         "--data-root",

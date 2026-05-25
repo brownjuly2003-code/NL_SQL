@@ -75,11 +75,21 @@ def test_eval_baseline_skips_incompatible_prior_json(
             )
         ],
     )
-    monkeypatch.setattr(eval_baseline, "build_provider", lambda provider, settings: SimpleNamespace(model="codestral-latest"))
+    monkeypatch.setattr(
+        eval_baseline,
+        "build_provider",
+        lambda provider, settings: SimpleNamespace(model="codestral-latest"),
+    )
     monkeypatch.setattr(eval_baseline, "CachingLLMProvider", lambda raw, **kwargs: raw)
-    monkeypatch.setattr(eval_baseline, "get_default_registry", lambda: SimpleNamespace(ids=lambda: ["bird_d"]))
+    monkeypatch.setattr(
+        eval_baseline, "get_default_registry", lambda: SimpleNamespace(ids=lambda: ["bird_d"])
+    )
     monkeypatch.setattr(eval_baseline, "run_config_a", lambda *args, **kwargs: run)
-    monkeypatch.setattr(eval_baseline, "write_json_report", lambda *args, **kwargs: report_dir / "A_full_schema.json")
+    monkeypatch.setattr(
+        eval_baseline,
+        "write_json_report",
+        lambda *args, **kwargs: report_dir / "A_full_schema.json",
+    )
 
     def fake_write_html_report(runs, *, root):
         html_runs.extend(runs)

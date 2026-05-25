@@ -76,9 +76,7 @@ def _make_registry_stub(db_root: Path, db_dir_name: str) -> MagicMock:
     spec = DatabaseSpec(
         id=db_dir_name,
         dialect="sqlite",
-        url=sqlite_url_readonly(
-            db_root / db_dir_name / f"{db_dir_name}.sqlite"
-        ),
+        url=sqlite_url_readonly(db_root / db_dir_name / f"{db_dir_name}.sqlite"),
     )
     registry = MagicMock()
     registry.get.return_value = spec
@@ -111,9 +109,7 @@ def test_pred_routes_through_execute_readonly_not_execute_gold(
 
     db_root = tmp_path / "data" / "bird_mini_dev" / "MINIDEV" / "dev_databases"
     registry_stub = _make_registry_stub(db_root, "card_games")
-    monkeypatch.setattr(
-        rescore_arcwise, "get_default_registry", lambda: registry_stub
-    )
+    monkeypatch.setattr(rescore_arcwise, "get_default_registry", lambda: registry_stub)
 
     execute_readonly_calls: list[str] = []
     execute_gold_calls: list[str] = []
@@ -162,10 +158,9 @@ def test_pred_routes_through_execute_readonly_not_execute_gold(
         "pred_sql must NOT execute via _execute_gold (regression: "
         "old path used _execute_gold for pred — see 2026-05-24 fix)"
     )
-    assert all(
-        sql in (gold_sql, arc_sql_only_sql, arc_full_sql)
-        for sql in execute_gold_calls
-    ), "every _execute_gold call must be for a gold variant"
+    assert all(sql in (gold_sql, arc_sql_only_sql, arc_full_sql) for sql in execute_gold_calls), (
+        "every _execute_gold call must be for a gold variant"
+    )
 
 
 def test_empty_pred_skips_execution(
@@ -177,9 +172,7 @@ def test_empty_pred_skips_execution(
 
     db_root = tmp_path / "data" / "bird_mini_dev" / "MINIDEV" / "dev_databases"
     registry_stub = _make_registry_stub(db_root, "card_games")
-    monkeypatch.setattr(
-        rescore_arcwise, "get_default_registry", lambda: registry_stub
-    )
+    monkeypatch.setattr(rescore_arcwise, "get_default_registry", lambda: registry_stub)
 
     execute_readonly_calls: list[str] = []
 
@@ -214,6 +207,4 @@ def test_empty_pred_skips_execution(
     )
 
     assert rescore_arcwise.main() == 0
-    assert execute_readonly_calls == [], (
-        "empty pred_sql must skip execute_readonly entirely"
-    )
+    assert execute_readonly_calls == [], "empty pred_sql must skip execute_readonly entirely"

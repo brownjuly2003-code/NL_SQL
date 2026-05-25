@@ -38,6 +38,7 @@ def make_generate_sql_node(
         # one-line-per-column with inline samples + trailing FK pairs block.
         # Toggle via env NLSQL_M_SCHEMA=1 to A/B against verbose card layout.
         import os
+
         if os.environ.get("NLSQL_M_SCHEMA") == "1":
             schema_text = render_m_schema(context)
         else:

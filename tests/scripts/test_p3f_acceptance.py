@@ -247,4 +247,7 @@ def test_p3f_acceptance_rejects_missing_targets(tmp_path: Path, capsys) -> None:
     result = p3f_acceptance.main(["--report", str(report)])
 
     assert result == 3
-    assert "missing target qids: [1404, 207, 902, 1531, 894, 1251, 408, 1275]" in capsys.readouterr().err
+    assert (
+        "missing target qids: [1404, 207, 902, 1531, 894, 1251, 408, 1275]"
+        in capsys.readouterr().err
+    )

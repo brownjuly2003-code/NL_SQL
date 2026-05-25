@@ -46,7 +46,7 @@ def test_pipeline_exception_is_written_to_report(
                         "question_id": 1399,
                         "match": False,
                         "pred_sql": "SELECT 0",
-                    }
+                    },
                 ]
             }
         ),

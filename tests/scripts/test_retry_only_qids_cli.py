@@ -171,10 +171,7 @@ def test_retry_tools_reject_missing_only_qids_before_provider_setup(
     monkeypatch.setattr(
         sys,
         "argv",
-        [
-            arg.format(baseline=baseline, out=out)
-            for arg in argv
-        ],
+        [arg.format(baseline=baseline, out=out) for arg in argv],
     )
     monkeypatch.setattr(
         module,
@@ -219,7 +216,15 @@ def test_eval_baseline_rejects_missing_only_qids_before_provider_setup(
         ),
         (
             run_critique_retry,
-            ["run_critique_retry.py", "--baseline", "{baseline}", "--out", "{out}", "--only-qids", "abc"],
+            [
+                "run_critique_retry.py",
+                "--baseline",
+                "{baseline}",
+                "--out",
+                "{out}",
+                "--only-qids",
+                "abc",
+            ],
         ),
         (
             run_groq_voting,
@@ -237,7 +242,15 @@ def test_eval_baseline_rejects_missing_only_qids_before_provider_setup(
         ),
         (
             run_helallao_voting,
-            ["run_helallao_voting.py", "--baseline", "{baseline}", "--out", "{out}", "--only-qids", "abc"],
+            [
+                "run_helallao_voting.py",
+                "--baseline",
+                "{baseline}",
+                "--out",
+                "{out}",
+                "--only-qids",
+                "abc",
+            ],
         ),
         (
             run_openrouter_voting,
@@ -255,15 +268,39 @@ def test_eval_baseline_rejects_missing_only_qids_before_provider_setup(
         ),
         (
             run_selfcon_retry,
-            ["run_selfcon_retry.py", "--baseline", "{baseline}", "--out", "{out}", "--only-qids", "abc"],
+            [
+                "run_selfcon_retry.py",
+                "--baseline",
+                "{baseline}",
+                "--out",
+                "{out}",
+                "--only-qids",
+                "abc",
+            ],
         ),
         (
             run_sonnet_voting,
-            ["run_sonnet_voting.py", "--baseline", "{baseline}", "--out", "{out}", "--only-qids", "abc"],
+            [
+                "run_sonnet_voting.py",
+                "--baseline",
+                "{baseline}",
+                "--out",
+                "{out}",
+                "--only-qids",
+                "abc",
+            ],
         ),
         (
             run_wide_schema_retry,
-            ["run_wide_schema_retry.py", "--baseline", "{baseline}", "--out", "{out}", "--only-qids", "abc"],
+            [
+                "run_wide_schema_retry.py",
+                "--baseline",
+                "{baseline}",
+                "--out",
+                "{out}",
+                "--only-qids",
+                "abc",
+            ],
         ),
     ],
 )

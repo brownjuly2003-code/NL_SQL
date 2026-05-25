@@ -87,16 +87,16 @@ def main() -> int:
             engine.dispose()
 
     matched_stored = sum(1 for r in records if r.get("match"))
-    matched_true = matched_stored + sum(
-        1 if m["true_match"] else -1 for m in mismatches
-    )
+    matched_true = matched_stored + sum(1 if m["true_match"] else -1 for m in mismatches)
     print(f"Report: {args.report}")
     print(f"  records: {len(records)}")
     print(f"  matches stored: {matched_stored}")
     print(f"  matches true:   {matched_true}")
     print(f"  mismatches:     {len(mismatches)}")
     for m in mismatches:
-        print(f"    qid={m['qid']:>5} {m['difficulty']:11s} stored={m['stored_match']} → true={m['true_match']} (gold={m['gold_rows']}, pred={m['pred_rows']}) reason={m['reason']!r}")
+        print(
+            f"    qid={m['qid']:>5} {m['difficulty']:11s} stored={m['stored_match']} → true={m['true_match']} (gold={m['gold_rows']}, pred={m['pred_rows']}) reason={m['reason']!r}"
+        )
     return 0 if not mismatches else 1
 
 

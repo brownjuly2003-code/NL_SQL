@@ -90,9 +90,7 @@ def compare_results(
                     gold_rows=len(gold_norm),
                     pred_rows=len(pred_norm),
                 )
-        return ResultComparison(
-            match=True, gold_rows=len(gold_norm), pred_rows=len(pred_norm)
-        )
+        return ResultComparison(match=True, gold_rows=len(gold_norm), pred_rows=len(pred_norm))
 
     gold_set = {_hashable(g) for g in gold_norm}
     pred_set = {_hashable(p) for p in pred_norm}
@@ -103,9 +101,7 @@ def compare_results(
             gold_rows=len(gold_norm),
             pred_rows=len(pred_norm),
         )
-    return ResultComparison(
-        match=True, gold_rows=len(gold_norm), pred_rows=len(pred_norm)
-    )
+    return ResultComparison(match=True, gold_rows=len(gold_norm), pred_rows=len(pred_norm))
 
 
 def safe_compare_pred(

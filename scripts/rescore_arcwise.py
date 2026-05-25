@@ -66,9 +66,7 @@ def main() -> int:
     variants = ("original", "sql_only", "full")
     matched: dict[str, int] = {v: 0 for v in variants}
     total_scored: dict[str, int] = {v: 0 for v in variants}
-    per_diff: dict[str, dict[str, list[int]]] = {
-        v: defaultdict(lambda: [0, 0]) for v in variants
-    }
+    per_diff: dict[str, dict[str, list[int]]] = {v: defaultdict(lambda: [0, 0]) for v in variants}
     # Per-qid transitions sql_only vs original, full vs original.
     transitions: dict[str, list[dict[str, Any]]] = {"gained": [], "lost": [], "changed_gold": []}
 
@@ -146,8 +144,7 @@ def main() -> int:
                 src = arc_sql if variant == "sql_only" else arc_full
                 arc_entry = src.get(qid) or {}
                 gold_changed = bool(
-                    arc_entry.get("SQL", "").strip()
-                    != (rec.get("gold_sql") or "").strip()
+                    arc_entry.get("SQL", "").strip() != (rec.get("gold_sql") or "").strip()
                 )
                 if gold_changed:
                     out_entry[f"{variant}_gold_changed"] = True
@@ -183,26 +180,21 @@ def main() -> int:
     print("\n=== Transitions (vs original gold) ===", file=sys.stderr)
     print(f"  gained (sql_only): {len(transitions['gained'])}", file=sys.stderr)
     print(
-        f"  lost (sql_only): "
-        f"{sum(1 for t in transitions['lost'] if t['variant'] == 'sql_only')}",
+        f"  lost (sql_only): {sum(1 for t in transitions['lost'] if t['variant'] == 'sql_only')}",
         file=sys.stderr,
     )
     print(
-        f"  gained (full): "
-        f"{sum(1 for t in transitions['gained'] if t['variant'] == 'full')}",
+        f"  gained (full): {sum(1 for t in transitions['gained'] if t['variant'] == 'full')}",
         file=sys.stderr,
     )
     print(
-        f"  lost (full): "
-        f"{sum(1 for t in transitions['lost'] if t['variant'] == 'full')}",
+        f"  lost (full): {sum(1 for t in transitions['lost'] if t['variant'] == 'full')}",
         file=sys.stderr,
     )
 
     out_payload = {
         "source_report": str(args.report),
-        "summary": {
-            v: {"matched": matched[v], "total": total_scored[v]} for v in variants
-        },
+        "summary": {v: {"matched": matched[v], "total": total_scored[v]} for v in variants},
         "per_difficulty": {
             v: {
                 d: {"matched": per_diff[v][d][0], "total": per_diff[v][d][1]}

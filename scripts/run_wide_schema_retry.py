@@ -78,7 +78,9 @@ def main() -> int:
         fails_by_qid = {int(r["question_id"]): r for r in fails}
         missing_qids = [qid for qid in only_qids if qid not in fails_by_qid]
         if missing_qids:
-            print(f"[error] qids not found in row_count_off failures: {missing_qids}", file=sys.stderr)
+            print(
+                f"[error] qids not found in row_count_off failures: {missing_qids}", file=sys.stderr
+            )
             return 3
         fails = [fails_by_qid[qid] for qid in only_qids]
     print(

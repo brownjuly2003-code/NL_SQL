@@ -57,7 +57,9 @@ def _read_openrouter_key() -> str:
 def main() -> int:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--baseline", type=Path, required=True)
-    p.add_argument("--provider-model", required=True, help="OpenRouter model id, e.g. openai/gpt-oss-120b:free")
+    p.add_argument(
+        "--provider-model", required=True, help="OpenRouter model id, e.g. openai/gpt-oss-120b:free"
+    )
     p.add_argument("--bird-root", type=Path, default=Path("data/bird_mini_dev/MINIDEV"))
     p.add_argument("--out", type=Path, required=True)
     p.add_argument("--max-cases", type=int, default=200)
@@ -86,7 +88,10 @@ def main() -> int:
         fails = [fails_by_qid[qid] for qid in only_qids]
     skip = {int(x) for x in args.skip_qids.split(",") if x.strip()}
     fails = [r for r in fails if r["question_id"] not in skip][: args.max_cases]
-    print(f"[info] {len(fails)} failures to retry with openrouter+{args.provider_model}", file=sys.stderr)
+    print(
+        f"[info] {len(fails)} failures to retry with openrouter+{args.provider_model}",
+        file=sys.stderr,
+    )
     if not fails:
         return 0
 
@@ -171,32 +176,40 @@ def main() -> int:
                 )
             except Exception as exc:
                 errored += 1
-                records.append({
-                    "question_id": qid,
-                    "db_id": ex.db_id,
-                    "difficulty": ex.difficulty,
-                    "question": ex.question,
-                    "gold_sql": ex.sql,
-                    "baseline_pred": br["pred_sql"],
-                    "alt_pred": "",
-                    "alt_confidence": None,
-                    "baseline_match": bool(br.get("match")),
-                    "alt_match": False,
-                    "vote_match": False,
-                    "vote_source": f"openrouter:{args.provider_model}",
-                    "alt_error": str(exc),
-                })
+                records.append(
+                    {
+                        "question_id": qid,
+                        "db_id": ex.db_id,
+                        "difficulty": ex.difficulty,
+                        "question": ex.question,
+                        "gold_sql": ex.sql,
+                        "baseline_pred": br["pred_sql"],
+                        "alt_pred": "",
+                        "alt_confidence": None,
+                        "baseline_match": bool(br.get("match")),
+                        "alt_match": False,
+                        "vote_match": False,
+                        "vote_source": f"openrouter:{args.provider_model}",
+                        "alt_error": str(exc),
+                    }
+                )
                 print(f"[{i:3d}/{len(fails)}] qid={qid} EXC: {str(exc)[:180]}", file=sys.stderr)
-                out_path.write_text(json.dumps({
-                    "alt_model": f"openrouter:{args.provider_model}",
-                    "summary": {
-                        "voted_better": rescued,
-                        "voted_worse": regressed,
-                        "voted_same": same,
-                        "errored": errored,
-                    },
-                    "records": records,
-                }, indent=2), encoding="utf-8")
+                out_path.write_text(
+                    json.dumps(
+                        {
+                            "alt_model": f"openrouter:{args.provider_model}",
+                            "summary": {
+                                "voted_better": rescued,
+                                "voted_worse": regressed,
+                                "voted_same": same,
+                                "errored": errored,
+                            },
+                            "records": records,
+                        },
+                        indent=2,
+                    ),
+                    encoding="utf-8",
+                )
                 time.sleep(args.sleep_between)
                 continue
             elapsed = (time.perf_counter() - t0) * 1000.0
@@ -205,8 +218,11 @@ def main() -> int:
             alt_rows: list[Any] = []
             try:
                 outcome = execute_validated(
-                    engine, alt_sql, dialect="sqlite",
-                    statement_timeout_ms=30_000, row_cap=10_000,
+                    engine,
+                    alt_sql,
+                    dialect="sqlite",
+                    statement_timeout_ms=30_000,
+                    row_cap=10_000,
                 )
                 if outcome.result:
                     alt_rows = list(outcome.result.rows)
@@ -231,36 +247,44 @@ def main() -> int:
                 same += 1
                 tag = "same"
 
-            records.append({
-                "question_id": qid,
-                "db_id": ex.db_id,
-                "difficulty": ex.difficulty,
-                "question": ex.question,
-                "gold_sql": ex.sql,
-                "baseline_pred": br["pred_sql"],
-                "alt_pred": alt_sql,
-                "alt_confidence": getattr(alt_res, "confidence", None),
-                "baseline_match": bool(br.get("match")),
-                "alt_match": alt_match,
-                "vote_match": alt_match,
-                "vote_source": f"openrouter:{args.provider_model}",
-                "elapsed_ms": elapsed,
-            })
+            records.append(
+                {
+                    "question_id": qid,
+                    "db_id": ex.db_id,
+                    "difficulty": ex.difficulty,
+                    "question": ex.question,
+                    "gold_sql": ex.sql,
+                    "baseline_pred": br["pred_sql"],
+                    "alt_pred": alt_sql,
+                    "alt_confidence": getattr(alt_res, "confidence", None),
+                    "baseline_match": bool(br.get("match")),
+                    "alt_match": alt_match,
+                    "vote_match": alt_match,
+                    "vote_source": f"openrouter:{args.provider_model}",
+                    "elapsed_ms": elapsed,
+                }
+            )
             print(
                 f"[{i:3d}/{len(fails)}] qid={qid} {ex.difficulty:11s} {tag} ({elapsed / 1000:.1f}s)",
                 file=sys.stderr,
             )
 
-            out_path.write_text(json.dumps({
-                "alt_model": f"openrouter:{args.provider_model}",
-                "summary": {
-                    "voted_better": rescued,
-                    "voted_worse": regressed,
-                    "voted_same": same,
-                    "errored": errored,
-                },
-                "records": records,
-            }, indent=2), encoding="utf-8")
+            out_path.write_text(
+                json.dumps(
+                    {
+                        "alt_model": f"openrouter:{args.provider_model}",
+                        "summary": {
+                            "voted_better": rescued,
+                            "voted_worse": regressed,
+                            "voted_same": same,
+                            "errored": errored,
+                        },
+                        "records": records,
+                    },
+                    indent=2,
+                ),
+                encoding="utf-8",
+            )
         finally:
             engine.dispose()
         time.sleep(args.sleep_between)

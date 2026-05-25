@@ -46,7 +46,7 @@ def test_pipeline_exception_is_written_to_report(
                         "question_id": 1399,
                         "match": False,
                         "pred_sql": "SELECT 0",
-                    }
+                    },
                 ]
             }
         ),
@@ -103,7 +103,9 @@ def test_pipeline_exception_is_written_to_report(
     monkeypatch.setattr(run_openrouter_voting, "get_default_registry", lambda: FakeRegistry())
     monkeypatch.setattr(run_openrouter_voting, "_read_openrouter_key", lambda: "key")
     monkeypatch.setattr(run_openrouter_voting, "OpenAI", lambda **kwargs: SimpleNamespace())
-    monkeypatch.setattr(run_openrouter_voting, "MistralProvider", lambda **kwargs: SimpleNamespace())
+    monkeypatch.setattr(
+        run_openrouter_voting, "MistralProvider", lambda **kwargs: SimpleNamespace()
+    )
     monkeypatch.setattr(
         run_openrouter_voting,
         "CachingEmbeddingProvider",
