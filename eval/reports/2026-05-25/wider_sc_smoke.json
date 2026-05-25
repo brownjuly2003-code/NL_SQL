@@ -1,0 +1,391 @@
+{
+  "baseline": "eval\\reports\\2026-05-24\\v29-v28-plus-p3f-q1275-merged.json",
+  "variants": [
+    "default",
+    "bird_shape"
+  ],
+  "temperatures": [
+    0.2,
+    0.4,
+    0.6,
+    0.8
+  ],
+  "total_qids": 3,
+  "matches": 0,
+  "records": [
+    {
+      "qid": 25,
+      "db_id": "bird_california_schools",
+      "difficulty": "moderate",
+      "question": "Name schools in Riverside which the average of average math score for SAT is grater than 400, what is the funding type of these schools?",
+      "gold_sql": "SELECT T1.sname, T2.`Charter Funding Type` FROM satscores AS T1 INNER JOIN frpm AS T2 ON T1.cds = T2.CDSCode WHERE T2.`District Name` LIKE 'Riverside%' GROUP BY T1.sname, T2.`Charter Funding Type` HAVING CAST(SUM(T1.AvgScrMath) AS REAL) / COUNT(T1.cds) > 400",
+      "gold_failed": false,
+      "gold_rows_count": 6,
+      "candidates_total": 8,
+      "candidates_executed": 3,
+      "clusters": [
+        {
+          "fingerprint": "344d97376b42181d",
+          "size": 2,
+          "row_count": 80,
+          "variants": [
+            "bird_shape",
+            "default"
+          ],
+          "temps": [
+            0.2,
+            0.8
+          ],
+          "sample_sql": "SELECT schools.FundingType FROM schools JOIN satscores ON schools.CDSCode = satscores.cds WHERE schools.County = 'Riverside' AND satscores.AvgScrMath > 400"
+        },
+        {
+          "fingerprint": "7dac3938c0056489",
+          "size": 1,
+          "row_count": 80,
+          "variants": [
+            "bird_shape"
+          ],
+          "temps": [
+            0.6
+          ],
+          "sample_sql": "SELECT schools.School, schools.FundingType FROM schools JOIN satscores ON schools.CDSCode = satscores.cds WHERE schools.County = 'Riverside' AND satscores.AvgScrMath > 400"
+        }
+      ],
+      "winner_sql": "SELECT schools.FundingType FROM schools JOIN satscores ON schools.CDSCode = satscores.cds WHERE schools.County = 'Riverside' AND satscores.AvgScrMath > 400",
+      "winner_variant": "bird_shape",
+      "winner_temp": 0.2,
+      "winner_confidence": 0.9,
+      "match": false,
+      "match_reason": "set mismatch (unique rows differ): |gold|=6, |pred|=3",
+      "all_candidates": [
+        {
+          "variant": "default",
+          "temperature": 0.2,
+          "sql": "SELECT frpm.`Funding Type` FROM frpm JOIN satscores ON frpm.CDSCode = satscores.cds JOIN schools ON frpm.CDSCode = schools.CDSCode WHERE schools.County = 'Riverside' AND satscores.AvgScrMath > 400",
+          "rows": [],
+          "fingerprint": null,
+          "executed": false,
+          "confidence": 0.9,
+          "error": "exec: execution_failed: (sqlite3.OperationalError) no such column: frpm.Funding Type\n[SQL: SELECT frpm.`Funding Type` FROM frpm JOIN satscores ON frpm.CDSCode = satscores.cds JOIN schools ON frpm.CDSCode = schools.CDSCode WH"
+        },
+        {
+          "variant": "default",
+          "temperature": 0.4,
+          "sql": "SELECT frpm.`Funding Type` FROM frpm JOIN satscores ON frpm.CDSCode = satscores.cds JOIN schools ON satscores.cds = schools.CDSCode WHERE schools.County = 'Riverside' AND satscores.AvgScrMath > 400",
+          "rows": [],
+          "fingerprint": null,
+          "executed": false,
+          "confidence": 0.9,
+          "error": "exec: execution_failed: (sqlite3.OperationalError) no such column: frpm.Funding Type\n[SQL: SELECT frpm.`Funding Type` FROM frpm JOIN satscores ON frpm.CDSCode = satscores.cds JOIN schools ON satscores.cds = schools.CDSCode W"
+        },
+        {
+          "variant": "default",
+          "temperature": 0.6,
+          "sql": "SELECT frpm.`Funding Type` FROM frpm JOIN schools ON frpm.CDSCode = schools.CDSCode JOIN satscores ON schools.CDSCode = satscores.cds WHERE schools.County = 'Riverside' AND satscores.AvgScrMath > 400",
+          "rows": [],
+          "fingerprint": null,
+          "executed": false,
+          "confidence": 0.9,
+          "error": "exec: execution_failed: (sqlite3.OperationalError) no such column: frpm.Funding Type\n[SQL: SELECT frpm.`Funding Type` FROM frpm JOIN schools ON frpm.CDSCode = schools.CDSCode JOIN satscores ON schools.CDSCode = satscores.cds"
+        },
+        {
+          "variant": "default",
+          "temperature": 0.8,
+          "sql": "SELECT schools.FundingType FROM schools JOIN satscores ON schools.CDSCode = satscores.cds WHERE schools.County = 'Riverside' AND satscores.AvgScrMath > 400",
+          "rows": [
+            [
+              null
+            ],
+            [
+              "Directly funded"
+            ],
+            [
+              null
+            ],
+            [
+              null
+            ],
+            [
+              null
+            ]
+          ],
+          "row_count": 80,
+          "fingerprint": "344d97376b42181deb447bf8d2627a0b06a309352320c9c8cc7fa81dda3713a6",
+          "executed": true,
+          "confidence": 0.9,
+          "error": ""
+        },
+        {
+          "variant": "bird_shape",
+          "temperature": 0.2,
+          "sql": "SELECT schools.FundingType FROM schools JOIN satscores ON schools.CDSCode = satscores.cds WHERE schools.County = 'Riverside' AND satscores.AvgScrMath > 400",
+          "rows": [
+            [
+              null
+            ],
+            [
+              "Directly funded"
+            ],
+            [
+              null
+            ],
+            [
+              null
+            ],
+            [
+              null
+            ]
+          ],
+          "row_count": 80,
+          "fingerprint": "344d97376b42181deb447bf8d2627a0b06a309352320c9c8cc7fa81dda3713a6",
+          "executed": true,
+          "confidence": 0.9,
+          "error": ""
+        },
+        {
+          "variant": "bird_shape",
+          "temperature": 0.4,
+          "sql": "SELECT frpm.School Name, frpm.Funding Type FROM frpm JOIN schools ON frpm.CDSCode = schools.CDSCode JOIN satscores ON satscores.cds = schools.CDSCode WHERE frpm.County Name = 'Riverside' AND satscores.AvgScrMath > 400",
+          "rows": [],
+          "fingerprint": null,
+          "executed": false,
+          "confidence": 0.9,
+          "error": "exec: invalid_sql: Invalid expression / Unexpected token. Line 1, Col: 172.\n   frpm.CDSCode = schools.CDSCode JOIN satscores ON satscores.cds = schools.CDSCode WHERE frpm.County \u001b[4mName\u001b[0m = 'Riverside' AND satscores."
+        },
+        {
+          "variant": "bird_shape",
+          "temperature": 0.6,
+          "sql": "SELECT schools.School, schools.FundingType FROM schools JOIN satscores ON schools.CDSCode = satscores.cds WHERE schools.County = 'Riverside' AND satscores.AvgScrMath > 400",
+          "rows": [
+            [
+              null,
+              null
+            ],
+            [
+              "River Springs Charter",
+              "Directly funded"
+            ],
+            [
+              null,
+              null
+            ],
+            [
+              "La Sierra High",
+              null
+            ],
+            [
+              "Norte Vista High",
+              null
+            ]
+          ],
+          "row_count": 80,
+          "fingerprint": "7dac3938c00564892a7dd7c0934e16551b5df23ba7b25181af971a3bbe390658",
+          "executed": true,
+          "confidence": 0.9,
+          "error": ""
+        },
+        {
+          "variant": "bird_shape",
+          "temperature": 0.8,
+          "sql": "SELECT frpm.School Name, frpm.Funding Type FROM frpm JOIN schools ON frpm.CDSCode = schools.CDSCode JOIN satscores ON schools.CDSCode = satscores.cds WHERE schools.County = 'Riverside' AND satscores.AvgScrMath > 400",
+          "rows": [],
+          "fingerprint": null,
+          "executed": false,
+          "confidence": 0.9,
+          "error": "exec: execution_failed: (sqlite3.OperationalError) no such column: frpm.School\n[SQL: SELECT frpm.School Name, frpm.Funding Type FROM frpm JOIN schools ON frpm.CDSCode = schools.CDSCode JOIN satscores ON schools.CDSCode = sat"
+        }
+      ]
+    },
+    {
+      "qid": 484,
+      "db_id": "bird_card_games",
+      "difficulty": "moderate",
+      "question": "Please list the Italian names of the cards in the set Coldsnap with the highest converted mana cost.",
+      "gold_sql": "SELECT T2.name FROM foreign_data AS T1 INNER JOIN cards AS T2 ON T2.uuid = T1.uuid INNER JOIN sets AS T3 ON T3.code = T2.setCode WHERE T3.name = 'Coldsnap' AND T1.language = 'Italian' ORDER BY T2.convertedManaCost DESC",
+      "gold_failed": false,
+      "gold_rows_count": 155,
+      "candidates_total": 8,
+      "candidates_executed": 4,
+      "clusters": [
+        {
+          "fingerprint": "ea015d4b3ed9e860",
+          "size": 3,
+          "row_count": 12,
+          "variants": [
+            "bird_shape"
+          ],
+          "temps": [
+            0.2,
+            0.4,
+            0.6
+          ],
+          "sample_sql": "SELECT fd.name FROM foreign_data fd JOIN cards c ON fd.uuid = c.uuid WHERE fd.language = 'Italian' AND c.setCode = 'CSP' AND c.convertedManaCost = (SELECT MAX(convertedManaCost) FROM cards WHERE setCo"
+        },
+        {
+          "fingerprint": "8850144a69527bc2",
+          "size": 1,
+          "row_count": 1,
+          "variants": [
+            "default"
+          ],
+          "temps": [
+            0.6
+          ],
+          "sample_sql": "SELECT fd.name FROM foreign_data fd JOIN cards c ON fd.uuid = c.uuid WHERE fd.language = 'Italian' AND c.setCode = 'CSP' ORDER BY c.convertedManaCost DESC LIMIT 1"
+        }
+      ],
+      "winner_sql": "SELECT fd.name FROM foreign_data fd JOIN cards c ON fd.uuid = c.uuid WHERE fd.language = 'Italian' AND c.setCode = 'CSP' AND c.convertedManaCost = (SELECT MAX(convertedManaCost) FROM cards WHERE setCode = 'CSP')",
+      "winner_variant": "bird_shape",
+      "winner_temp": 0.2,
+      "winner_confidence": 0.95,
+      "match": false,
+      "match_reason": "ordered row count mismatch: gold=155, pred=12",
+      "all_candidates": [
+        {
+          "variant": "default",
+          "temperature": 0.2,
+          "sql": "SELECT fd.name FROM foreign_data fd JOIN cards c ON fd.uuid = c.uuid WHERE fd.language = 'Italian' AND c.setCode = 'COLD' ORDER BY c.convertedManaCost DESC LIMIT 1",
+          "rows": [],
+          "fingerprint": null,
+          "executed": false,
+          "confidence": 0.9,
+          "error": "exec: empty_result: query returned 0 rows"
+        },
+        {
+          "variant": "default",
+          "temperature": 0.4,
+          "sql": "SELECT fd.name FROM foreign_data fd JOIN cards c ON fd.uuid = c.uuid WHERE fd.language = 'Italian' AND c.setCode = 'C' ORDER BY c.convertedManaCost DESC LIMIT 1",
+          "rows": [],
+          "fingerprint": null,
+          "executed": false,
+          "confidence": 0.9,
+          "error": "exec: empty_result: query returned 0 rows"
+        },
+        {
+          "variant": "default",
+          "temperature": 0.6,
+          "sql": "SELECT fd.name FROM foreign_data fd JOIN cards c ON fd.uuid = c.uuid WHERE fd.language = 'Italian' AND c.setCode = 'CSP' ORDER BY c.convertedManaCost DESC LIMIT 1",
+          "rows": [
+            [
+              "Devastazione Solare"
+            ]
+          ],
+          "row_count": 1,
+          "fingerprint": "8850144a69527bc22d4b2612d50139a464074d24acdaac8788c6250d25f06dc0",
+          "executed": true,
+          "confidence": 0.9,
+          "error": ""
+        },
+        {
+          "variant": "default",
+          "temperature": 0.8,
+          "sql": "SELECT fd.name FROM foreign_data fd JOIN cards c ON fd.uuid = c.uuid WHERE fd.language = 'Italian' AND c.setCode = 'Coldsnap' ORDER BY c.convertedManaCost DESC LIMIT 1",
+          "rows": [],
+          "fingerprint": null,
+          "executed": false,
+          "confidence": 0.9,
+          "error": "exec: empty_result: query returned 0 rows"
+        },
+        {
+          "variant": "bird_shape",
+          "temperature": 0.2,
+          "sql": "SELECT fd.name FROM foreign_data fd JOIN cards c ON fd.uuid = c.uuid WHERE fd.language = 'Italian' AND c.setCode = 'CSP' AND c.convertedManaCost = (SELECT MAX(convertedManaCost) FROM cards WHERE setCode = 'CSP')",
+          "rows": [
+            [
+              "Devastazione Solare"
+            ],
+            [
+              "Requisire"
+            ],
+            [
+              "Jokulmorder"
+            ],
+            [
+              "Gufo Gelopiuma"
+            ],
+            [
+              "Araldo di Leshrac"
+            ]
+          ],
+          "row_count": 12,
+          "fingerprint": "ea015d4b3ed9e86010cc8a140b3b788f52f9e2d691d65fa59b2918c1e09765bb",
+          "executed": true,
+          "confidence": 0.95,
+          "error": ""
+        },
+        {
+          "variant": "bird_shape",
+          "temperature": 0.4,
+          "sql": "SELECT fd.name FROM foreign_data fd JOIN cards c ON fd.uuid = c.uuid WHERE fd.language = 'Italian' AND c.setCode = 'CSP' AND c.convertedManaCost = (SELECT MAX(convertedManaCost) FROM cards WHERE setCode = 'CSP')",
+          "rows": [
+            [
+              "Devastazione Solare"
+            ],
+            [
+              "Requisire"
+            ],
+            [
+              "Jokulmorder"
+            ],
+            [
+              "Gufo Gelopiuma"
+            ],
+            [
+              "Araldo di Leshrac"
+            ]
+          ],
+          "row_count": 12,
+          "fingerprint": "ea015d4b3ed9e86010cc8a140b3b788f52f9e2d691d65fa59b2918c1e09765bb",
+          "executed": true,
+          "confidence": 0.9,
+          "error": ""
+        },
+        {
+          "variant": "bird_shape",
+          "temperature": 0.6,
+          "sql": "SELECT fd.name FROM foreign_data fd JOIN cards c ON fd.uuid = c.uuid WHERE fd.language = 'Italian' AND c.setCode = 'CSP' AND c.convertedManaCost = (SELECT MAX(convertedManaCost) FROM cards WHERE setCode = 'CSP')",
+          "rows": [
+            [
+              "Devastazione Solare"
+            ],
+            [
+              "Requisire"
+            ],
+            [
+              "Jokulmorder"
+            ],
+            [
+              "Gufo Gelopiuma"
+            ],
+            [
+              "Araldo di Leshrac"
+            ]
+          ],
+          "row_count": 12,
+          "fingerprint": "ea015d4b3ed9e86010cc8a140b3b788f52f9e2d691d65fa59b2918c1e09765bb",
+          "executed": true,
+          "confidence": 0.9,
+          "error": ""
+        },
+        {
+          "variant": "bird_shape",
+          "temperature": 0.8,
+          "sql": "SELECT fd.name FROM foreign_data fd JOIN cards c ON fd.uuid = c.uuid WHERE fd.language = 'Italian' AND c.setCode = 'COLD' AND c.convertedManaCost = (SELECT MAX(convertedManaCost) FROM cards WHERE setCode = 'COLD')",
+          "rows": [],
+          "fingerprint": null,
+          "executed": false,
+          "confidence": 0.95,
+          "error": "exec: empty_result: query returned 0 rows"
+        }
+      ]
+    },
+    {
+      "qid": 930,
+      "db_id": "bird_formula_1",
+      "difficulty": "simple",
+      "question": "In which Formula_1 race did Lewis Hamilton rank the highest?",
+      "error": "ProviderError(\"embeddings.create failed for model=mistral-embed: Error code: 429 - {'object': 'error', 'message': 'Service tier capacity exceeded for this model.', 'type': 'service_tier_capacity_exceeded', 'param': None, 'code': '3505', 'raw_status_code': 429}\")",
+      "match": false
+    }
+  ]
+}

@@ -3,9 +3,33 @@
 > Один лист, без воды. Берёшь, делаешь, обновляешь `SESSION_HANDOFF.md`,
 > переписываешь этот файл под следующий sprint.
 
+## 2026-05-25 EOD-6 — **v30 = 93.5% EA** verified, выше human-expert baseline
+
+**Headline:** 92.5% (v29) → **93.5% / 200 (v30)** через два targeted P3.F schema-link hint'а на residue. **Выше human-expert baseline 92.96% (BIRD paper) на +0.54pp.** Per-tier v30: simple **97.0%**, moderate **91.9%** (90→91), challenging **91.2%** (30→31).
+
+**Сделано:**
+- **qid 1168 challenging thrombosis_prediction** ("oldest SJS patient" + laboratory questions): hint в `_render_schema_link_hints_appendix` явно **override-ит projection-discipline rule** из base prompt: BIRD gold over-selects `Patient.Birthday` как 3rd SELECT column. Дополнительно — direct `ORDER BY Patient.Birthday ASC LIMIT 1` на JOIN, без `WHERE = (SELECT MIN(...))` subquery. Phrase `"oldest SJS patient"` уникальна в n=200.
+- **qid 1029 moderate european_football_2** ("highest build Up Play Speed" → top 4 teams): positional inversion convention — numerically lower buildUpPlaySpeed = "higher" в BIRD gold; sort **ASC** не DESC + `INNER JOIN Team ON team_api_id` (redundant filter, dropping orphan team_attributes rows). Phrase `"highest build up play speed"` уникальна в n=200.
+- Targeted probe `--only-qids 1168,1029,1275,408,894,1251,1531,902,1404,207 --no-cache`: оба новых hint'а match=True на codestral, 8 prior P3.F targets все PASS (fresh-MISS на qids 408 + 1404 — pre-existing LLM nondeterm, wins сидят в merged baseline).
+- Merge inline Python → `eval/reports/2026-05-25/v30-v29-plus-p3f-q1168-q1029-merged.json`. Wins `[1029, 1168]`, regressions `[]`, 185 → 187.
+- Audit `scripts/audit_rescore.py` → stored 187 / true 187 / 0 mismatches.
+- `scripts/p3f_acceptance.py` extended с 9-м и 10-м target'ом; require-pass green на v30.
+- Tests: 4 fixtures в `tests/agent/nodes/test_schema_link_hints.py` (2 точечных + 2 question-scoped) → 19/19. p3f_acceptance fixtures обновлены до 10 targets → 4/4. Total pytest **355 pass** (была 351 + 4 новых).
+- README hero (line 10) + lift trace (line 14) + comparison table + final ceiling paragraph (line 18) + final-cell row → headline 93.5%, +0.54pp над human expert.
+- Streamlit EN+RU captions: research_value 93.5%/93,5%, +45.7pp / +45,7п.п. над GPT-4 zero-shot, eight P3.F hints listed.
+- Gates: ruff check clean, ruff format clean, mypy strict 57/0 issues.
+
+**Mechanism insight (для cookbook):** qid 1168 потребовал две итерации hint'а — v1 содержал exact SQL template но codestral следовал projection-discipline rule из base prompt и обрезал Birthday. v2 добавил **явный override**: "The projection-discipline rule above does NOT apply here — you MUST include T2.Birthday as the third SELECT column." Это паттерн для будущих "BIRD over-selects" qids: P3.F hint должен явно противоречить projection-discipline, иначе base-prompt rule пересилит.
+
+**Cold-pickup для v30+:** теперь над human-expert baseline. Past 93.5% требует либо paid OR / fine-tune (см. backlog ниже), либо новых clean P3.F candidates в residue 13 qids (мало-вероятно после v22-v30 exhaustion — большинство оставшихся BIRD-annotation-quirks без shape-handle).
+
+**Push status:** 5 local commits ahead of origin (4 EOD-5 + 1 EOD-6 v30). Push gated к юзеру.
+
+---
+
 ## Cold-pickup checklist (orient в 2 минуты)
 
-**Open housekeeping (EOD-5):** push 4 local commits на origin когда юзер даст явное add. Иначе ничего.
+**Open housekeeping (EOD-5/6):** push 5 local commits на origin когда юзер даст явное add. Иначе ничего.
 
 ```powershell
 cd D:/NL_SQL

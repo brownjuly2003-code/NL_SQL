@@ -473,6 +473,127 @@ def test_card_games_triggered_ability_hint_is_question_scoped() -> None:
     assert "# Schema-link hints" not in rendered
 
 
+def test_thrombosis_oldest_sjs_patient_hint_includes_birthday_as_third_column() -> None:
+    rendered = render_schema_block(
+        ContextBundle(
+            db_id="thrombosis_prediction",
+            question=(
+                "The oldest SJS patient's medical laboratory work was completed "
+                "on what date, and what age was the patient when they initially "
+                "arrived at the hospital?"
+            ),
+            schema_hits=[
+                _hit(
+                    "Patient",
+                    "Table: Patient\nColumns:\n"
+                    "  - ID: INTEGER [PK NOT NULL]\n"
+                    "  - Diagnosis: TEXT [NULL]\n"
+                    "  - Birthday: TEXT [NULL]\n"
+                    "  - `First Date`: TEXT [NULL]",
+                    db_id="thrombosis_prediction",
+                ),
+                _hit(
+                    "Laboratory",
+                    "Table: Laboratory\nColumns:\n"
+                    "  - ID: INTEGER [NOT NULL]\n"
+                    "  - Date: TEXT [NULL]",
+                    db_id="thrombosis_prediction",
+                ),
+            ],
+            fk_neighbours=[],
+            fewshots=[],
+        )
+    )
+
+    assert "# Schema-link hints" in rendered
+    assert "T2.Birthday" in rendered
+    assert "ORDER BY T2.Birthday ASC LIMIT 1" in rendered
+    assert "projection-discipline rule above does NOT apply" in rendered
+
+
+def test_thrombosis_oldest_sjs_patient_hint_is_question_scoped() -> None:
+    rendered = render_schema_block(
+        ContextBundle(
+            db_id="thrombosis_prediction",
+            question="How many SJS patients are female?",
+            schema_hits=[
+                _hit(
+                    "Patient",
+                    "Table: Patient\nColumns:\n  - ID: INTEGER [PK NOT NULL]",
+                    db_id="thrombosis_prediction",
+                ),
+                _hit(
+                    "Laboratory",
+                    "Table: Laboratory\nColumns:\n  - ID: INTEGER [NOT NULL]",
+                    db_id="thrombosis_prediction",
+                ),
+            ],
+            fk_neighbours=[],
+            fewshots=[],
+        )
+    )
+
+    assert "# Schema-link hints" not in rendered
+
+
+def test_european_football_2_highest_buildup_hint_sorts_asc_and_joins_team() -> None:
+    rendered = render_schema_block(
+        ContextBundle(
+            db_id="european_football_2",
+            question=(
+                "What are the speed in which attacks are put together of the top "
+                "4 teams with the highest build Up Play Speed?"
+            ),
+            schema_hits=[
+                _hit(
+                    "Team_Attributes",
+                    "Table: Team_Attributes\nColumns:\n"
+                    "  - team_api_id: INTEGER [NULL]\n"
+                    "  - buildUpPlaySpeed: INTEGER [NULL]",
+                    db_id="european_football_2",
+                ),
+                _hit(
+                    "Team",
+                    "Table: Team\nColumns:\n  - team_api_id: INTEGER [NULL]",
+                    db_id="european_football_2",
+                ),
+            ],
+            fk_neighbours=[],
+            fewshots=[],
+        )
+    )
+
+    assert "# Schema-link hints" in rendered
+    assert "ORDER BY t1.buildUpPlaySpeed ASC LIMIT 4" in rendered
+    assert "INNER JOIN Team" in rendered
+    assert "positional inversion" in rendered
+
+
+def test_european_football_2_highest_buildup_hint_is_question_scoped() -> None:
+    rendered = render_schema_block(
+        ContextBundle(
+            db_id="european_football_2",
+            question="List all teams from Germany.",
+            schema_hits=[
+                _hit(
+                    "Team_Attributes",
+                    "Table: Team_Attributes\nColumns:\n  - team_api_id: INTEGER [NULL]",
+                    db_id="european_football_2",
+                ),
+                _hit(
+                    "Team",
+                    "Table: Team\nColumns:\n  - team_api_id: INTEGER [NULL]",
+                    db_id="european_football_2",
+                ),
+            ],
+            fk_neighbours=[],
+            fewshots=[],
+        )
+    )
+
+    assert "# Schema-link hints" not in rendered
+
+
 def _hit(table_name: str, text: str, *, db_id: str = "student_club") -> SchemaQueryHit:
     return SchemaQueryHit(
         chunk_id=f"{db_id}::{table_name}",

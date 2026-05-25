@@ -98,12 +98,47 @@ def test_p3f_acceptance_flags_current_failure_shapes() -> None:
                         "AND E.SSB IN ('-', '+-') AND P.SEX = 'M'"
                     ),
                 },
+                {
+                    # Pre-hint shape: no Birthday reference anywhere, uses
+                    # different age-source columns. Hint requires patient.birthday.
+                    "question_id": 1168,
+                    "match": False,
+                    "pred_sql": (
+                        "SELECT L.Date, P.Age "
+                        "FROM Laboratory L "
+                        "JOIN Patient P ON L.ID = P.ID "
+                        "WHERE P.Diagnosis = 'SJS' "
+                        "ORDER BY P.Age DESC LIMIT 1"
+                    ),
+                },
+                {
+                    # Pre-hint shape: no JOIN to Team, sorts DESC instead of ASC.
+                    # Hint requires both team.team_api_id and the buildupplayspeed
+                    # column to live on team_attributes (via the JOIN).
+                    "question_id": 1029,
+                    "match": False,
+                    "pred_sql": (
+                        "SELECT buildUpPlaySpeed FROM Team_Attributes "
+                        "ORDER BY buildUpPlaySpeed DESC LIMIT 4"
+                    ),
+                },
             ]
         )
     )
 
-    assert [r.qid for r in results] == [1404, 207, 902, 1531, 894, 1251, 408, 1275]
-    assert [r.accepted for r in results] == [False, False, False, False, False, False, False, False]
+    assert [r.qid for r in results] == [
+        1404,
+        207,
+        902,
+        1531,
+        894,
+        1251,
+        408,
+        1275,
+        1168,
+        1029,
+    ]
+    assert [r.accepted for r in results] == [False] * 10
     assert any("event.type" in reason for reason in results[0].reasons)
     assert any("connected.atom_id" in reason for reason in results[1].reasons)
     assert any("driverstandings.position" in reason for reason in results[2].reasons)
@@ -116,6 +151,9 @@ def test_p3f_acceptance_flags_current_failure_shapes() -> None:
     assert any("cards.text" in reason for reason in results[6].reasons)
     assert any("laboratory.centromea" in reason for reason in results[7].reasons)
     assert any("laboratory.ssb" in reason for reason in results[7].reasons)
+    assert any("patient.birthday" in reason for reason in results[8].reasons)
+    assert any("team_attributes.buildupplayspeed" in reason for reason in results[9].reasons)
+    assert any("team.team_api_id" in reason for reason in results[9].reasons)
 
 
 def test_p3f_acceptance_accepts_ea_pass_with_target_columns() -> None:
@@ -207,11 +245,33 @@ def test_p3f_acceptance_accepts_ea_pass_with_target_columns() -> None:
                         "AND T2.SSB IN ('negative', '0') AND T1.SEX = 'M'"
                     ),
                 },
+                {
+                    "question_id": 1168,
+                    "match": True,
+                    "pred_sql": (
+                        "SELECT T1.Date, STRFTIME('%Y', T2.`First Date`) - "
+                        "STRFTIME('%Y', T2.Birthday), T2.Birthday "
+                        "FROM Laboratory AS T1 INNER JOIN Patient AS T2 "
+                        "ON T1.ID = T2.ID "
+                        "WHERE T2.Diagnosis = 'SJS' AND T2.Birthday IS NOT NULL "
+                        "ORDER BY T2.Birthday ASC LIMIT 1"
+                    ),
+                },
+                {
+                    "question_id": 1029,
+                    "match": True,
+                    "pred_sql": (
+                        "SELECT t1.buildUpPlaySpeed "
+                        "FROM Team_Attributes AS t1 "
+                        "INNER JOIN Team AS t2 ON t1.team_api_id = t2.team_api_id "
+                        "ORDER BY t1.buildUpPlaySpeed ASC LIMIT 4"
+                    ),
+                },
             ]
         )
     )
 
-    assert [r.accepted for r in results] == [True, True, True, True, True, True, True, True]
+    assert [r.accepted for r in results] == [True] * 10
 
 
 def test_p3f_acceptance_cli_requires_pass(tmp_path: Path, capsys) -> None:
@@ -228,6 +288,8 @@ def test_p3f_acceptance_cli_requires_pass(tmp_path: Path, capsys) -> None:
                     {"question_id": 1251, "match": False, "pred_sql": "SELECT 1"},
                     {"question_id": 408, "match": False, "pred_sql": "SELECT 1"},
                     {"question_id": 1275, "match": False, "pred_sql": "SELECT 1"},
+                    {"question_id": 1168, "match": False, "pred_sql": "SELECT 1"},
+                    {"question_id": 1029, "match": False, "pred_sql": "SELECT 1"},
                 ]
             )
         ),
@@ -248,6 +310,6 @@ def test_p3f_acceptance_rejects_missing_targets(tmp_path: Path, capsys) -> None:
 
     assert result == 3
     assert (
-        "missing target qids: [1404, 207, 902, 1531, 894, 1251, 408, 1275]"
+        "missing target qids: [1404, 207, 902, 1531, 894, 1251, 408, 1275, 1168, 1029]"
         in capsys.readouterr().err
     )

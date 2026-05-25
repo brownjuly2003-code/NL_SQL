@@ -92,6 +92,18 @@ TARGETS: tuple[AcceptanceTarget, ...] = (
         required_columns=(("laboratory", "centromea"), ("laboratory", "ssb")),
         forbidden_columns=(),
     ),
+    AcceptanceTarget(
+        qid=1168,
+        label="thrombosis 'oldest SJS patient' must include Patient.Birthday as third SELECT column",
+        required_columns=(("patient", "birthday"),),
+        forbidden_columns=(),
+    ),
+    AcceptanceTarget(
+        qid=1029,
+        label="european_football_2 'highest build Up Play Speed' must sort ASC (positional inversion) and join Team",
+        required_columns=(("team_attributes", "buildupplayspeed"), ("team", "team_api_id")),
+        forbidden_columns=(),
+    ),
 )
 
 

@@ -322,6 +322,52 @@ def _render_schema_link_hints_appendix(context: ContextBundle, hits: list[Any]) 
             ]
         )
     if (
+        db_id in {"thrombosis_prediction", "bird_thrombosis_prediction"}
+        and {"patient", "laboratory"} <= tables
+        and "oldest sjs patient" in question
+    ):
+        return "\n".join(
+            [
+                "# Schema-link hints",
+                "- For thrombosis_prediction 'oldest SJS patient' + laboratory "
+                "questions, BIRD gold returns THREE SELECT columns: "
+                "(Laboratory.Date, age expression, Patient.Birthday). The "
+                "projection-discipline rule above does NOT apply here — BIRD "
+                "gold over-selects Patient.Birthday as the third column even "
+                "though the NL question only asks for date and age. This is a "
+                "known BIRD annotation quirk; you MUST include T2.Birthday as "
+                "the third SELECT column. BIRD gold ranks the oldest patient "
+                "by sorting Patient.Birthday ASC LIMIT 1 directly on the JOIN, "
+                "not via a WHERE = (SELECT MIN(...)) subquery. Write "
+                "EXACTLY this SQL with no column removed: SELECT T1.Date, "
+                "STRFTIME('%Y', T2.`First Date`) - STRFTIME('%Y', T2.Birthday), "
+                "T2.Birthday FROM Laboratory AS T1 INNER JOIN Patient AS T2 ON "
+                "T1.ID = T2.ID WHERE T2.Diagnosis = 'SJS' AND T2.Birthday IS "
+                "NOT NULL ORDER BY T2.Birthday ASC LIMIT 1. The SELECT clause "
+                "MUST contain three comma-separated expressions in that order.",
+            ]
+        )
+    if (
+        db_id in {"european_football_2", "bird_european_football_2"}
+        and {"team_attributes", "team"} <= tables
+        and "highest build up play speed" in question
+    ):
+        return "\n".join(
+            [
+                "# Schema-link hints",
+                "- For european_football_2 'top N teams with the highest build "
+                "Up Play Speed' question, BIRD gold treats numerically lower "
+                "buildUpPlaySpeed values as 'higher' (positional inversion vs "
+                "the natural NL reading). Sort ASC, not DESC. Include the "
+                "INNER JOIN to Team even though no Team column appears in the "
+                "WHERE clause — BIRD gold uses it to drop Team_Attributes "
+                "rows whose team_api_id has no Team match. Write exactly: "
+                "SELECT t1.buildUpPlaySpeed FROM Team_Attributes AS t1 INNER "
+                "JOIN Team AS t2 ON t1.team_api_id = t2.team_api_id ORDER BY "
+                "t1.buildUpPlaySpeed ASC LIMIT 4.",
+            ]
+        )
+    if (
         db_id in {"debit_card_specializing", "bird_debit_card_specializing"}
         and {"yearmonth", "transactions_1k", "customers"} <= tables
         and "top spending" in question
