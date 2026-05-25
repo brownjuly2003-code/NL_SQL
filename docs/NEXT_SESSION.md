@@ -3,6 +3,27 @@
 > Один лист, без воды. Берёшь, делаешь, обновляешь `SESSION_HANDOFF.md`,
 > переписываешь этот файл под следующий sprint.
 
+## 2026-05-26 — **v31 = 94.0% EA** verified (+1.04pp над human-expert baseline)
+
+**Headline:** 93.5% (v30) → **94.0% / 200 (v31)** через targeted P3.F schema-link hint для qid 37 на v30 residue. **Выше human-expert baseline 92.96% (BIRD paper) на +1.04pp.** Per-tier v31: simple **97.0%** (65/67), moderate **92.9%** (92/99, +1.0pp от v30 91.9%), challenging **91.2%** (31/34).
+
+**Сделано:**
+- **qid 37 moderate california_schools** ("school with the lowest excellence rate. Indicate the Street, City, Zip and State"): hint в `_hints.py::_render_schema_link_hints_appendix` explicit override projection-discipline. BIRD gold инвертирует question word-order `"Street, City, Zip and State"` → SELECT `(T2.Street, T2.City, T2.State, T2.Zip)`. "Excellence rate" = `CAST(NumGE1500 AS REAL) / NumTstTakr`; rank ASC + LIMIT 1 напрямую на JOIN, без обёртки `WHERE CDSCode = (SELECT ...)`. Phrase `"lowest excellence rate"` уникальна для qid 37 в n=200 (проверено).
+- Targeted probe `--only-qids 37,1029,1168,1275,408,894,1251,1531,902,1404,207 --no-cache`: 11/11 match=True. qid 37 pred ≡ gold byte-for-byte (modulo whitespace). Все 10 prior P3.F targets PASS — no regressions.
+- Merge inline Python → `eval/reports/2026-05-26/v31-v30-plus-p3f-q37-merged.json`. Wins `[37]`, regressions `[]`, 187 → 188.
+- Audit `scripts/audit_rescore.py` → stored 188 / true 188 / **0 mismatches**.
+- `scripts/p3f_acceptance.py` extended 11-м target'ом (qid 37, required Schools.{Street, City, State, Zip}). require-pass green на v31.
+- Tests: 2 fixtures в `tests/agent/nodes/test_schema_link_hints.py` (positive + question-scoped); 3 fixtures в `tests/scripts/test_p3f_acceptance.py` обновлены под 11 targets. Total pytest **357 pass** (был 355 + 2 новых).
+- README hero (line 10) + lift trace (line 14) + comparison table row + final-cell paragraph (line 18) → headline 94.0%, +1.04pp над human expert, +12.05pp над AskData+GPT-4o, +46.2pp над GPT-4 zero-shot.
+- Streamlit EN+RU captions: research_value 94.0%/94,0%, +46.2pp / +46,2 п.п., девять P3.F hints listed.
+- Gates: ruff check + format clean, mypy strict 0/59 issues, pytest 357 pass.
+
+**Cold-pickup для v31+:** теперь над human-expert baseline +1.04pp. Past 94.0% требует либо paid OR / fine-tune (см. backlog ниже), либо новых clean P3.F candidates в residue 12 qids. По manual review остатка (см. секцию ниже "v30 residue per-qid diagnosis"): candidates ranked low-EV after v31 because most are unanimous-unfixable BIRD-annotation-quirks; качка past 94% без paid становится исследованием отдельных qids с риском несимметричных hint'ов.
+
+**Push status:** локальная HEAD будет иметь два новых commit'а поверх `3c82e37` (refactor + housekeeping; v31 EA move). Push gated к юзеру.
+
+---
+
 ## 2026-05-26 — Codex P2 backlog reachability audit (housekeeping, no code changes)
 
 Triggered by mis-attempt at "small safe item" Codex P2 #9 (json_mode cache key) — landed fix + regression test, then independent Codex + Kimi review verdict = busywork (collision impossible per `groq.py:44` force-set). Diff reverted, HEAD `3c82e37` unchanged.

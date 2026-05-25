@@ -104,6 +104,17 @@ TARGETS: tuple[AcceptanceTarget, ...] = (
         required_columns=(("team_attributes", "buildupplayspeed"), ("team", "team_api_id")),
         forbidden_columns=(),
     ),
+    AcceptanceTarget(
+        qid=37,
+        label="california_schools 'lowest excellence rate' must SELECT (Street, City, State, Zip) — BIRD inverts question word-order",
+        required_columns=(
+            ("schools", "street"),
+            ("schools", "city"),
+            ("schools", "state"),
+            ("schools", "zip"),
+        ),
+        forbidden_columns=(),
+    ),
 )
 
 

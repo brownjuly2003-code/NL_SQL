@@ -594,6 +594,72 @@ def test_european_football_2_highest_buildup_hint_is_question_scoped() -> None:
     assert "# Schema-link hints" not in rendered
 
 
+def test_california_schools_lowest_excellence_rate_hint_overrides_column_order() -> None:
+    rendered = render_schema_block(
+        ContextBundle(
+            db_id="california_schools",
+            question=(
+                "What is the complete address of the school with the lowest "
+                "excellence rate? Indicate the Street, City, Zip and State."
+            ),
+            schema_hits=[
+                _hit(
+                    "satscores",
+                    "Table: satscores\nColumns:\n"
+                    "  - cds: TEXT [PK NOT NULL]\n"
+                    "  - NumGE1500: INTEGER [NULL]\n"
+                    "  - NumTstTakr: INTEGER [NULL]",
+                    db_id="california_schools",
+                ),
+                _hit(
+                    "schools",
+                    "Table: schools\nColumns:\n"
+                    "  - CDSCode: TEXT [PK NOT NULL]\n"
+                    "  - Street: TEXT [NULL]\n"
+                    "  - City: TEXT [NULL]\n"
+                    "  - State: TEXT [NULL]\n"
+                    "  - Zip: TEXT [NULL]",
+                    db_id="california_schools",
+                ),
+            ],
+            fk_neighbours=[],
+            fewshots=[],
+        )
+    )
+
+    assert "# Schema-link hints" in rendered
+    assert "(Street, City, State, Zip)" in rendered
+    assert "NumGE1500" in rendered
+    assert "ORDER BY" in rendered
+    assert "ASC LIMIT 1" in rendered
+    assert "does NOT apply" in rendered  # explicit override of projection-discipline
+
+
+def test_california_schools_lowest_excellence_rate_hint_is_question_scoped() -> None:
+    rendered = render_schema_block(
+        ContextBundle(
+            db_id="california_schools",
+            question="List all schools in Los Angeles county.",
+            schema_hits=[
+                _hit(
+                    "satscores",
+                    "Table: satscores\nColumns:\n  - cds: TEXT [PK NOT NULL]",
+                    db_id="california_schools",
+                ),
+                _hit(
+                    "schools",
+                    "Table: schools\nColumns:\n  - CDSCode: TEXT [PK NOT NULL]",
+                    db_id="california_schools",
+                ),
+            ],
+            fk_neighbours=[],
+            fewshots=[],
+        )
+    )
+
+    assert "# Schema-link hints" not in rendered
+
+
 def _hit(table_name: str, text: str, *, db_id: str = "student_club") -> SchemaQueryHit:
     return SchemaQueryHit(
         chunk_id=f"{db_id}::{table_name}",

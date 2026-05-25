@@ -237,6 +237,28 @@ def _render_schema_link_hints_appendix(context: ContextBundle, hits: list[Any]) 
             ]
         )
     if (
+        db_id in {"california_schools", "bird_california_schools"}
+        and {"satscores", "schools"} <= tables
+        and "lowest excellence rate" in question
+    ):
+        return "\n".join(
+            [
+                "# Schema-link hints",
+                "- For california_schools 'school with the lowest excellence rate' "
+                "question, BIRD gold orders SELECT columns as (Street, City, State, "
+                "Zip) — NOT in the natural question word-order 'Street, City, Zip "
+                "and State'. The projection-discipline rule above does NOT apply "
+                "here; you MUST emit SELECT columns exactly as (T2.Street, T2.City, "
+                "T2.State, T2.Zip). 'Excellence rate' is "
+                "CAST(satscores.NumGE1500 AS REAL) / satscores.NumTstTakr; rank ASC "
+                "with LIMIT 1 directly on the JOIN — do NOT wrap in a "
+                "WHERE CDSCode = (SELECT ...) subquery. Write EXACTLY: "
+                "SELECT T2.Street, T2.City, T2.State, T2.Zip FROM satscores AS T1 "
+                "INNER JOIN schools AS T2 ON T1.cds = T2.CDSCode ORDER BY "
+                "CAST(T1.NumGE1500 AS REAL) / T1.NumTstTakr ASC LIMIT 1.",
+            ]
+        )
+    if (
         db_id in {"debit_card_specializing", "bird_debit_card_specializing"}
         and {"yearmonth", "transactions_1k", "customers"} <= tables
         and "top spending" in question

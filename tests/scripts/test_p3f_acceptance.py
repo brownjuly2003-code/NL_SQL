@@ -122,6 +122,20 @@ def test_p3f_acceptance_flags_current_failure_shapes() -> None:
                         "ORDER BY buildUpPlaySpeed DESC LIMIT 4"
                     ),
                 },
+                {
+                    # Pre-hint shape: question-word-order projection (Street,
+                    # City, Zip, State) — missing schools.state because the
+                    # natural reading puts Zip before State, so pred drops
+                    # State or reorders. Hint requires BIRD's inverted
+                    # (Street, City, State, Zip) order.
+                    "question_id": 37,
+                    "match": False,
+                    "pred_sql": (
+                        "SELECT s.Street, s.City, s.Zip "
+                        "FROM schools s JOIN satscores t ON s.CDSCode = t.cds "
+                        "ORDER BY (t.NumGE1500 * 1.0 / t.NumTstTakr) ASC LIMIT 1"
+                    ),
+                },
             ]
         )
     )
@@ -137,8 +151,9 @@ def test_p3f_acceptance_flags_current_failure_shapes() -> None:
         1275,
         1168,
         1029,
+        37,
     ]
-    assert [r.accepted for r in results] == [False] * 10
+    assert [r.accepted for r in results] == [False] * 11
     assert any("event.type" in reason for reason in results[0].reasons)
     assert any("connected.atom_id" in reason for reason in results[1].reasons)
     assert any("driverstandings.position" in reason for reason in results[2].reasons)
@@ -154,6 +169,8 @@ def test_p3f_acceptance_flags_current_failure_shapes() -> None:
     assert any("patient.birthday" in reason for reason in results[8].reasons)
     assert any("team_attributes.buildupplayspeed" in reason for reason in results[9].reasons)
     assert any("team.team_api_id" in reason for reason in results[9].reasons)
+    # qid 37 pred missing schools.state column → required-column failure.
+    assert any("schools.state" in reason for reason in results[10].reasons)
 
 
 def test_p3f_acceptance_accepts_ea_pass_with_target_columns() -> None:
@@ -267,11 +284,21 @@ def test_p3f_acceptance_accepts_ea_pass_with_target_columns() -> None:
                         "ORDER BY t1.buildUpPlaySpeed ASC LIMIT 4"
                     ),
                 },
+                {
+                    "question_id": 37,
+                    "match": True,
+                    "pred_sql": (
+                        "SELECT T2.Street, T2.City, T2.State, T2.Zip "
+                        "FROM satscores AS T1 INNER JOIN schools AS T2 "
+                        "ON T1.cds = T2.CDSCode "
+                        "ORDER BY CAST(T1.NumGE1500 AS REAL) / T1.NumTstTakr ASC LIMIT 1"
+                    ),
+                },
             ]
         )
     )
 
-    assert [r.accepted for r in results] == [True] * 10
+    assert [r.accepted for r in results] == [True] * 11
 
 
 def test_p3f_acceptance_cli_requires_pass(tmp_path: Path, capsys) -> None:
@@ -290,6 +317,7 @@ def test_p3f_acceptance_cli_requires_pass(tmp_path: Path, capsys) -> None:
                     {"question_id": 1275, "match": False, "pred_sql": "SELECT 1"},
                     {"question_id": 1168, "match": False, "pred_sql": "SELECT 1"},
                     {"question_id": 1029, "match": False, "pred_sql": "SELECT 1"},
+                    {"question_id": 37, "match": False, "pred_sql": "SELECT 1"},
                 ]
             )
         ),
@@ -310,6 +338,6 @@ def test_p3f_acceptance_rejects_missing_targets(tmp_path: Path, capsys) -> None:
 
     assert result == 3
     assert (
-        "missing target qids: [1404, 207, 902, 1531, 894, 1251, 408, 1275, 1168, 1029]"
+        "missing target qids: [1404, 207, 902, 1531, 894, 1251, 408, 1275, 1168, 1029, 37]"
         in capsys.readouterr().err
     )

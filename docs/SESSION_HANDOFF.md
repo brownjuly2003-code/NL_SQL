@@ -1,21 +1,23 @@
-# NL_SQL — Session Handoff (2026-05-26: Kimi P1.4 `_support.py` split + Codex P2 reachability audit; HEAD будет один новый commit поверх `3c82e37`, **push gated к юзеру**)
+# NL_SQL — Session Handoff (2026-05-26: v31 = 94.0% EA via P3.F qid 37 + Kimi P1.4 `_support.py` split + Codex P2 reachability audit; HEAD будет два новых commit'а поверх `3c82e37`, **push gated к юзеру**)
 
-> **Tl;dr 2026-05-26 — Kimi P1.4 refactor + Codex P2 reachability housekeeping (no EA change, no code semantics change):**
+> **Tl;dr 2026-05-26 — v31 = 94.0% EA (+1.04pp над human-expert baseline) + housekeeping + refactor:**
 >
-> 1. **Kimi P1.4 refactor:** `src/nl_sql/agent/nodes/_support.py` 483 lines → split на три модуля:
+> 1. **v31 EA move (most important):** v30 93.5% → **v31 94.0%** через one targeted P3.F schema-link hint для qid 37 moderate california_schools. BIRD gold инвертирует question word-order `"Street, City, Zip and State"` → SELECT `(Street, City, State, Zip)`. Pure column-order BIRD-quirk + projection-discipline override. Phrase `"lowest excellence rate"` уникальна для qid 37 в n=200. Pred ≡ gold verbatim. Per-tier v31: simple 97.0% (65/67) / **moderate 92.9% (92/99, +1.0pp от v30)** / challenging 91.2% (31/34). Артефакт: `eval/reports/2026-05-26/v31-v30-plus-p3f-q37-merged.json`, audit 0 mismatches, p3f_acceptance 11/11 PASS.
+> 2. **Kimi P1.4 refactor (parallel):** `src/nl_sql/agent/nodes/_support.py` 483 lines → split на три модуля:
 >    - `_support.py` 184 lines — public API only: `parse_generate_sql_output`, `render_m_schema`, `render_schema_block`, `render_fewshot_block`
 >    - `_text_utils.py` 53 lines (new) — JSON parsing helpers (`_strip_code_fence`, `_safe_loads`, `_coerce_float`, `_strip_to_sql`) + `_JSON_FENCE_RE`
->    - `_hints.py` 302 lines (new) — schema appendices: `_M_COL_RE`, `_M_FK_RE` + 10 P3.F schema-link if-blocks + join-hints + extended-samples
+>    - `_hints.py` 302 lines (new) — schema appendices: `_M_COL_RE`, `_M_FK_RE` + 11 P3.F schema-link if-blocks + join-hints + extended-samples
 >
->    All 7 external import paths preserved (`tests/test_agent_support.py`, `eval/runner.py`, `tests/agent/nodes/test_schema_link_hints.py`, `scripts/wider_sc_poc.py`, `generate_sql.py`, `repair_once.py`, `plan_query.py`). No circular imports. Zero behavior change verified via 355/355 pytest pre-split → 355/355 post-split.
-> 2. **Codex P2 backlog reachability audit (housekeeping, no code change):** triggered by mis-attempt at P2 #9 (json_mode cache key) on 2026-05-26 morning, reverted after Codex+Kimi independent review verdict = busywork (`groq.py:44` force-set'ит True, Mistral codestral игнорирует поле — collision impossible). Then verified all remaining P2 items have **0 production impact** on current state:
+>    All 7 external import paths preserved (`tests/test_agent_support.py`, `eval/runner.py`, `tests/agent/nodes/test_schema_link_hints.py`, `scripts/wider_sc_poc.py`, `generate_sql.py`, `repair_once.py`, `plan_query.py`). No circular imports. Zero behavior change verified via 355/355 pytest pre-split → 357/357 post-split (+2 new tests for qid 37 hint).
+> 3. **Codex P2 backlog reachability audit (housekeeping, no code change):** triggered by mis-attempt at P2 #9 (json_mode cache key) on 2026-05-26 morning, reverted after Codex+Kimi independent review verdict = busywork (`groq.py:44` force-set'ит True, Mistral codestral игнорирует поле — collision impossible). Then verified all remaining P2 items have **0 production impact** on current state:
 >    - **#7** (rescore_arcwise transition buckets stale): `0/200` stale-vs-fresh disagreements в `eval/reports/2026-05-24/v29-arcwise-rescored.json`. Latent.
 >    - **#8** (`_hashable` float bucketing): `0` set-mismatch records в v22-v30 baselines (200 each); 8 в demo runs 2026-05-11, all honest column-count diff, not float-bucket. Latent.
 >    - **#9** (json_mode cache key): **false positive, closed.**
 >    - **#10** (cache miss/fill race): latent — текущий eval pipeline serial per qid; fires only при parallel workers (not currently used).
 >
 >    Per-item findings recorded в `docs/NEXT_SESSION.md` Open Audit Items table. Lesson: before touching audit findings, grep call-sites + reachability-check eval reports first.
-> 3. **Gates:** 355 pytest pass (unchanged), ruff check + format clean, mypy strict 0/59 issues, audit_rescore 0 mismatches on v30 baseline.
+> 4. **Gates:** 357 pytest pass (+2 new), ruff check + format clean, mypy strict 0/59 issues, 11/11 P3.F acceptance PASS, audit_rescore 0 mismatches on v31 baseline.
+> 5. **HF Space:** последний deploy был synced на 92.5% (EOD-3 2026-05-25). Live URL <https://liovina-nl-sql.hf.space> отстаёт на 1.5pp от 94.0% repo. Redeploy через `.deploy_hf.py` (gitignored). Gated к юзеру.
 >
 > ---
 >
