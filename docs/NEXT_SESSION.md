@@ -3,6 +3,18 @@
 > Один лист, без воды. Берёшь, делаешь, обновляешь `SESSION_HANDOFF.md`,
 > переписываешь этот файл под следующий sprint.
 
+## 2026-05-26 — Codex P2 backlog reachability audit (housekeeping, no code changes)
+
+Triggered by mis-attempt at "small safe item" Codex P2 #9 (json_mode cache key) — landed fix + regression test, then independent Codex + Kimi review verdict = busywork (collision impossible per `groq.py:44` force-set). Diff reverted, HEAD `3c82e37` unchanged.
+
+Verified remaining P2 items have **0 production impact** on current state:
+- #7 (rescore_arcwise transition buckets): `0/200` stale-vs-fresh disagreements в `v29-arcwise-rescored.json`. Transitions output unchanged if fixed.
+- #8 (`_hashable` float bucketing): `0` set-mismatch records в v22-v30 baselines (8 в demo runs 2026-05-11, all honest column-diff, not float-bucket).
+- #9 (json_mode cache key): false positive, closed (see counterfactual в backlog table).
+- #10 (cache miss/fill race): latent — текущий eval pipeline serial per qid; fires only при parallel workers (not currently used).
+
+**Lesson:** before touching any backlog item, grep call-sites + reachability-check eval reports first. Codex audits may flag patterns без verifying they fire in actual runtime paths. Memory `feedback_no_shipping_blind_ci` extends to "verify P2 audit findings reachable before fixing".
+
 ## 2026-05-25 EOD-6 — **v30 = 93.5% EA** verified, выше human-expert baseline
 
 **Headline:** 92.5% (v29) → **93.5% / 200 (v30)** через два targeted P3.F schema-link hint'а на residue. **Выше human-expert baseline 92.96% (BIRD paper) на +0.54pp.** Per-tier v30: simple **97.0%**, moderate **91.9%** (90→91), challenging **91.2%** (30→31).
@@ -97,7 +109,7 @@ Per-tier v29 (post-EOD-3 correction): simple 97.0% (65/67) / **moderate 90.9%** 
 error), повторить эти 8 шагов:
 
 1. **Verify uniqueness** in n=200: `python -c "import json; r=json.load(open('eval/reports/2026-05-24/v29-v28-plus-p3f-q1275-merged.json',encoding='utf-8')); print([(x['question_id'], x['db_id']) for x in r['records'] if 'YOUR_PHRASE' in x['question'].lower()])"`. Phrase должна возвращать ТОЛЬКО target qid.
-2. **Add hint** в `src/nl_sql/agent/nodes/_support.py::_render_schema_link_hints_appendix`. Триггер = db_id + phrase(s) + table set. По шаблону существующих 8 if-блоков.
+2. **Add hint** в `src/nl_sql/agent/nodes/_hints.py::_render_schema_link_hints_appendix`. Триггер = db_id + phrase(s) + table set. По шаблону существующих 8 if-блоков.
 3. **Add target** в `scripts/p3f_acceptance.py::TARGETS` — required_columns + forbidden_columns (опционально).
 4. **Probe** `uv run python scripts/eval_baseline.py --config C --only-qids <NEW>,1275,408,894,1251,1531,902,1404,207 --report-suffix p3f-<new>-v1`. Все 8 prior targets должны PASS + новый match=True.
 5. **Merge** — inline Python (см. commit `99bae66` или `v28`/`v29` для шаблона; примерно 30 строк). Load baseline, swap pred_sql + match=True для new qid'ов, recompute summary + per_difficulty, write `v<N+1>-v<N>-plus-p3f-q<X>-merged.json`.
@@ -114,7 +126,7 @@ voted_by tag и delta, inline Python даёт control + audit trail. Не вын
 **Сделано:**
 - Расширен `scripts/p3f_acceptance.py` восьмым target'ом: qid `1275` moderate
   thrombosis_prediction, требует `Laboratory.CENTROMEA` + `Laboratory.SSB`.
-- В `src/nl_sql/agent/nodes/_support.py::_render_schema_link_hints_appendix`
+- В `src/nl_sql/agent/nodes/_hints.py::_render_schema_link_hints_appendix`
   добавлен узкий hint: db_id `thrombosis_prediction` + фраза
   `"anti-centromere"` или `"anti-SSB"` в вопросе + таблицы `{Patient,
   Laboratory}` в retrieved. Hint указывает что CENTROMEA/SSB **живут на
@@ -162,12 +174,12 @@ fetch). Local heterogeneous CSC lever остаётся parked.
 | # | Severity | Scope | Estimate |
 |---|---|---|---|
 | Kimi P1.3 | P1 | `app/streamlit_app.py` 1184 lines → split (`components/`, `theme.py`, `i18n/`) | 1.5h |
-| Kimi P1.4 | P1 | `src/nl_sql/agent/nodes/_support.py` 17KB → split (`render_schema.py`, `parse_output.py`, `schema_hints.py`) | 1h |
+| ~~Kimi P1.4~~ | **Done 2026-05-26** | `src/nl_sql/agent/nodes/_support.py` 483 lines → `_support.py` (public API, 184 lines) + `_text_utils.py` (JSON parsing, 53 lines) + `_hints.py` (schema appendices, 302 lines). Zero behavior change, 355 pytest pass, ruff + mypy strict clean. | 1h |
 | Kimi P1.6 | P1 | API coverage 58% → DI для `_make_singletons` + mock provider в API tests | 1.5h |
-| Codex #7 | P2 | `scripts/rescore_arcwise.py:82` transition buckets используют stale `rec["match"]` вместо recomputed match | 30min |
-| Codex #8 | P2 | `execution_accuracy.py:206` unordered float comparison через hash-bucket — два tolerant-equivalent rows могут попасть в разные buckets, set-mode EA false-negative | 1h (replace hash-bucket с tolerance-aware row matching) |
-| Codex #9 | P2 | `cache.py:77` cache key omits `GenerateRequest.json_mode` — JSON-mode call может replay non-JSON cached response | 30min (bump cache version key + include json_mode + other provider-affecting params) |
-| Codex #10 | P2 | `cache.py:88` cache miss/fill не locked — parallel eval workers могут race, duplicate paid calls, last-writer-wins | 1h (per-key diskcache lock или atomic memoization) |
+| Codex #7 | P2 latent | `scripts/rescore_arcwise.py:82` transition buckets используют stale `rec["match"]` вместо recomputed `out_entry["original_match"]` (line 141 overwrite). **Reachability verified 2026-05-26: 0/200 stale-vs-fresh disagreements в `eval/reports/2026-05-24/v29-arcwise-rescored.json`** — bug latent, transitions counts (7 gained / 91 lost) honest. Fix = 1-line swap, no observable change в output. | 30min, deferred |
+| Codex #8 | P2 latent | `execution_accuracy.py:209-221` `_hashable` bucketing через `round(v / 1e-6)` может развести два tolerance-equivalent rows (diff ~9e-7, banker's rounding edge) в разные buckets → set-mode false negative. **Reachability verified 2026-05-26: 0 set-mismatch records в v22-v30 baselines (200 records each); 8 set-mismatch в demo runs 2026-05-11, все honest column-count diff не float-bucket.** Fix = replace `_hashable` с pair-wise tolerance match (O(n²)). | 1h, deferred |
+| ~~Codex #9~~ | **false positive 2026-05-26** | `cache.py:77` cache key omits `req.json_mode`. **Не достижимо в текущем коде:** `src/nl_sql/llm/providers/groq.py:44` force-set'ит `json_mode=True` через `req.model_copy` на каждом Groq call; Mistral codestral игнорирует поле (`base.py:21` docstring). Per (provider, model) пара `json_mode` имеет константное значение → collision impossible. Не трогать (попытка fix landed 2026-05-26, reverted после Codex+Kimi independent review). | closed |
+| Codex #10 | P2 latent | `cache.py:88` cache miss/fill race без lock — parallel eval workers могут race, duplicate paid calls, last-writer-wins. **Reachability: текущий eval pipeline serial per qid (см. `runner.py::_run_one`). Latent до момента запуска parallel workers.** Fix = per-key diskcache lock или atomic memoization (`Cache.add` semantic). | 1h, deferred |
 
 2. **HF Spaces redeploy** — на EOD-3 был synced на 92.5%, ничего не сдвинулось. Если юзер захочет регрес-проверить — `D:/NL_SQL/.deploy_hf.py` (gitignored, локальный).
 
@@ -228,7 +240,7 @@ runner-level fix.
 **Сделано:**
 - Расширен `scripts/p3f_acceptance.py` седьмым target'ом: qid `408` moderate
   card_games, требует `rulings.text` + `rulings.uuid`, запрещает `cards.text`.
-- В `src/nl_sql/agent/nodes/_support.py::_render_schema_link_hints_appendix`
+- В `src/nl_sql/agent/nodes/_hints.py::_render_schema_link_hints_appendix`
   добавлен узкий hint: db_id `card_games` + фраза `"triggered ability"` в
   вопросе + таблицы `{cards, rulings}` в retrieved. Hint объясняет, что
   ruling-style abilities живут в `rulings.text` (не `cards.text`), требует
@@ -303,7 +315,7 @@ Past 93% — paid territory.
 - Расширен `scripts/p3f_acceptance.py` пятым и шестым target'ами:
   - qid `894` moderate formula_1, требует `lapTimes.milliseconds` в pred.
   - qid `1251` simple thrombosis_prediction, требует `Examination.ID` в pred.
-- В `src/nl_sql/agent/nodes/_support.py::_render_schema_link_hints_appendix`
+- В `src/nl_sql/agent/nodes/_hints.py::_render_schema_link_hints_appendix`
   добавлены два узких hint'а:
   - **qid 894 formula_1.** Триггер: db_id `formula_1` + фраза `"lap time recorded"`
     либо `"recorded lap time"` в вопросе + таблицы `{lapTimes, drivers, races}`
@@ -381,7 +393,7 @@ baseline 92.96%. Past 93% — paid territory.
 **Сделано:**
 - Расширен `scripts/p3f_acceptance.py` четвёртым target'ом: qid `1531` moderate
   debit_card_specializing, требует `yearmonth.consumption` column ref в pred.
-- В `src/nl_sql/agent/nodes/_support.py::_render_schema_link_hints_appendix`
+- В `src/nl_sql/agent/nodes/_hints.py::_render_schema_link_hints_appendix`
   добавлен узкий hint: db_id `debit_card_specializing`, фразы "top spending" и
   "average price" в вопросе, `{yearmonth, transactions_1k, customers}` все в
   retrieved-таблицах → многострочная подсказка с фрагментом готового SQL,
@@ -433,7 +445,7 @@ baseline 92.96%. Past 93% — paid territory.
 - Расширен `scripts/p3f_acceptance.py` третьим target'ом: qid `902` simple
   formula_1, требует `driverStandings.position`, запрещает `results.position` /
   `results.positionOrder`.
-- В `src/nl_sql/agent/nodes/_support.py::_render_schema_link_hints_appendix`
+- В `src/nl_sql/agent/nodes/_hints.py::_render_schema_link_hints_appendix`
   добавлен узкий hint: db_id `formula_1`, фраза "track number" в вопросе,
   `driverStandings` в таблицах → одна строка в Schema-link hints о
   `driverStandings.position` vs `results.position`. qid 902 — единственный
