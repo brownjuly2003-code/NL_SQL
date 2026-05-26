@@ -147,6 +147,16 @@ def main() -> int:
                 per_diff[variant][difficulty][0] += int(is_match)
 
             # Transitions vs sql_only and vs full.
+            # Use the FRESHLY-re-executed original-variant match (written at
+            # `out_entry["original_match"]` by the variant loop above) rather
+            # than the stale `orig_match` snapshot from the input JSON — the
+            # whole point of rescore is to apply current scoring semantics, so
+            # mixing in stored EA bits would produce a hybrid that doesn't
+            # match either run cleanly (Codex audit 2026-05-25 #7). On the
+            # current canonical v22-v30 baselines the two values agree on
+            # every record, so this is a future-proofing change; no
+            # observable difference in committed reports.
+            fresh_orig = bool(out_entry.get("original_match", orig_match))
             for variant in ("sql_only", "full"):
                 v_match = out_entry.get(f"{variant}_match")
                 if v_match is None:
@@ -158,11 +168,11 @@ def main() -> int:
                 )
                 if gold_changed:
                     out_entry[f"{variant}_gold_changed"] = True
-                if orig_match and not v_match:
+                if fresh_orig and not v_match:
                     transitions["lost"].append(
                         {"qid": qid, "variant": variant, "difficulty": difficulty}
                     )
-                elif (not orig_match) and v_match:
+                elif (not fresh_orig) and v_match:
                     transitions["gained"].append(
                         {"qid": qid, "variant": variant, "difficulty": difficulty}
                     )
