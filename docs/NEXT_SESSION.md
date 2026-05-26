@@ -3,6 +3,27 @@
 > Один лист, без воды. Берёшь, делаешь, обновляешь `SESSION_HANDOFF.md`,
 > переписываешь этот файл под следующий sprint.
 
+## 2026-05-26 EOD-7 — autonomous housekeeping sprint (HEAD `4207df0`, pushed)
+
+**Cleared today (one-shot autonomous run):**
+- **Push backlog cleared.** 8 локальных commits на origin/main (`03ad6ae..a47a7fe` was +8 ahead; теперь поверх ещё `a7c1d81` + `4207df0`). Origin синхронен.
+- **HF Space redeployed на v31 94.0%.** `.deploy_hf.py` upload + auto-LFS, RUNNING ~90s. Playwright E2E: EN 94.0% визибл, нет stale 92.5%. `short_description` 92.5% → 94.0%. Screenshot: `docs/ui-live-v31.png`.
+- **Kimi P1.3 closed** (`a7c1d81`): `app/streamlit_app.py` 1184 → 200 lines через split на 8 модулей (i18n.py, theme.py, samples.py, bootstrap.py + components/ пакет). `pyproject.toml` `[tool.ruff].src` расширен `["src","tests","app"]`. Local Streamlit + Playwright E2E подтвердил zero behavior change: EN 94.0%, RU 94,0%, schema explorer render OK.
+- **Kimi P1.6 closed** (`4207df0`): API coverage **58% → 89%**. Extracted `Singletons` NamedTuple + `get_singletons()` Depends-factory. Все 3 pipeline-touching routes (`/readyz`, `/databases`, `/ask`) теперь принимают `Singletons = Depends(get_singletons)`. Production callers через `@lru_cache(maxsize=1)` на `_make_singletons` (zero behavior change). New `tests/api/test_api_routes_mocked.py` — 13 tests покрывают healthy/empty-chroma/empty-registry/factory-raises /readyz пути, auth + schema-collection-exception /databases пути, unknown-db / canned-result / error-kind / confidence-buckets /ask пути, + rate-limit 60→61st 429.
+- **Gates:** 370 pytest pass (357+13), ruff check + format clean, mypy strict 0/59, P3.F acceptance 11/11 PASS, audit_rescore 0 mismatches.
+
+**Open backlog после EOD-7:**
+
+| # | Severity | Scope | Estimate |
+|---|---|---|---|
+| Codex #7 | P2 latent | `scripts/rescore_arcwise.py:82` stale `rec["match"]` — verified 0/200 disagreements on v29, transitions output unchanged if fixed | 30min, deferred |
+| Codex #8 | P2 latent | `execution_accuracy.py` `_hashable` float bucketing — verified 0 set-mismatch in v22-v30 baselines | 1h, deferred |
+| Codex #10 | P2 latent | `cache.py:88` cache miss/fill race — fires только при parallel workers (not currently used) | 1h, deferred |
+
+**Past 94.0% (gated к юзеру):** requires paid OR top-up / fine-tune / metric pivot. Residue 12 qids — large majority BIRD-annotation-quirks (unanimous fail через 3-model reasoning sweeps EOD-2 + EOD-4). Saturation подтверждена.
+
+---
+
 ## 2026-05-26 — **v31 = 94.0% EA** verified (+1.04pp над human-expert baseline)
 
 **Headline:** 93.5% (v30) → **94.0% / 200 (v31)** через targeted P3.F schema-link hint для qid 37 на v30 residue. **Выше human-expert baseline 92.96% (BIRD paper) на +1.04pp.** Per-tier v31: simple **97.0%** (65/67), moderate **92.9%** (92/99, +1.0pp от v30 91.9%), challenging **91.2%** (31/34).
@@ -194,9 +215,9 @@ fetch). Local heterogeneous CSC lever остаётся parked.
 
 | # | Severity | Scope | Estimate |
 |---|---|---|---|
-| Kimi P1.3 | P1 | `app/streamlit_app.py` 1184 lines → split (`components/`, `theme.py`, `i18n/`) | 1.5h |
+| ~~Kimi P1.3~~ | **Done 2026-05-26 EOD-7** (`a7c1d81`) | `app/streamlit_app.py` 1184 → 200 lines split: `i18n.py`/`theme.py`/`samples.py`/`bootstrap.py` + `components/{output,show_working,schema_explorer,welcome}.py`. `pyproject.toml` ruff `src` расширен `["src","tests","app"]`. Local Streamlit + Playwright E2E подтвердил EN 94.0% / RU 94,0% / schema explorer render OK. Zero behavior change, 357 pytest pass. | 1.5h |
 | ~~Kimi P1.4~~ | **Done 2026-05-26** | `src/nl_sql/agent/nodes/_support.py` 483 lines → `_support.py` (public API, 184 lines) + `_text_utils.py` (JSON parsing, 53 lines) + `_hints.py` (schema appendices, 302 lines). Zero behavior change, 355 pytest pass, ruff + mypy strict clean. | 1h |
-| Kimi P1.6 | P1 | API coverage 58% → DI для `_make_singletons` + mock provider в API tests | 1.5h |
+| ~~Kimi P1.6~~ | **Done 2026-05-26 EOD-7** (`4207df0`) | API coverage **58% → 89%**. Extracted `Singletons` NamedTuple + `get_singletons()` FastAPI Depends-factory. `/readyz`, `/databases`, `/ask` теперь принимают `Singletons = Depends(get_singletons)`; production callers idiomatic через `@lru_cache(maxsize=1)` на `_make_singletons` (zero behavior change). New `tests/api/test_api_routes_mocked.py` (13 tests) покрывает /readyz healthy/empty/raises пути, /databases auth + schema-exception, /ask unknown-db / canned-result / error-kind / confidence-buckets + rate-limit 60→61st 429. | 1.5h |
 | Codex #7 | P2 latent | `scripts/rescore_arcwise.py:82` transition buckets используют stale `rec["match"]` вместо recomputed `out_entry["original_match"]` (line 141 overwrite). **Reachability verified 2026-05-26: 0/200 stale-vs-fresh disagreements в `eval/reports/2026-05-24/v29-arcwise-rescored.json`** — bug latent, transitions counts (7 gained / 91 lost) honest. Fix = 1-line swap, no observable change в output. | 30min, deferred |
 | Codex #8 | P2 latent | `execution_accuracy.py:209-221` `_hashable` bucketing через `round(v / 1e-6)` может развести два tolerance-equivalent rows (diff ~9e-7, banker's rounding edge) в разные buckets → set-mode false negative. **Reachability verified 2026-05-26: 0 set-mismatch records в v22-v30 baselines (200 records each); 8 set-mismatch в demo runs 2026-05-11, все honest column-count diff не float-bucket.** Fix = replace `_hashable` с pair-wise tolerance match (O(n²)). | 1h, deferred |
 | ~~Codex #9~~ | **false positive 2026-05-26** | `cache.py:77` cache key omits `req.json_mode`. **Не достижимо в текущем коде:** `src/nl_sql/llm/providers/groq.py:44` force-set'ит `json_mode=True` через `req.model_copy` на каждом Groq call; Mistral codestral игнорирует поле (`base.py:21` docstring). Per (provider, model) пара `json_mode` имеет константное значение → collision impossible. Не трогать (попытка fix landed 2026-05-26, reverted после Codex+Kimi independent review). | closed |

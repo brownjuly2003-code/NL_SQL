@@ -1,5 +1,38 @@
-# NL_SQL — Session Handoff (2026-05-26: v31 = 94.0% EA via P3.F qid 37 + Kimi P1.4 `_support.py` split + Codex P2 reachability audit; HEAD будет два новых commit'а поверх `3c82e37`, **push gated к юзеру**)
+# NL_SQL — Session Handoff (2026-05-26 EOD-7: Kimi P1.3 + P1.6 closed, 8 housekeeping commits pushed, HF Space live на v31 94.0%)
 
+> **Tl;dr 2026-05-26 EOD-7 — autonomous housekeeping sprint (HEAD `4207df0`, pushed):**
+>
+> 1. **Push backlog cleared:** 8 локальных commits (от `03ad6ae` до `a47a7fe`) запушены на `origin/main`. Origin теперь синхронен с локальным состоянием поверх v31 94.0%.
+> 2. **HF Space deploy → v31 94.0%:** `.deploy_hf.py` upload + auto LFS, RUNNING за ~90s, Playwright E2E подтвердил EN headline `94.0%` визибл без stale `92.5%`. `short_description` поднят 92.5% → 94.0%. Скриншот: `docs/ui-live-v31.png`.
+> 3. **Kimi P1.3 closed (`a7c1d81` refactor):** `app/streamlit_app.py` 1184 → **200 lines** через декомпозицию на 8 модулей:
+>    - `app/i18n.py` (187 lines) — I18N dict + `t()` helper
+>    - `app/theme.py` (343 lines) — FONT_CSS + inject_chrome + CHART_PALETTE + style_fig
+>    - `app/samples.py` (122 lines) — SAMPLE_QUESTIONS + SOURCE_LINKS
+>    - `app/bootstrap.py` (93 lines) — bootstrap + make_pipeline
+>    - `app/components/output.py` (83 lines) — render_output + chart helpers + label classifiers
+>    - `app/components/show_working.py` (55 lines) — render_show_working
+>    - `app/components/schema_explorer.py` (42 lines) — render_schema_explorer + fetch_schema_chunks
+>    - `app/components/welcome.py` (104 lines) — render_welcome + render_lang_toggle
+>
+>    `pyproject.toml`: `[tool.ruff].src` расширен с `["src", "tests"]` до `["src", "tests", "app"]` — sibling imports (Streamlit script-dir injection) теперь сортируются как first-party. Zero behavior change verified локально: `uv run streamlit run app/streamlit_app.py --server.port 8517` + Playwright E2E → EN headline 94.0% + RU toggle на 94,0% + Schema explorer label рендерятся.
+> 4. **Kimi P1.6 closed (`4207df0` test):** API coverage **58% → 89%**. Extracted `Singletons` NamedTuple + `get_singletons()` FastAPI Depends-factory из `src/nl_sql/api/main.py`. Routes `/readyz`, `/databases`, `/ask` теперь принимают `singletons: Singletons = Depends(get_singletons)`. /readyz preserves try/except graceful-degrade через `app.dependency_overrides.get(get_singletons, get_singletons)()`. Production callers пользуются `@lru_cache(maxsize=1)` на `_make_singletons` (zero behavior change).
+>
+>    New `tests/api/test_api_routes_mocked.py` (13 tests) полностью покрывает business logic:
+>    - `/readyz`: healthy / empty-chroma / empty-registry / factory-raises
+>    - `/databases`: list + table_count / auth missing→401 / auth correct→200 / schema-collection exception→table_count 0
+>    - `/ask`: unknown db_id→404 / canned PipelineRunResult passthrough / error-kind propagation / confidence label buckets (High/Medium/Low/Unknown)
+>    - rate-limit: 60 → 61st 429 with Retry-After header
+>
+>    Coverage breakdown: 207 statements, 22 missing (только live Mistral/Chroma bootstrap `_build_pipeline_components` + `_make_singletons` LRU + минимальные edge lines).
+> 5. **Gates:** **370 pytest pass** (was 357 + 13 new), ruff check + format clean, mypy strict 0/59 issues, P3.F acceptance 11/11 PASS, audit_rescore 0 mismatches.
+> 6. **Memory state:** all 4 EOD-7 commits live на origin. HF Space синхронен. P1.3 + P1.6 backlog cleared.
+>
+> **Не закрыто (deferred / по приоритету):**
+> - Codex #7 / #8 / #10 — все P2 latent, 0 production impact verified (NEXT_SESSION.md secs Open Audit Items)
+> - SESSION_HANDOFF / NEXT_SESSION хисторий не trimmed (handoff > 200 строк прошлых snapshots — OK для cold pickup но можно archive в будущем).
+>
+> ---
+>
 > **Tl;dr 2026-05-26 — v31 = 94.0% EA (+1.04pp над human-expert baseline) + housekeeping + refactor:**
 >
 > 1. **v31 EA move (most important):** v30 93.5% → **v31 94.0%** через one targeted P3.F schema-link hint для qid 37 moderate california_schools. BIRD gold инвертирует question word-order `"Street, City, Zip and State"` → SELECT `(Street, City, State, Zip)`. Pure column-order BIRD-quirk + projection-discipline override. Phrase `"lowest excellence rate"` уникальна для qid 37 в n=200. Pred ≡ gold verbatim. Per-tier v31: simple 97.0% (65/67) / **moderate 92.9% (92/99, +1.0pp от v30)** / challenging 91.2% (31/34). Артефакт: `eval/reports/2026-05-26/v31-v30-plus-p3f-q37-merged.json`, audit 0 mismatches, p3f_acceptance 11/11 PASS.
