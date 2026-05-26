@@ -24,7 +24,7 @@ import uuid
 from collections import defaultdict, deque
 from functools import lru_cache
 from pathlib import Path
-from typing import Any
+from typing import Any, NamedTuple
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Request, status
 from pydantic import BaseModel, Field
@@ -221,8 +221,21 @@ def _build_pipeline_components(
     return registry, schema_index, sql_provider, explain_provider
 
 
+class Singletons(NamedTuple):
+    """The four runtime objects the API routes share.
+
+    Exposed as a public type so tests can construct mock instances and feed
+    them through ``app.dependency_overrides[get_singletons]``.
+    """
+
+    pipeline: Any
+    registry: DatabaseRegistry
+    schema_index: SchemaIndex
+    sql_provider: LLMProvider
+
+
 @lru_cache(maxsize=1)
-def _make_singletons() -> tuple[Any, DatabaseRegistry, SchemaIndex, LLMProvider]:
+def _make_singletons() -> Singletons:
     """Lazy: build the pipeline only when the first /ask hits — keeps /healthz
     fast and avoids touching Chroma when the API is used for status probes."""
     import os
@@ -244,7 +257,12 @@ def _make_singletons() -> tuple[Any, DatabaseRegistry, SchemaIndex, LLMProvider]
         use_dac_prompt=os.environ.get("NLSQL_DAC") == "1",
     )
     pipeline = build_pipeline(config)
-    return pipeline, registry, schema_index, sql_provider
+    return Singletons(pipeline, registry, schema_index, sql_provider)
+
+
+def get_singletons() -> Singletons:
+    """FastAPI Depends-able factory; tests override via ``app.dependency_overrides``."""
+    return _make_singletons()
 
 
 def create_app() -> FastAPI:
@@ -311,10 +329,11 @@ def create_app() -> FastAPI:
         registered = 0
         schema_chunks = 0
         try:
-            _pipeline, registry, schema_index, _sql = _make_singletons()
-            registered = len(registry.ids())
+            factory: Any = app.dependency_overrides.get(get_singletons, get_singletons)
+            singletons: Singletons = factory()
+            registered = len(singletons.registry.ids())
             registry_ok = registered > 0
-            schema_chunks = schema_index.schema_collection.count()
+            schema_chunks = singletons.schema_index.schema_collection.count()
             chroma_ok = schema_chunks > 0
         except Exception:
             pass
@@ -330,13 +349,15 @@ def create_app() -> FastAPI:
     # --------------------------------------------------------- product API
 
     @app.get("/databases", response_model=DatabasesResponse, tags=["catalog"])
-    def databases(_auth: str = Depends(require_api_key)) -> DatabasesResponse:
-        _pipeline, registry, schema_index, _sql = _make_singletons()
+    def databases(
+        _auth: str = Depends(require_api_key),
+        singletons: Singletons = Depends(get_singletons),  # noqa: B008
+    ) -> DatabasesResponse:
         infos: list[DatabaseInfo] = []
-        for db_id in registry.ids():
-            spec = registry.get(db_id)
+        for db_id in singletons.registry.ids():
+            spec = singletons.registry.get(db_id)
             try:
-                records = schema_index.schema_collection.get(
+                records = singletons.schema_index.schema_collection.get(
                     where={"db_id": db_id}, include=["metadatas"]
                 )
                 table_count = len(records.get("metadatas") or [])
@@ -353,18 +374,21 @@ def create_app() -> FastAPI:
         return DatabasesResponse(databases=infos)
 
     @app.post("/ask", response_model=AskResponse, tags=["nl-sql"])
-    def ask(req: AskRequest, _auth: str = Depends(require_api_key)) -> AskResponse:
-        pipeline, registry, _schema, _sql = _make_singletons()
-        if req.db_id not in registry.ids():
+    def ask(
+        req: AskRequest,
+        _auth: str = Depends(require_api_key),
+        singletons: Singletons = Depends(get_singletons),  # noqa: B008
+    ) -> AskResponse:
+        if req.db_id not in singletons.registry.ids():
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"unknown db_id: {req.db_id!r}; see /databases for the list",
             )
-        spec = registry.get(req.db_id)
+        spec = singletons.registry.get(req.db_id)
         t0 = time.perf_counter()
         try:
             result = run_pipeline(
-                pipeline,
+                singletons.pipeline,
                 question=req.question,
                 db_id=req.db_id,
                 dialect=spec.dialect,
