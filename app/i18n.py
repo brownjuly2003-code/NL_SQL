@@ -28,6 +28,8 @@ I18N: dict[str, dict[str, str]] = {
         "metric_caption": "30 dev + 30 held-out, balanced split, all ten query categories at 100% on the free-tier codestral pipeline.",
         "research_kicker": "BIRD Mini-Dev research benchmark",
         "research_value": "94.0% / 200",
+        "research_short": "Above the human-expert baseline · $0 external cost",
+        "methodology_label": "How the score was reached",
         "research_caption": (
             "Hybrid pipeline: "
             "<span class='nl-term' title='Mistral codestral-latest — SQL-specialised generation model, free tier'>codestral</span> + "
@@ -109,6 +111,8 @@ I18N: dict[str, dict[str, str]] = {
         "metric_caption": "30 dev + 30 held-out, сбалансированный сплит, все десять категорий запросов на 100% через бесплатный codestral.",
         "research_kicker": "Исследовательский бенчмарк BIRD Mini-Dev",
         "research_value": "94,0% / 200",
+        "research_short": "Выше human-expert baseline · внешние расходы — ноль",
+        "methodology_label": "Как получен результат",
         "research_caption": (
             "Гибридный пайплайн: "
             "<span class='nl-term' title='Mistral codestral-latest — модель, специализированная под генерацию SQL, бесплатный тариф'>codestral</span> + "

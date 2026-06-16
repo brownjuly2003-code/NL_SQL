@@ -1,10 +1,11 @@
 [theme]
-# Monochrome editorial palette — ink on warm paper, single restrained accent.
-# No color drama: hierarchy comes from typography, weight, and whitespace.
-primaryColor = "#111111"
-backgroundColor = "#FAFAF7"
-secondaryBackgroundColor = "#F1EFE9"
-textColor = "#111111"
+# Editorial-warm light palette — stone neutrals, one terracotta accent.
+# Hierarchy from weight, whitespace and a single restrained accent.
+base = "light"
+primaryColor = "#C2541B"
+backgroundColor = "#FCFBF9"
+secondaryBackgroundColor = "#F5F3EF"
+textColor = "#1C1A17"
 font = "sans serif"
 
 [server]

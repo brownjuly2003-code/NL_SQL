@@ -1,4 +1,4 @@
-"""Hero block + sample question cards + sidebar language toggle."""
+"""Hero block + stat cards + methodology note + sample question cards."""
 
 from __future__ import annotations
 
@@ -8,31 +8,6 @@ from i18n import t
 from samples import SAMPLE_QUESTIONS
 
 
-def render_lang_toggle() -> None:
-    """Two flat segments: EN / RU. Active one inverts."""
-    lang = st.session_state.get("lang", "en")
-    st.markdown(f"<div class='nl-side-sub'>{t('lang_label')}</div>", unsafe_allow_html=True)
-    cols = st.columns(2)
-    with cols[0]:
-        if st.button(
-            t("lang_en"),
-            key="lang_en_btn",
-            use_container_width=True,
-            type="primary" if lang == "en" else "secondary",
-        ):
-            st.session_state.lang = "en"
-            st.rerun()
-    with cols[1]:
-        if st.button(
-            t("lang_ru"),
-            key="lang_ru_btn",
-            use_container_width=True,
-            type="primary" if lang == "ru" else "secondary",
-        ):
-            st.session_state.lang = "ru"
-            st.rerun()
-
-
 def render_welcome(db_id: str) -> None:
     st.markdown(
         "<div class='nl-display'>NL<span class='arrow'>→</span>SQL</div>",
@@ -40,7 +15,7 @@ def render_welcome(db_id: str) -> None:
     )
     st.markdown(f"<div class='nl-tagline'>{t('tagline')}</div>", unsafe_allow_html=True)
 
-    col_a, col_b = st.columns(2)
+    col_a, col_b = st.columns(2, gap="medium")
     with col_a:
         st.markdown(
             f"""
@@ -63,27 +38,29 @@ def render_welcome(db_id: str) -> None:
               <div class='nl-metric-row'>
                 <span class='nl-metric-value'>{t("research_value")}</span>
               </div>
-              <div class='nl-metric-cap'>{t("research_caption")}</div>
+              <div class='nl-metric-cap'>{t("research_short")}</div>
             </div>
             """,
             unsafe_allow_html=True,
         )
 
-    samples = SAMPLE_QUESTIONS.get(db_id)
-    if not samples:
+    with st.expander(t("methodology_label"), expanded=False):
         st.markdown(
-            f"<div class='nl-section-label'>{t('ask_intro_label')}</div>",
+            f"<div class='nl-method-body'>{t('research_caption')}</div>",
             unsafe_allow_html=True,
         )
-        st.info(t("no_samples"))
-        return
 
     st.markdown(
         f"<div class='nl-section-label'>{t('ask_intro_label')}</div>",
         unsafe_allow_html=True,
     )
 
-    cols = st.columns(len(samples))
+    samples = SAMPLE_QUESTIONS.get(db_id)
+    if not samples:
+        st.info(t("no_samples"))
+        return
+
+    cols = st.columns(len(samples), gap="medium")
     diff_map = {
         "simple": t("diff_simple"),
         "moderate": t("diff_moderate"),

@@ -3,6 +3,38 @@
 > Один лист, без воды. Берёшь, делаешь, обновляешь `SESSION_HANDOFF.md`,
 > переписываешь этот файл под следующий sprint.
 
+## 2026-06-17 — UI редизайн (anti-slop, ~9.5/10, push на origin/main)
+
+Юзер: «современная страница» → затем «до 9.8/10». Полный редизайн Streamlit chrome
+из editorial-monochrome в **editorial-warm light**. Функциональность не тронута.
+
+- **Палитра:** Stone + **Terracotta `#C2541B`** (увод от AI-indigo / «Lila rule»). Один
+  акцент, color-lock. `.streamlit/config.toml` `base="light"` + primaryColor.
+- **Шрифт:** self-hosted **Manrope** (UI + цифры, кириллица, `tabular-nums`) + **JetBrains
+  Mono** (SQL). Старые `.otf` (Stetica/serif) удалены; 4 variable woff2 (latin+cyrillic)
+  в `app/static/fonts/` (`manrope-*`, `jbmono-*`). NB: глобальный шрифтовой селектор
+  обязан покрывать `[data-testid="stMarkdownContainer"] *`, иначе Streamlit держит Source Sans.
+- **Layout:** контролы (база / режим / EN-RU) → **sticky top bar** `st.container(key="nl_topbar")`;
+  сайдбар = только schema / advanced / clear, без скролла; EN/RU убран из сайдбара (пилюли);
+  кнопки-сэмплы компактные; длинная методология → свёрнутый `expander` (welcome влезает в экран
+  и не триггерит auto-scroll `stAppScrollToBottomContainer`).
+- **Полировка:** shape-lock (12/8/pill), `:focus-visible` ring, `:active`, тёплые тени, WCAG AA
+  (white-on-terracotta 4.59:1, ссылки 6.66:1 — проверено скриптом), `text-wrap` balance/pretty.
+- **Файлы:** `app/theme.py` (ядро CSS), `app/streamlit_app.py`, `app/components/{welcome,output}.py`,
+  `app/i18n.py`, `.streamlit/config.toml`, `README.md`.
+- **Verified:** локальный Streamlit (порт 8501) + bundled Playwright (`chromium-1223`, MCP-браузер
+  занят) — Manrope применился, реальный запрос рендерится (COUNT 4, SQL-подсветка), адаптив 700px
+  держится, консоль чистая, ruff чистый. `/design-review`: P0/P1/P2 = 0, APPROVED. Самооценка ~9.5.
+
+**Остаток / gated:**
+- **HF Space live НЕ обновлён.** Деплой отдельный через `.deploy_hf.py` (нужен HF token —
+  в `.env` его НЕТ). GitHub запушен; HF redeploy — ручной шаг владельца.
+- true-mobile <480px: 5-колоночный top bar поджимается (лимит Streamlit-колонок) — для
+  desktop-first портфолио ОК.
+- Скриншоты README / `docs/ui-live-*.png` сняты на старом дизайне → устарели до HF-redeploy.
+
+---
+
 ## 2026-05-26 EOD-7 — autonomous housekeeping sprint (HEAD `4207df0`, pushed)
 
 **Cleared today (one-shot autonomous run):**

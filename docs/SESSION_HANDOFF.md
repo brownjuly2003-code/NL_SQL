@@ -1,5 +1,13 @@
 # NL_SQL — Session Handoff (2026-05-26 EOD-7: Kimi P1.3 + P1.6 closed, 8 housekeeping commits pushed, HF Space live на v31 94.0%)
 
+> **Tl;dr 2026-06-17 — UI редизайн (anti-slop, ~9.5/10, push на `origin/main`):** Streamlit
+> chrome переписан editorial-monochrome → **editorial-warm light** (Stone + Terracotta `#C2541B`,
+> увод от AI-indigo; self-hosted Manrope + JetBrains Mono с кириллицей; sticky top bar с
+> база/режим/EN-RU; компактный сайдбар без скролла; методология в expander; WCAG AA проверен;
+> `/design-review` APPROVED). Функциональность/eval не тронуты, 94.0% как было. Детали и остаток —
+> `docs/NEXT_SESSION.md` (секция 2026-06-17). **Caveat: HF Space live НЕ обновлён** — отдельный
+> `.deploy_hf.py` (HF token не в `.env`), GitHub запушен, HF redeploy — ручной шаг владельца.
+>
 > **Tl;dr 2026-05-26 EOD-7 — autonomous housekeeping sprint (HEAD `4207df0`, pushed):**
 >
 > 1. **Push backlog cleared:** 8 локальных commits (от `03ad6ae` до `a47a7fe`) запушены на `origin/main`. Origin теперь синхронен с локальным состоянием поверх v31 94.0%.
