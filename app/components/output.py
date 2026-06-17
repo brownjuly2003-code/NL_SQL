@@ -64,7 +64,7 @@ def render_output(output: OutputFormat | None, *, caption: str) -> None:
         st.metric(scalar_metric_label(output.column), str(output.value))
     elif isinstance(output, Sentence):
         st.markdown(
-            f"<div style=\"font-size:1.2rem; line-height:1.5; "
+            f'<div style="font-size:1.2rem; line-height:1.5; '
             f"color:var(--text); font-weight:500; "
             f'margin:0.4rem 0 0.6rem;">{output.text}</div>',
             unsafe_allow_html=True,
