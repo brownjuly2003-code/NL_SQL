@@ -1,8 +1,10 @@
 # NL→SQL Assistant
 
+[![Live demo](https://img.shields.io/badge/live_demo-HF_Space-FF6F00?logo=huggingface&logoColor=white)](https://liovina-nl-sql.hf.space) ![Python](https://img.shields.io/badge/python-3.12+-3776AB?logo=python&logoColor=white) ![Tests](https://img.shields.io/badge/tests-316_passing-brightgreen) ![BIRD Mini-Dev](https://img.shields.io/badge/BIRD_Mini--Dev-94.0%25_EA-brightgreen) ![License](https://img.shields.io/badge/license-MIT-blue)
+
 Portfolio demo для Senior Data Engineer / Data Analyst. Принимает вопрос на естественном языке (RU/EN), возвращает ответ из реляционной БД в одной из четырёх форм: число, предложение, таблица, график. Всегда показывает использованный SQL и объяснение. AST-guard + read-only execution + row cap — без шанса на DML/DDL побег.
 
-**Статус:** Stages 1–10 закрыты + grounded-critique directed retry + multi-provider voting + Sonnet 4.6 bridge через GraceKelly + production FastAPI surface + редизайн Streamlit UI (EN/RU toggle, современный светлый стиль — Inter, indigo-акцент, sticky top bar, 2026-06-16). **316 тестов зелёные**, ruff/mypy strict clean. Live API verified: Mistral + Groq + Perplexity Pro.
+**Статус:** Stages 1–10 закрыты. Production FastAPI surface, hybrid retrieval (grounded-critique directed retry + multi-provider voting + Sonnet 4.6 bridge через GraceKelly), редизайн Streamlit UI с EN/RU-переключателем (детали дизайна — в разделе UI ниже). **316 тестов зелёные**, ruff / mypy --strict clean. Live API verified: Mistral + Groq + Perplexity Pro.
 
 **Headline metrics**
 
@@ -115,4 +117,4 @@ For the public Streamlit Cloud demo (free, ~5 min setup), see
 
 ## License
 
-MIT (TBD).
+MIT. See [LICENSE](LICENSE).
