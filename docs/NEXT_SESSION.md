@@ -26,12 +26,22 @@
   занят) — Manrope применился, реальный запрос рендерится (COUNT 4, SQL-подсветка), адаптив 700px
   держится, консоль чистая, ruff чистый. `/design-review`: P0/P1/P2 = 0, APPROVED. Самооценка ~9.5.
 
+**HF Space live — ОБНОВЛЁН (2026-06-17).** `https://liovina-nl-sql.hf.space` = новый дизайн,
+verified Playwright: hero шрифт Manrope, accent `rgb(194,84,27)`=`#C2541B`, no runtime exception,
+консоль чистая. `docs/ui-live-en.png` / `ui-live-ru.png` пересняты с live.
+
+**Deploy-рецепт HF (чтобы не терять снова):**
+- Токен: `HF_TOKEN` в `D:/VacancyRadar/.env` (аккаунт `liovina`); Mistral-ключ — `D:/TXT/Mistral_API.txt`.
+  `.deploy_hf.py` берёт токен из env: `export HF_TOKEN=$(grep ^HF_TOKEN /d/VacancyRadar/.env | cut -d= -f2- | tr -d ' "')`.
+- `.deploy_hf.py` **ТРЕБУЕТ `.tmp/hf_Dockerfile`** (gitignored → подчищается, был потерян). Если нет — пересоздать:
+  `FROM python:3.12-slim`; `ENV PYTHONPATH=/app/src`; `apt-get install -y libgomp1` (onnxruntime);
+  `COPY requirements.txt . && pip install -r requirements.txt`; `COPY . .`;
+  `CMD streamlit run app/streamlit_app.py --server.port=7860 --server.address=0.0.0.0 --server.headless=true`.
+- Запуск (Windows): `export HF_TOKEN=… && .venv/Scripts/python.exe .deploy_hf.py` → поллит до RUNNING.
+  Бывает транзиентный `WinError 10054` на whoami — просто перезапустить.
+
 **Остаток / gated:**
-- **HF Space live НЕ обновлён.** Деплой отдельный через `.deploy_hf.py` (нужен HF token —
-  в `.env` его НЕТ). GitHub запушен; HF redeploy — ручной шаг владельца.
-- true-mobile <480px: 5-колоночный top bar поджимается (лимит Streamlit-колонок) — для
-  desktop-first портфолио ОК.
-- Скриншоты README / `docs/ui-live-*.png` сняты на старом дизайне → устарели до HF-redeploy.
+- true-mobile <480px: 5-колоночный top bar поджимается (лимит Streamlit-колонок) — для desktop-first ОК.
 
 ---
 

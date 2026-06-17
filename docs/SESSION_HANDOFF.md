@@ -5,8 +5,9 @@
 > увод от AI-indigo; self-hosted Manrope + JetBrains Mono с кириллицей; sticky top bar с
 > база/режим/EN-RU; компактный сайдбар без скролла; методология в expander; WCAG AA проверен;
 > `/design-review` APPROVED). Функциональность/eval не тронуты, 94.0% как было. Детали и остаток —
-> `docs/NEXT_SESSION.md` (секция 2026-06-17). **Caveat: HF Space live НЕ обновлён** — отдельный
-> `.deploy_hf.py` (HF token не в `.env`), GitHub запушен, HF redeploy — ручной шаг владельца.
+> `docs/NEXT_SESSION.md` (секция 2026-06-17). **HF Space live ОБНОВЛЁН** на новый дизайн
+> (`liovina-nl-sql.hf.space`, deploy через `.deploy_hf.py`, HF token из `D:/VacancyRadar/.env`,
+> `.tmp/hf_Dockerfile` пересоздан — рецепт в NEXT_SESSION). GitHub origin/main тоже запушен.
 >
 > **Tl;dr 2026-05-26 EOD-7 — autonomous housekeeping sprint (HEAD `4207df0`, pushed):**
 >
