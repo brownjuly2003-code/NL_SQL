@@ -59,6 +59,15 @@ class Settings(BaseSettings):
     perplexity_browser_model: str = "claude-sonnet-4-6"
     perplexity_base_url: str = "http://127.0.0.1:8011"
 
+    # GraceKelly orchestrate path — the AgentFlow branch runs NL->SQL on
+    # Claude Sonnet 5 via GraceKelly (AgentFlow ADR 0008), not Mistral. The
+    # portfolio default_provider stays `mistral`; this slot is selected
+    # explicitly via build_provider("gracekelly"). `claude-sonnet-5` resolves
+    # through GraceKelly's live catalog to "Claude Sonnet 5.0".
+    gracekelly_model: str = "claude-sonnet-5"
+    gracekelly_base_url: str = "http://127.0.0.1:8011"
+    gracekelly_timeout_seconds: float = 180.0
+
     mistral_api_key: str = Field(default="", validation_alias="MISTRAL_API_KEY")
     github_token: str = Field(default="", validation_alias="GITHUB_TOKEN")
     groq_api_key: str = Field(default="", validation_alias="GROQ_API_KEY")

@@ -5,6 +5,7 @@ from __future__ import annotations
 from nl_sql.config import Settings, get_settings
 from nl_sql.llm.providers.base import LLMProvider, ProviderError
 from nl_sql.llm.providers.github_models import GitHubModelsProvider
+from nl_sql.llm.providers.gracekelly import GraceKellyProvider
 from nl_sql.llm.providers.groq import GroqProvider
 from nl_sql.llm.providers.mistral import MistralProvider
 from nl_sql.llm.providers.ollama import OllamaProvider
@@ -16,11 +17,17 @@ def build_provider(name: str, settings: Settings | None = None) -> LLMProvider:
     """Build an LLMProvider by short name.
 
     Recognized names: ``mistral``, ``github_models``, ``groq``, ``ollama``,
-    ``perplexity``, ``openrouter``. Raises ProviderError for unknown names
-    or missing credentials.
+    ``perplexity``, ``openrouter``, ``gracekelly``. Raises ProviderError for
+    unknown names or missing credentials.
     """
     s = settings or get_settings()
     match name:
+        case "gracekelly":
+            return GraceKellyProvider(
+                model=s.gracekelly_model,
+                base_url=s.gracekelly_base_url,
+                timeout_seconds=s.gracekelly_timeout_seconds,
+            )
         case "mistral":
             return MistralProvider(
                 api_key=s.mistral_api_key,
