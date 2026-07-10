@@ -209,6 +209,15 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
+    # Validate CLI input before the (filesystem-dependent) dataset load, so a
+    # typo fails fast with exit 3 instead of a FileNotFoundError on hosts
+    # without the BIRD dump.
+    try:
+        only_qids = [int(x) for x in args.only_qids.split(",") if x.strip()]
+    except ValueError:
+        print("[error] invalid --only-qids: expected comma-separated integers", file=sys.stderr)
+        return 3
+
     examples = load_bird_mini_dev(Path(args.bird_root))
     if args.db:
         examples = [e for e in examples if e.registry_db_id == args.db]
@@ -216,11 +225,6 @@ def main(argv: list[str] | None = None) -> int:
             print(f"[error] no examples for db {args.db!r}", file=sys.stderr)
             return 3
 
-    try:
-        only_qids = [int(x) for x in args.only_qids.split(",") if x.strip()]
-    except ValueError:
-        print("[error] invalid --only-qids: expected comma-separated integers", file=sys.stderr)
-        return 3
     if only_qids:
         examples_by_qid = {e.question_id: e for e in examples}
         sample = [examples_by_qid[qid] for qid in only_qids if qid in examples_by_qid]
