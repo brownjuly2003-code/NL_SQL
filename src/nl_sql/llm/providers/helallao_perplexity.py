@@ -63,7 +63,7 @@ class HelallaoPerplexityProvider:
         if not model.strip():
             raise ProviderError("HelallaoPerplexityProvider requires non-empty model")
         try:
-            import perplexity as _pplx  # type: ignore[import-untyped]
+            import perplexity as _pplx
         except ImportError as e:
             raise ProviderError(
                 "helallao perplexity-ai not installed. Run: "

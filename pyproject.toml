@@ -114,3 +114,9 @@ ignore_missing_imports = true
 [[tool.mypy.overrides]]
 module = ["plotly.*", "streamlit", "pandas", "pandas.*"]
 ignore_missing_imports = true
+
+# Unofficial Perplexity client (github.com/helallao/perplexity-ai): optional
+# local install, absent in CI — silence both import-untyped and import-not-found.
+[[tool.mypy.overrides]]
+module = ["perplexity"]
+ignore_missing_imports = true
