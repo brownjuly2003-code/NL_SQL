@@ -109,6 +109,16 @@ chroma_data.*/
 # Reviews scratch (полные обзоры коммитятся, runtime артефакты — нет)
 reviews/*.err
 
+# Внутренняя кухня — аудиты, планы, handoff-заметки. Никогда не публикуется:
+# ни в git-индексе, ни на HF Space (деплой фильтрует по git ls-files).
+# Гейт: scripts/check_repo_hygiene.py (CI) + прунинг в .deploy_hf.py.
+/audit_*.md
+/plan_*.md
+/_ref_*
+/[0-9][0-9]_[0-9][0-9]_[0-9][0-9].md
+/docs/NEXT_SESSION.md
+/docs/data_flow.*
+
 # Secrets — никогда не коммитить
 secrets/
 credentials/
