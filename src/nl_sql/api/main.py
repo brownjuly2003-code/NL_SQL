@@ -310,7 +310,7 @@ def create_app() -> FastAPI:
         version=__version__,
         description=(
             "Portfolio API: natural-language questions → SQL → executed rows. "
-            "BIRD Mini-Dev 61.0% reproducible single-run (codestral, $0); the "
+            "BIRD Mini-Dev 61.5% reproducible single-run (codestral, $0); the "
             "hint-assisted headline is eval-only. Chinook 100%. AST safety guards."
         ),
     )

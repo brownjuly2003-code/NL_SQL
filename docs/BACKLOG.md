@@ -55,10 +55,18 @@ slice, config E, codestral, hints off.
 | Step | EA | Δ | Verdict |
 |---|---:|---:|---|
 | Baseline (after the comparator fix) | 58.0% | — | — |
-| **Question + `evidence` moved to the top of the prompt** | **61.0%** | **+3.0** | ✅ kept — this is the product number now |
+| **Question + `evidence` moved to the top of the prompt** | **61.0%** | **+3.0** | ✅ kept |
 | + BIRD's `database_description/*.csv` in the schema block | 59.5% | −1.5 | ❌ gated off |
 | + self-consistency (config F: 4 candidates at T=0.2–0.8, execution voting) | 58.0% | −3.0 | ❌ not taken |
-| + few-shot from BIRD train (config E, k=3) | not finished | ? | ⏳ next |
+| **+ few-shot from BIRD train (k=3)** | **61.5%** | **+0.5** | ✅ kept — **the product number** |
+
+The few-shot result is one question, which is noise on n=200 — but it is worth
+keeping for a reason that has nothing to do with the delta: **the product was
+already running with it.** `api/main.py` builds its pipeline with
+`fewshot_top_k=3`, while config E hard-coded 0 despite being named
+`E_dense_fewshot_repair`. The eval harness was measuring a pipeline the product
+does not run, and undercounting itself. Now the command in the README and the
+live demo evaluate the same thing.
 
 Self-consistency is worth a word, because it is the technique everyone reaches
 for. Config F turns *repair off* (`Repair fired: 0/200`) on the theory that
