@@ -23,6 +23,7 @@ from __future__ import annotations
 import re
 from collections.abc import Sequence
 from dataclasses import dataclass
+from decimal import Decimal
 from typing import Any
 
 _FLOAT_TOLERANCE = 1e-6
@@ -177,6 +178,14 @@ def _normalise_cell(value: Any) -> Any:
         return value
     if isinstance(value, int):
         return value
+    if isinstance(value, Decimal):
+        # Postgres hands back numeric — AVG, SUM, any division — as Decimal, while
+        # SQLite hands back float. Left as Decimal it skips the float tolerance
+        # grid in `_hashable`, so a correct answer that differs from gold in the
+        # 16th decimal lands in a different bucket and scores a miss. This line is
+        # what the docstring above always claimed; it was never actually here, and
+        # every Postgres ratio/average question paid for it.
+        return float(value)
     if isinstance(value, float):
         # NaN compares unequal to itself; map all NaN to a sentinel so two
         # NaN rows from the same query compare equal.

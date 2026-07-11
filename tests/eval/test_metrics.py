@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from decimal import Decimal
+
 from nl_sql.eval.metrics.execution_accuracy import (
     compare_results,
     execution_accuracy,
@@ -123,6 +125,31 @@ class TestCompareResults:
         pred = [(1.0,)]
         c = compare_results(gold, pred, gold_sql="SELECT x FROM t ORDER BY x")
         assert not c.match
+
+    def test_decimal_compares_equal_to_the_same_number_as_float(self) -> None:
+        """Postgres returns numeric (AVG, SUM, division) as Decimal; SQLite as float.
+
+        A correct Postgres answer and BIRD's gold therefore come back as
+        Decimal('1.3070996799810359') vs 1.307099679981036 — the same number to
+        1e-16. The set path quantised the float onto the tolerance grid but let
+        the Decimal through untouched, so the two never landed in the same
+        bucket and a correct answer scored a miss. That silently deflated every
+        Postgres run computing a ratio or an average (seen on BIRD qids 629
+        "ratio of votes in 2010 and 2011" and 598 "percentage difference").
+        """
+        gold = [(1.307099679981036,)]
+        pred = [(Decimal("1.3070996799810359"),)]
+
+        assert compare_results(gold, pred, gold_sql="SELECT ratio FROM t").match
+        assert compare_results(gold, pred, gold_sql="SELECT ratio FROM t ORDER BY 1").match
+
+    def test_decimal_outside_tolerance_still_fails(self) -> None:
+        """The Decimal path must not become a blanket pass — 1.0 vs 1.001 is wrong."""
+        gold = [(1.0,)]
+        pred = [(Decimal("1.001"),)]
+
+        assert not compare_results(gold, pred, gold_sql="SELECT x FROM t").match
+        assert not compare_results(gold, pred, gold_sql="SELECT x FROM t ORDER BY 1").match
 
     def test_bytes_decoded_as_utf8(self) -> None:
         gold = [("hello",)]
