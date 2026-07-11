@@ -29,10 +29,15 @@ _SQLGLOT_DIALECT: Final[dict[Dialect, str]] = {
     "postgresql": "postgres",
 }
 
-# Functions banned outright. Mostly resource-abuse vectors.
+# Functions banned outright. Resource-abuse vectors (pg_sleep* / file reads /
+# dblink) plus session-state writes that a read-only guard must stop on its own:
+# set_config / setval mutate GUCs or sequences within a session, so they would
+# slip past a role that only blocks default_transaction_read_only.
 BANNED_FUNCTIONS: Final[frozenset[str]] = frozenset(
     {
         "pg_sleep",
+        "pg_sleep_for",
+        "pg_sleep_until",
         "pg_read_file",
         "pg_read_binary_file",
         "pg_ls_dir",
@@ -41,6 +46,8 @@ BANNED_FUNCTIONS: Final[frozenset[str]] = frozenset(
         "dblink",
         "load_extension",
         "readfile",
+        "set_config",
+        "setval",
     }
 )
 
@@ -99,11 +106,11 @@ def validate_sql(sql: str, dialect: Dialect = "sqlite") -> ValidationReport:
     report.parsed = parsed
 
     _check_select_only(parsed, report)
+    _check_no_select_into(parsed, report)
     _check_no_dml_anywhere(parsed, report)
     _check_function_allowlist(parsed, report)
     _check_generate_series_bounds(parsed, report)
     _check_table_denylist(parsed, report)
-    _check_no_attach_or_pragma(parsed, report)
 
     return report
 
@@ -207,8 +214,11 @@ def _check_table_denylist(parsed: exp.Expression, report: ValidationReport) -> N
             report.add("denied_table", f"table {name!r} is on the denylist")
 
 
-def _check_no_attach_or_pragma(parsed: exp.Expression, report: ValidationReport) -> None:
-    # Already covered by _check_no_dml_anywhere via exp.Attach / exp.Pragma nodes;
-    # kept as a no-op seam so future dialects (e.g. DuckDB ATTACH variants) can plug
-    # additional textual heuristics without adding a new top-level check.
-    return
+def _check_no_select_into(parsed: exp.Expression, report: ValidationReport) -> None:
+    # `SELECT ... INTO new_table FROM ...` parses as a top-level exp.Select, so
+    # _check_select_only lets it through — but on Postgres it CREATEs a table.
+    # The write-creating clause lives in the `into` arg, not the node type.
+    for node in parsed.walk():
+        if isinstance(node, exp.Select) and node.args.get("into") is not None:
+            report.add("select_into", "SELECT ... INTO creates a table and is denied")
+            return

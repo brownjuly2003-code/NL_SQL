@@ -112,6 +112,58 @@ def test_load_extension_is_rejected() -> None:
     assert not report.ok
 
 
+def test_pg_sleep_for_is_rejected() -> None:
+    report = validate_sql("SELECT pg_sleep_for('5 minutes')", dialect="postgresql")
+    assert not report.ok
+    assert any(v.code == "banned_function" for v in report.violations)
+
+
+def test_pg_sleep_until_is_rejected() -> None:
+    report = validate_sql("SELECT pg_sleep_until('tomorrow')", dialect="postgresql")
+    assert not report.ok
+    assert any(v.code == "banned_function" for v in report.violations)
+
+
+def test_set_config_is_rejected() -> None:
+    # set_config('default_transaction_read_only','off',false) would disable the
+    # session read-only guard from inside a single SELECT — must be denied here.
+    report = validate_sql(
+        "SELECT set_config('default_transaction_read_only', 'off', false)",
+        dialect="postgresql",
+    )
+    assert not report.ok
+    assert any(v.code == "banned_function" for v in report.violations)
+
+
+def test_setval_is_rejected() -> None:
+    report = validate_sql("SELECT setval('some_seq', 1)", dialect="postgresql")
+    assert not report.ok
+    assert any(v.code == "banned_function" for v in report.violations)
+
+
+# ---------- SELECT ... INTO (table creation) ----------
+
+
+def test_select_into_is_rejected_postgres() -> None:
+    # Parses as a top-level Select but CREATEs a table on Postgres.
+    report = validate_sql("SELECT * INTO new_table FROM Artists", dialect="postgresql")
+    assert not report.ok
+    assert any(v.code == "select_into" for v in report.violations)
+
+
+def test_select_into_is_rejected_sqlite() -> None:
+    report = validate_sql("SELECT id INTO backup FROM Artists", dialect="sqlite")
+    assert not report.ok
+    assert any(v.code == "select_into" for v in report.violations)
+
+
+def test_select_into_in_subquery_is_rejected() -> None:
+    sql = "SELECT * FROM (SELECT * INTO leak FROM Artists) AS t"
+    report = validate_sql(sql, dialect="postgresql")
+    assert not report.ok
+    assert any(v.code == "select_into" for v in report.violations)
+
+
 # ---------- generate_series cap ----------
 
 
@@ -173,6 +225,7 @@ def test_garbage_input_is_rejected() -> None:
         "banned_function",
         "denied_table",
         "generate_series_too_large",
+        "select_into",
     ],
 )
 def test_violation_codes_are_documented(code: str) -> None:

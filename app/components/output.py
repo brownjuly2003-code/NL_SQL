@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import html
+
 import pandas as pd
 import plotly.express as px
 import streamlit as st
@@ -63,10 +65,12 @@ def render_output(output: OutputFormat | None, *, caption: str) -> None:
     if isinstance(output, Scalar):
         st.metric(scalar_metric_label(output.column), str(output.value))
     elif isinstance(output, Sentence):
+        # Sentence.text can carry model-generated SQL / parser messages, so it is
+        # untrusted; escape before it lands inside unsafe_allow_html markup.
         st.markdown(
             f'<div style="font-size:1.2rem; line-height:1.5; '
             f"color:var(--text); font-weight:500; "
-            f'margin:0.4rem 0 0.6rem;">{output.text}</div>',
+            f'margin:0.4rem 0 0.6rem;">{html.escape(output.text)}</div>',
             unsafe_allow_html=True,
         )
         if output.fields:
