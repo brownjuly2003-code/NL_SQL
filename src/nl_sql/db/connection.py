@@ -11,6 +11,7 @@ The NL→SQL pipeline never owns write privileges on a target DB. Defences:
 from __future__ import annotations
 
 import sqlite3
+import threading
 import time
 from collections.abc import Iterator
 from contextlib import contextmanager
@@ -23,6 +24,16 @@ from sqlalchemy.engine import make_url
 from sqlalchemy.exc import DBAPIError
 
 Dialect = Literal["sqlite", "postgresql"]
+
+# One Engine (and therefore one connection pool) per spec, process-wide.
+# `make_engine` is called on the hot path — once per /ask, once per eval
+# question — and a fresh `create_engine` there builds a fresh pool that is never
+# disposed: each question opened a new Postgres backend and left the old pool to
+# the garbage collector. Under sustained load that walks straight into
+# max_connections. Engines are thread-safe and designed to be long-lived; it is
+# Connections that are not.
+_ENGINE_CACHE: dict[DatabaseSpec, Engine] = {}
+_ENGINE_LOCK = threading.Lock()
 
 
 @dataclass(frozen=True, slots=True)
@@ -39,7 +50,8 @@ class DatabaseSpec:
     description: str = ""
 
     def make_engine(self) -> Engine:
-        return _build_engine(self)
+        """Return this spec's engine, building it once and pooling it thereafter."""
+        return _engine_for(self)
 
 
 @dataclass(frozen=True, slots=True)
@@ -106,6 +118,28 @@ def _build_sqlite_readonly_engine(path: Path) -> Engine:
     return create_engine("sqlite://", creator=_creator, future=True)
 
 
+def _engine_for(spec: DatabaseSpec) -> Engine:
+    """Cached engine for a spec. DatabaseSpec is frozen, so it keys the cache."""
+    engine = _ENGINE_CACHE.get(spec)
+    if engine is not None:
+        return engine
+    with _ENGINE_LOCK:
+        engine = _ENGINE_CACHE.get(spec)
+        if engine is None:
+            engine = _build_engine(spec)
+            _ENGINE_CACHE[spec] = engine
+        return engine
+
+
+def dispose_engines() -> None:
+    """Drop every pooled engine. For tests, and for callers that swap a DB file
+    underneath a spec whose url (the cache key) has not changed."""
+    with _ENGINE_LOCK:
+        for engine in _ENGINE_CACHE.values():
+            engine.dispose()
+        _ENGINE_CACHE.clear()
+
+
 def connect(spec: DatabaseSpec) -> Engine:
     """Build (or reuse via SQLAlchemy pool) an engine for a DB spec."""
     return spec.make_engine()
@@ -125,8 +159,7 @@ def execute_readonly(
     function enforces operational limits, not correctness or safety.
     """
     started = time.perf_counter()
-    with engine.connect() as conn:
-        _apply_runtime_limits(conn, statement_timeout_ms)
+    with engine.connect() as conn, _runtime_limits(conn, statement_timeout_ms):
         # Run on a DBAPI cursor with NO parameters, because every parameterised
         # path mangles a literal that real SQL contains:
         #   - SQLAlchemy `text()` reads `:__` as a bind parameter, breaking gold
@@ -170,7 +203,9 @@ def execute_readonly(
     )
 
 
-def _apply_runtime_limits(conn: Connection, statement_timeout_ms: int) -> None:
+@contextmanager
+def _runtime_limits(conn: Connection, statement_timeout_ms: int) -> Iterator[None]:
+    """Arm the per-query timeout, and disarm it again on the way out."""
     dialect = conn.engine.dialect.name
     if dialect == "postgresql":
         # statement_timeout takes effect immediately for subsequent statements in
@@ -179,13 +214,25 @@ def _apply_runtime_limits(conn: Connection, statement_timeout_ms: int) -> None:
         # engine's postgresql_readonly execution option (see
         # _build_postgres_readonly_engine); issuing it here would be a no-op.
         conn.execute(text(f"SET statement_timeout = {int(statement_timeout_ms)}"))
-    elif dialect == "sqlite":
-        # SQLite has no per-query timeout knob in the URL API; use connection
-        # progress handler at the dbapi level.
-        seconds = statement_timeout_ms / 1000.0
-        raw = conn.connection.driver_connection
-        if isinstance(raw, sqlite3.Connection):
-            _install_sqlite_timeout(raw, seconds)
+        yield
+        return
+
+    raw = conn.connection.driver_connection if dialect == "sqlite" else None
+    if not isinstance(raw, sqlite3.Connection):
+        yield
+        return
+
+    # SQLite has no per-query timeout knob in the URL API; use the connection
+    # progress handler at the dbapi level.
+    _install_sqlite_timeout(raw, statement_timeout_ms / 1000.0)
+    try:
+        yield
+    finally:
+        # Engines are pooled now, so this connection goes back to the pool and on
+        # to the next caller — including schema introspection, which never arms a
+        # handler of its own. A handler left behind carries an already-expired
+        # deadline and would interrupt that caller's first non-trivial query.
+        raw.set_progress_handler(None, 0)
 
 
 def _install_sqlite_timeout(conn: sqlite3.Connection, seconds: float) -> None:
