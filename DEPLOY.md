@@ -1,89 +1,58 @@
-# Deployment — Streamlit Community Cloud
+# Deployment — Hugging Face Space (Docker)
 
-The fastest free path to a public demo. ~5 minutes after the repo
-is on GitHub.
+The public demo runs on a Hugging Face Space with a Docker runtime (free tier):
+<https://liovina-nl-sql.hf.space>. Cold start ~30 s, then interactive.
 
-## What's shipped in the repo
+## Deploy policy: only what git tracks, then prune
 
-The deployed version intentionally carries a subset of the BIRD
-Mini-Dev databases, not all 11:
+The deploy publishes **exactly the files git tracks** (`git ls-files`), never the
+working tree. Working-kitchen files — internal notes, audits, `.env`, scratch
+reports — are gitignored and a repo-hygiene CI gate fails if any slip into the
+index, so they cannot reach the Space. The upload also **prunes** the Space: files
+removed from the repo are deleted on the host, not left behind from an earlier push.
 
-| DB | size | source | shipped |
-|---|---|---|---|
-| `chinook` | 1 MB | Chinook sample | ✅ |
-| `bird_california_schools` | 11 MB | BIRD Mini-Dev | ✅ |
-| `bird_debit_card_specializing` | 34 MB | BIRD Mini-Dev | ✅ |
-| `bird_financial` | 68 MB | BIRD Mini-Dev | ✅ |
-| `bird_formula_1` | 22 MB | BIRD Mini-Dev | ✅ |
-| `bird_student_club` | 2.6 MB | BIRD Mini-Dev | ✅ |
-| `bird_superhero` | 0.2 MB | BIRD Mini-Dev | ✅ |
-| `bird_thrombosis_prediction` | 7 MB | BIRD Mini-Dev | ✅ |
-| `bird_toxicology` | 2.6 MB | BIRD Mini-Dev | ✅ |
-| `bird_card_games` | 250 MB | BIRD Mini-Dev | ❌ — over GitHub 100 MB/file limit |
-| `bird_codebase_community` | 460 MB | BIRD Mini-Dev | ❌ — over GitHub 100 MB/file limit |
-| `bird_european_football_2` | 571 MB | BIRD Mini-Dev | ❌ — over GitHub 100 MB/file limit |
+The deploy script itself (`.deploy_hf.py`) is repo-local (it reads a local token
+and Mistral key by path) and is intentionally not committed. It:
 
-The three excluded DBs are gitignored. The registry in
-`src/nl_sql/db/registry.py` skips DBs whose SQLite file isn't on
-disk, so the deployed UI's database selector only lists the 9
-shipped databases.
+1. computes the file set from `git ls-files` minus a publish-exclude list
+   (`tests/`, `.github/`, `docs/research/`, `reviews/`, `eval/baselines/`);
+2. drops anything the hygiene detector flags;
+3. uploads via `huggingface_hub`, then prunes remote files no longer present;
+4. supports `--self-test` (a gate that runs before upload) and `--dry-run`.
 
-`chroma_data/` is also committed (~58 MB) so the app doesn't have
-to re-embed the schema chunks on first cold start. Orphan chunks
-for the three excluded DBs are harmless — the registry never
-asks for them.
+## What ships to the Space
 
-## Steps
+The Space is **SQLite-only** — `psycopg` is pruned from its `requirements.txt`, so
+the Postgres path (see README) is not present there; it is for local/CI use. The
+Space carries a subset of the BIRD Mini-Dev databases (the three largest exceed
+GitHub's 100 MB/file limit and are gitignored):
 
-1. **Create a public GitHub repo.** Name suggestion: `NL_SQL` or
-   `nl-sql-portfolio`. Do not initialise with a README — we already
-   have one.
+| DB | size | shipped |
+|---|---|---|
+| `chinook` | 1 MB | ✅ |
+| `bird_california_schools` | 11 MB | ✅ |
+| `bird_debit_card_specializing` | 34 MB | ✅ |
+| `bird_financial` | 68 MB | ✅ |
+| `bird_formula_1` | 22 MB | ✅ |
+| `bird_student_club` | 2.6 MB | ✅ |
+| `bird_superhero` | 0.2 MB | ✅ |
+| `bird_thrombosis_prediction` | 7 MB | ✅ |
+| `bird_toxicology` | 2.6 MB | ✅ |
+| `bird_card_games` | 250 MB | ❌ over 100 MB/file |
+| `bird_codebase_community` | 460 MB | ❌ over 100 MB/file |
+| `bird_european_football_2` | 571 MB | ❌ over 100 MB/file |
 
-2. **Push the local main branch:**
-   ```powershell
-   git remote add origin https://github.com/<your-username>/<repo>.git
-   git push -u origin main
-   ```
-   Repo size will be ~150 MB. The push takes a minute or two.
+The registry in `src/nl_sql/db/registry.py` skips DBs whose SQLite file isn't on
+disk, so the deployed UI's selector lists only the 9 shipped databases. All 11
+BIRD slices are present locally for eval. `chroma_data/` is committed (~58 MB) so
+the app doesn't re-embed schema chunks on cold start.
 
-3. **Sign in to <https://share.streamlit.io>** with the same
-   GitHub account.
+## Secret
 
-4. **New app:**
-   - Repository: pick the repo you just pushed.
-   - Branch: `main`.
-   - Main file path: `app/streamlit_app.py`.
-   - App URL: defaults to
-     `https://<your-username>-<repo>-app-streamlit-app-<hash>.streamlit.app`.
-     You can rename via the dashboard later.
-
-5. **Set the secret:**
-   - In the Streamlit Cloud app dashboard → "Settings" → "Secrets".
-   - Add the API key in TOML format:
-     ```toml
-     MISTRAL_API_KEY = "your-key-here"
-     ```
-   - Streamlit Cloud injects every key in this TOML as an
-     environment variable, which `pydantic-settings` picks up.
-   - Click "Save". The app reboots automatically.
-
-6. **First load.**
-   The cold start is ~30 seconds — Streamlit Cloud installs the
-   `ui` extra deps (streamlit, plotly, pandas), reads the prebuilt
-   Chroma index, and warms the LLM provider. Subsequent loads are
-   sub-second.
+The Space needs one secret — `MISTRAL_API_KEY` — set in the Space's Settings →
+Variables and secrets. `pydantic-settings` reads it from the environment.
 
 ## Updating
 
-Push to `main` → Streamlit Cloud auto-redeploys. No manual step.
-
-## Why not Vercel
-
-Streamlit is a long-running Tornado/WebSocket server with stateful
-per-session memory. Vercel's serverless model gives you ~10-second
-function executions with no persistent process — every page-reload
-would lose `st.session_state` and every user keystroke would race
-against a cold start. The hacks that "work" run Streamlit in a
-container behind Vercel's edge layer, which trades all of Vercel's
-strengths for none of Streamlit's. Streamlit Community Cloud is
-the natively-supported home for this app.
+Re-run the local deploy script; it re-uploads the tracked set and prunes. CI (tests
++ repo-hygiene) gates `main` before any deploy is worth doing.

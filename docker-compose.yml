@@ -18,21 +18,5 @@ services:
       timeout: 3s
       retries: 10
 
-  langfuse:
-    profiles: ["langfuse", "all"]
-    image: langfuse/langfuse:latest
-    container_name: nl_sql_langfuse
-    depends_on:
-      postgres:
-        condition: service_healthy
-    environment:
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/nl_sql_demo
-      NEXTAUTH_SECRET: "${LANGFUSE_NEXTAUTH_SECRET:-dev-secret-change-me}"
-      SALT: "${LANGFUSE_SALT:-dev-salt-change-me}"
-      NEXTAUTH_URL: "http://localhost:3000"
-      TELEMETRY_ENABLED: "false"
-    ports:
-      - "3000:3000"
-
 volumes:
   nl_sql_pg_data:
