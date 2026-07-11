@@ -108,3 +108,44 @@ def test_execute_readonly_runs_a_real_select(readonly_engine: Engine) -> None:
         assert result.columns == ["id", "v"]
         assert result.rows == [(1, "seed")]
         assert result.truncated is False
+
+
+@pytest.mark.parametrize(
+    ("sql", "expected"),
+    [
+        pytest.param(
+            f"SELECT v FROM {_TABLE} WHERE v LIKE '%see%'", [("seed",)], id="like-contains"
+        ),
+        pytest.param(f"SELECT v FROM {_TABLE} WHERE v LIKE 'see%'", [("seed",)], id="like-prefix"),
+        pytest.param(f"SELECT v FROM {_TABLE} WHERE v LIKE '%eed'", [("seed",)], id="like-suffix"),
+        pytest.param(f"SELECT 7 % 2 FROM {_TABLE}", [(1,)], id="modulo-operator"),
+        pytest.param(f"SELECT ':__' FROM {_TABLE}", [(":__",)], id="colon-literal"),
+        pytest.param(
+            f"SELECT v FROM {_TABLE} WHERE 'a:1' LIKE '%:%'", [("seed",)], id="colon-and-percent"
+        ),
+    ],
+)
+def test_execute_readonly_passes_literals_through_verbatim(
+    readonly_engine: Engine, sql: str, expected: list[tuple[object, ...]]
+) -> None:
+    """Neither `%` nor `:` inside the SQL may be read as a bind placeholder.
+
+    Two drivers, two opposite traps, and the statement has to survive both:
+
+    - psycopg speaks `pyformat`, so anything routed through a *parameterised*
+      execute makes the driver scan for `%s`-style placeholders. `LIKE '%see%'`
+      then dies with "only '%s', '%b', '%t' are allowed as placeholders, got
+      '%s'e" — and a LIKE filter is the single most common shape a text-to-SQL
+      model emits. This is not hypothetical: BIRD qids 586/587 (`LIKE
+      '%variance%'`, `LIKE '%<humor>%'`) failed on the Postgres eval, and the
+      failure hit BIRD's own *gold* SQL too, so the question could not even be
+      scored.
+    - SQLAlchemy's `text()` reads `:__` as a bind parameter, which breaks BIRD
+      gold like `LIKE '_:%:__.___'` (qids 959/989/990) — see the SQLite twin of
+      this test in tests/test_db_connection.py.
+
+    The only path that interprets neither is a DBAPI cursor executed with no
+    parameters at all, which is what `execute_readonly` must do.
+    """
+    with execute_readonly(readonly_engine, sql) as result:
+        assert result.rows == expected

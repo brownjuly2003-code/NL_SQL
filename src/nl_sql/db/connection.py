@@ -20,6 +20,7 @@ from typing import Any, Literal
 
 from sqlalchemy import Connection, Engine, create_engine, text
 from sqlalchemy.engine import make_url
+from sqlalchemy.exc import DBAPIError
 
 Dialect = Literal["sqlite", "postgresql"]
 
@@ -126,13 +127,36 @@ def execute_readonly(
     started = time.perf_counter()
     with engine.connect() as conn:
         _apply_runtime_limits(conn, statement_timeout_ms)
-        # exec_driver_sql bypasses SQLAlchemy's :name bind-parameter parsing,
-        # which would otherwise misinterpret colons inside string literals such
-        # as `LIKE '_:%:__.___'` (BIRD qids 959 / 989 / 990 — formula_1 time patterns).
-        cursor = conn.exec_driver_sql(sql)
-        columns = list(cursor.keys())
-        rows = cursor.fetchmany(row_cap + 1)
-        cursor.close()  # drain any remaining rows so SQLite/Postgres release resources
+        # Run on a DBAPI cursor with NO parameters, because every parameterised
+        # path mangles a literal that real SQL contains:
+        #   - SQLAlchemy `text()` reads `:__` as a bind parameter, breaking gold
+        #     like `LIKE '_:%:__.___'` (BIRD qids 959/989/990, formula_1 times).
+        #   - `exec_driver_sql` passes an (empty) parameter set to the driver, so
+        #     psycopg's pyformat parser scans for placeholders and rejects `%`:
+        #     `LIKE '%variance%'` → "only '%s', '%b', '%t' are allowed as
+        #     placeholders". That killed LIKE filters *and* the `%` modulo
+        #     operator on Postgres — see tests/test_postgres_readonly.py.
+        # A cursor executed with no parameters interprets neither, on either driver.
+        cursor = conn.connection.cursor()
+        try:
+            cursor.execute(sql)
+            columns = [str(d[0]) for d in cursor.description or ()]
+            rows = cursor.fetchmany(row_cap + 1)
+        except Exception as raw_exc:
+            # Going through the raw cursor also means driver-native exceptions
+            # (sqlite3.OperationalError, psycopg.Error) instead of SQLAlchemy's.
+            # Callers classify failures on sqlalchemy.exc types — timeouts on
+            # OperationalError, everything else on SQLAlchemyError (see
+            # execution/runner.py) — so re-wrap and keep that contract intact.
+            raise DBAPIError.instance(
+                sql,
+                None,
+                raw_exc,
+                engine.dialect.loaded_dbapi.Error,
+                dialect=engine.dialect,
+            ) from raw_exc
+        finally:
+            cursor.close()  # release server-side resources / drain remaining rows
     truncated = len(rows) > row_cap
     if truncated:
         rows = rows[:row_cap]
