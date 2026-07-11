@@ -121,9 +121,15 @@ def main(argv: list[str] | None = None) -> int:
     for i, (qid, candidates) in enumerate(sorted(by_qid.items(), key=lambda kv: str(kv[0])), 1):
         base = gold[qid]
         db_id = base["db_id"]
-        if db_id not in engines:
-            engines[db_id] = registry.get(db_id).make_engine()
-        engine = engines[db_id]
+        # Report records store the bare BIRD schema name (e.g. "california_schools"),
+        # matching BirdExample.db_id. The registry keys BIRD SQLite specs by
+        # BirdExample.registry_db_id == f"bird_{db_id}" (dataset.py:74-76). Calling
+        # registry.get(db_id) directly raised KeyError on the very first question —
+        # this script had never actually completed a run. Mirror registry_db_id here.
+        registry_db_id = f"bird_{db_id}"
+        if registry_db_id not in engines:
+            engines[registry_db_id] = registry.get(registry_db_id).make_engine()
+        engine = engines[registry_db_id]
 
         executed = [Executed(candidate=c, rows=_run(engine, c.sql)) for c in candidates]
         winner = _vote(executed)
