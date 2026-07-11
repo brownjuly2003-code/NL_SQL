@@ -25,13 +25,11 @@ def test_loads_descriptions_and_value_enums(tmp_path: Path) -> None:
     _write_description_csv(
         tmp_path,
         "satscores",
-        "sname,,school name,text,\n" "charter,,identifies a charter school,integer,1 = charter\n",
+        "sname,,school name,text,\ncharter,,identifies a charter school,integer,1 = charter\n",
     )
     loaded = load_column_descriptions(str(tmp_path / "db.sqlite"))
     assert loaded["satscores"]["sname"] == "school name"
-    assert loaded["satscores"]["charter"] == (
-        "identifies a charter school; values: 1 = charter"
-    )
+    assert loaded["satscores"]["charter"] == ("identifies a charter school; values: 1 = charter")
 
 
 def test_drops_cells_that_only_restate_the_column_name(tmp_path: Path) -> None:
