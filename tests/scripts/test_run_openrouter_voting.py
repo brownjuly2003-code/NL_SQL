@@ -6,9 +6,9 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
+from scripts.archive import run_openrouter_voting
 
 from nl_sql.eval.dataset import BirdExample
-from scripts import run_openrouter_voting
 
 
 class FakeEngine:

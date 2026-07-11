@@ -6,17 +6,16 @@ from pathlib import Path
 from types import ModuleType
 
 import pytest
-
-from scripts import (
-    eval_baseline,
+from scripts.archive import (
     run_critique_retry,
     run_groq_voting,
-    run_helallao_voting,
     run_openrouter_voting,
     run_selfcon_retry,
     run_sonnet_voting,
     run_wide_schema_retry,
 )
+
+from scripts import eval_baseline, run_helallao_voting
 
 
 @pytest.mark.parametrize(

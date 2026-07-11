@@ -6,13 +6,13 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from scripts.archive import ensemble_vote
 
 from nl_sql.db.connection import QueryResult
 from nl_sql.eval.metrics.execution_accuracy import ResultComparison
 from nl_sql.eval.runner import EvalRun
 from nl_sql.execution.guards import ValidationReport
 from nl_sql.execution.runner import ExecutionOutcome
-from scripts import ensemble_vote
 
 
 class FakeEngine:
