@@ -196,6 +196,21 @@ def main(argv: list[str] | None = None) -> int:
         ),
     )
     parser.add_argument(
+        "--dac",
+        action="store_true",
+        help=(
+            "config E: use the CHASE-SQL divide-and-conquer prompt "
+            "(generate_sql_dac.txt) — decomposes a multi-clause question into "
+            "sub-questions before composing SQL. Was reachable only from the API's "
+            "env toggle, so it had never been measured against the product config."
+        ),
+    )
+    parser.add_argument(
+        "--m-schema",
+        action="store_true",
+        help="config E: render the schema block in M-Schema form (same story as --dac)",
+    )
+    parser.add_argument(
         "--extended-sample-size",
         type=int,
         default=0,
@@ -442,7 +457,13 @@ def main(argv: list[str] | None = None) -> int:
             # Only E takes a few-shot pool: C is the no-repair, no-fewshot ablation
             # and must stay that way to remain comparable with its own history.
             extra: dict[str, Any] = (
-                {} if args.config == "C" else {"fewshot_top_k": args.fewshot_top_k}
+                {}
+                if args.config == "C"
+                else {
+                    "fewshot_top_k": args.fewshot_top_k,
+                    "use_dac_prompt": args.dac,
+                    "use_m_schema": args.m_schema,
+                }
             )
             run = runner(
                 sample,

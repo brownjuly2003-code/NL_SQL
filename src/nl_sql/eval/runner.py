@@ -321,6 +321,8 @@ def run_config_e(
     extended_sample_size: int = 0,
     enable_bird_rescue_hints: bool = False,
     fewshot_top_k: int = 0,
+    use_dac_prompt: bool = False,
+    use_m_schema: bool = False,
     progress: Callable[[int, int, EvalRecord], None] | None = None,
 ) -> EvalRun:
     """Run configuration E (config C + repair_once enabled) — final v2 config.
@@ -335,6 +337,11 @@ def run_config_e(
     from the same BIRD *train* pool config D uses (69 databases, zero overlap
     with the 11 dev databases — `scripts/build_fewshot_index.py` asserts it), so
     there is no leakage in combining them.
+
+    `use_dac_prompt` (CHASE-SQL divide-and-conquer) and `use_m_schema` were
+    reachable only from `api/main.py`'s env toggles — the eval harness could not
+    measure either, so neither had a number against the product config. Both are
+    plumbed here now; both default off.
     """
     pipeline = build_pipeline(
         PipelineConfig(
@@ -353,6 +360,8 @@ def run_config_e(
             sort_schema_block=sort_schema_block,
             primary_sample_size=primary_sample_size,
             extended_sample_size=extended_sample_size,
+            use_dac_prompt=use_dac_prompt,
+            use_m_schema=use_m_schema,
         )
     )
     records: list[EvalRecord] = []
