@@ -409,3 +409,65 @@ uv run python scripts/eval_baseline.py --config E --n 200 --bird-rescue-hints
 94.0% выше human-expert baseline (BIRD paper, 92.96%) на +1.04pp — но это **hint-assisted слой**, кодирующий ответы к конкретным вопросам теста, а не провайдер-уровневая победа. Поэтому он выключен в продукте по умолчанию: живое демо и API отдают уровень 1 (57.5%). `GET /eval/latest` отдаёт именно уровень 1 — число, которого достигает сам API. Разделение на слои показывает и инженерию (воспроизводимые 57.5%), и научную честность (какой слой что даёт).
 
 На Arcwise-corrected gold (Jin et al., CIDR/VLDB 2026) — 74.37% (148/199): noise-floor после исправления annotation-ошибок BIRD.
+
+---
+
+## 14. Postgres: тот же пайплайн на другом движке (2026-07-11)
+
+До этой даты «Postgres 16 как второй backend» был заявлен, но **ни разу не прогнан**: read-only-защиту чинили в CI на пустой пробной таблице, а живых данных и живого прогона не было. Заявление проверено — и проверка нашла два дефекта, которые на SQLite не проявляются в принципе.
+
+### Как загружены данные
+
+BIRD Mini-Dev официально поставляет Postgres-версию: `MINIDEV_postgresql/BIRD_dev.sql` (955 МБ `pg_dump`, все 11 БД **в одну схему `public`**) и `mini_dev_postgresql.json` — gold SQL, переписанный под PG (**312 из 500** запросов отличаются от SQLite-версии: `STRFTIME('%Y', x)` → `TO_CHAR(CAST(x AS TIMESTAMP), 'YYYY')` и т.п.).
+
+Заливать дамп целиком нельзя: 75 посторонних таблиц (Formula-1, карточные игры, больничные лаборатории) попали бы в schema-retrieval и подменили задачу. `scripts/extract_pg_dump_slice.py` вырезает одну БД по именам таблиц (они глобально уникальны между 11 БД — свойство закреплено тестом) и валидирует срез: все `CREATE TABLE`, все `COPY`, ни одного FK наружу.
+
+**Почему не `scripts/load_postgres.py` (SQLite → pandas → PG).** BIRD-овский PG-gold написан под схему их дампа: идентификаторы свёрнуты в нижний регистр (`displayname`, `posthistory`), даты — настоящий `timestamptz`. Pandas-загрузка воспроизводит CamelCase из SQLite, и gold вида `SELECT DisplayName FROM users` (в PG это `displayname`) просто не нашёл бы колонку. Официальный дамп — то, что делает прогон честным BIRD-раном, а не похожим на него. `load_postgres.py` остаётся правильным инструментом для Chinook и произвольных SQLite-срезов, где PG-gold не существует.
+
+`codebase_community` (StackExchange-mini): 8 таблиц, **741 646 строк**, 385 МБ в PG. Сверено с SQLite построчно — совпадает по всем таблицам.
+
+### Результат (config E, codestral, hints off — тот же продуктовый пайплайн)
+
+Одни и те же 49 вопросов `codebase_community`, два движка, свой gold и свой schema-индекс у каждого:
+
+| Движок | EA | simple | moderate | challenging | Validity |
+|---|---:|---:|---:|---:|---:|
+| SQLite | 44.9% (22/49) | 76.2% | 21.7% | 20.0% | 100% |
+| **Postgres 16** | **49.0% (24/49)** | 66.7% | 34.8% | 40.0% | 100% |
+
+Согласие движков — **88%** (18 вопросов оба решают верно, 25 оба неверно; 4 только SQLite, 2 только Postgres). Разница в 2 вопроса на n=49 — **шум, а не превосходство**: доверительный интервал здесь ±14 pp. Читать это следует так: **пайплайн переносим — на Postgres он не деградирует**, генерируя PG-диалект (`TO_CHAR`, `::`, `ILIKE`) под PG-схему. Валидность 100% означает, что каждый сгенерированный запрос исполнился на живом сервере.
+
+Артефакт: `eval/baselines/postgres_codebase_community_n49.json` (под тем же consistency-гейтом, что и остальные baseline'ы).
+
+### Два бага, которые нашёл только живой Postgres
+
+Оба сидели в продуктовом коде и оба невидимы на SQLite:
+
+1. **`%` в SQL убивал запрос.** `execute_readonly` исполнял SQL через `exec_driver_sql`, который передаёт драйверу (пустой) набор параметров. psycopg говорит на `pyformat`, поэтому начинал искать плейсхолдеры и падал на `LIKE '%variance%'`: *only '%s', '%b', '%t' are allowed as placeholders, got '%v'*. Ломался самый частый шаблон text-to-SQL (LIKE-фильтр) и оператор `%` (modulo) — **и BIRD-овский gold тоже**, так что вопрос нельзя было даже оценить (qids 586/587). Починено: исполнение через DBAPI-курсор вообще без параметров — тогда ни `%` (psycopg), ни `:__` (SQLAlchemy `text()`, BIRD qids 959/989/990) не интерпретируются. Драйверные исключения заворачиваются обратно в `sqlalchemy.exc`, чтобы классификация ошибок не поехала.
+
+2. **Скоринг занижал Postgres.** psycopg возвращает `numeric` (любые `AVG`, `SUM`, деление) как `Decimal`, SQLite — как `float`. `_hashable` квантовал к сетке допуска только `float`, а `Decimal` пропускал как есть → верный ответ `Decimal('1.3070996799810359')` не попадал в ту же корзину, что gold `1.307099679981036`, и получал miss. Докстринг обещал «Decimal → float» — строки в коде не было. Из-за этого PG-прогон показывал 40.8% вместо 49.0%: **четыре балла EA съедал баг компаратора, а не модель.**
+
+Заметность обоих багов на SQLite — нулевая: sqlite3 не парсит `%` и не возвращает `Decimal`. Это и есть аргумент в пользу того, чтобы прогонять заявленный backend, а не только объявлять его.
+
+### Воспроизвести
+
+```bash
+# 1. срез одной БД из официального PG-дампа BIRD
+python scripts/extract_pg_dump_slice.py --db codebase_community --out .tmp/codebase_community_pg.sql
+
+# 2. Postgres 16 (docker-compose profile postgres → localhost:5433) + загрузка
+docker compose --profile postgres up -d
+psql "postgresql://postgres:postgres@localhost:5433/nl_sql_demo" -v ON_ERROR_STOP=1 -f .tmp/codebase_community_pg.sql
+psql "postgresql://postgres:postgres@localhost:5433/nl_sql_demo" -c "GRANT SELECT ON ALL TABLES IN SCHEMA public TO nl_sql_ro"
+
+# 3. schema-индекс по ЖИВОЙ PG-схеме (отдельный persist — иначе перезапишет SQLite-чанки того же db_id)
+python scripts/build_index.py --db bird_codebase_community --persist .tmp/chroma_pg \
+    --pg-dsn "postgresql+psycopg://nl_sql_ro:nl_sql_ro_pwd@localhost:5433/nl_sql_demo"
+
+# 4. eval на PG-gold (пайплайн промптит postgresql, gold берётся из mini_dev_postgresql.json)
+python scripts/eval_baseline.py --config E --dialect postgresql --db bird_codebase_community --n 49 \
+    --persist .tmp/chroma_pg \
+    --pg-dsn "postgresql+psycopg://nl_sql_ro:nl_sql_ro_pwd@localhost:5433/nl_sql_demo"
+```
+
+`--dialect postgresql` без Postgres-бэкенда для выбранных БД падает с ошибкой: PG-gold, исполненный на SQLite-движке, дал бы не громкую ошибку, а тихо заниженный EA.

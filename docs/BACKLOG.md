@@ -28,9 +28,17 @@ Docs / hygiene / CI
 - ✅ CI: mypy over `src app scripts`; coverage floor (`--cov-fail-under=85`, currently 91%); aligned on Python 3.13.
 - ✅ `docs/SESSION_HANDOFF.md` un-tracked (kitchen); eval trace moved into methodology §13.
 
+## Done (2026-07-11, second pass — the Postgres claim, actually run)
+
+- ✅ **PG data load + PG-backed eval.** `codebase_community` (StackExchange-mini, 741 646 rows, 385 MB) loaded into a live Postgres 16 from BIRD's own PG dump via `scripts/extract_pg_dump_slice.py` (the dump ships all eleven databases in one `public` schema; the slice keeps one). Row counts verified against SQLite table by table. The product pipeline then ran on BIRD's **Postgres gold**: **49.0% EA (24/49)** vs 44.9% on SQLite for the same questions, 100% validity, 88% agreement between engines — the engine ports. Artefact: `eval/baselines/postgres_codebase_community_n49.json`; method: `docs/03_eval_methodology.md` §14.
+- ✅ **Two product bugs that only a live Postgres could expose** (both invisible on SQLite):
+  - `execute_readonly` ran statements through `exec_driver_sql`, which hands the driver an empty parameter set — psycopg (`pyformat`) then parsed `%` as a placeholder and killed every `LIKE '%x%'` and every `%` modulo, *including BIRD's gold* (qids 586/587 couldn't even be scored). Now executed on a DBAPI cursor with no parameters, so neither `%` (psycopg) nor `:__` (SQLAlchemy `text()`) is interpreted; driver exceptions are re-wrapped into `sqlalchemy.exc` so error classification is unchanged.
+  - `_normalise_cell` never converted `Decimal` → `float` (its docstring claimed it did), so Postgres `numeric` results (`AVG`, `SUM`, any division) skipped the float-tolerance grid and correct answers scored misses. Cost 4 EA points on the PG run (40.8% → 49.0%).
+- ✅ SQLite headline unaffected by both fixes: re-measured n=200 → still 57.5%.
+
 ## Gated (needs a decision or an external host)
 
-- ⛔ **Sustained-load / PG data migration.** The 460 MB `codebase_community` (StackExchange) load + a PG-backed eval need a real Postgres host; not runnable on the Windows dev box. Loader + CI read-only proof are in place; the full data load is the remaining step.
+- ⛔ **Sustained-load benchmark.** The data-migration half is done (above); a throughput/latency run under sustained load still wants a host that isn't the Windows dev box.
 - ⛔ **Space cleanup + git history.** `SESSION_HANDOFF.md` is un-tracked now, so future deploys won't republish it; removing it from the live Space and any git-history rewrite are force/deploy actions — owner's call.
 - ⛔ **External pen-test of the public API.** Self-attestation is not a substitute; needs an outside pass.
 
