@@ -55,8 +55,21 @@ slice, config E, codestral, hints off.
 | Step | EA | Δ | Verdict |
 |---|---:|---:|---|
 | Baseline (after the comparator fix) | 58.0% | — | — |
-| **Question + `evidence` moved to the top of the prompt** | **61.0%** | **+3.0** | ✅ kept |
+| **Question + `evidence` moved to the top of the prompt** | **61.0%** | **+3.0** | ✅ kept — this is the product number now |
 | + BIRD's `database_description/*.csv` in the schema block | 59.5% | −1.5 | ❌ gated off |
+| + self-consistency (config F: 4 candidates at T=0.2–0.8, execution voting) | 58.0% | −3.0 | ❌ not taken |
+| + few-shot from BIRD train (config E, k=3) | not finished | ? | ⏳ next |
+
+Self-consistency is worth a word, because it is the technique everyone reaches
+for. Config F turns *repair off* (`Repair fired: 0/200`) on the theory that
+voting replaces it, and samples at T=0.2–0.8. Both halves hurt: every candidate
+is worse than the greedy pass, and the vote does not recover the difference. F
+tops out at its own first pass (58.0%), while E's first pass is 59.5% and repair
+carries it to 61.0%. Diversity through *temperature* does not pay on codestral.
+Diversity through *different models* did — that is what took the archive to
+85.5% — and it is now blocked on provider keys, not on code:
+`scripts/ensemble_providers.py` is written and waiting (Groq 403, GitHub Models
+401, OpenRouter's free tier 429).
 
 **What the two results say together.** The win did not come from telling the
 model something new — `evidence` was always in the prompt. It came from moving it
