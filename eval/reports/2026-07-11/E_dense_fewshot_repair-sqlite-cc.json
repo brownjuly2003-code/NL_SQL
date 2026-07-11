@@ -3,14 +3,14 @@
   "sql_model": "codestral-latest",
   "overall": {
     "n": 49,
-    "ea": 0.4489795918367347,
+    "ea": 0.46938775510204084,
     "validity_rate": 1.0,
     "schema_recall_at_k": 1.0,
     "repair_success_rate": 0.3333333333333333,
-    "first_pass_ea": 0.42857142857142855,
+    "first_pass_ea": 0.4489795918367347,
     "empty_result_rate": 0.12244897959183673,
-    "latency_p50_ms": 184.44280000403523,
-    "latency_p95_ms": 609.5911200158291,
+    "latency_p50_ms": 435.3056999971159,
+    "latency_p95_ms": 2375.1188199908884,
     "tokens_p50": 6287.0,
     "tokens_p95": 9336.199999999975
   },
@@ -23,8 +23,8 @@
       "repair_success_rate": 0.0,
       "first_pass_ea": 0.7619047619047619,
       "empty_result_rate": 0.0,
-      "latency_p50_ms": 90.7088000094518,
-      "latency_p95_ms": 357.4122999852989,
+      "latency_p50_ms": 214.38489999854937,
+      "latency_p95_ms": 806.8591999763157,
       "tokens_p50": 5981.0,
       "tokens_p95": 6320.0
     },
@@ -36,21 +36,21 @@
       "repair_success_rate": 0.5,
       "first_pass_ea": 0.17391304347826086,
       "empty_result_rate": 0.2608695652173913,
-      "latency_p50_ms": 260.33770001959056,
-      "latency_p95_ms": 647.2072800184832,
+      "latency_p50_ms": 512.467699998524,
+      "latency_p95_ms": 2675.0854299811167,
       "tokens_p50": 6326.0,
       "tokens_p95": 10777.699999999993
     },
     "challenging": {
       "n": 5,
-      "ea": 0.2,
+      "ea": 0.4,
       "validity_rate": 1.0,
       "schema_recall_at_k": 1.0,
       "repair_success_rate": 0.0,
-      "first_pass_ea": 0.2,
+      "first_pass_ea": 0.4,
       "empty_result_rate": 0.0,
-      "latency_p50_ms": 370.51410001004115,
-      "latency_p95_ms": 48305.71460000937,
+      "latency_p50_ms": 821.3303000084125,
+      "latency_p95_ms": 2306498.155339999,
       "tokens_p50": 6347.0,
       "tokens_p95": 10237.6
     }
@@ -70,7 +70,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 109.3993000104092,
+      "latency_ms": 253.55069999932311,
       "input_tokens": 5573,
       "output_tokens": 103,
       "gold_tables": [
@@ -102,7 +102,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 57.81179998302832,
+      "latency_ms": 126.24480001977645,
       "input_tokens": 5594,
       "output_tokens": 115,
       "gold_tables": [
@@ -134,7 +134,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 29.2394999996759,
+      "latency_ms": 49.673200002871454,
       "input_tokens": 5576,
       "output_tokens": 114,
       "gold_tables": [
@@ -166,7 +166,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 273.1918999925256,
+      "latency_ms": 706.5258999937214,
       "input_tokens": 5532,
       "output_tokens": 102,
       "gold_tables": [
@@ -199,7 +199,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 173.64249998354353,
+      "latency_ms": 440.7888999849092,
       "input_tokens": 6146,
       "output_tokens": 117,
       "gold_tables": [
@@ -234,7 +234,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 183.36339999223128,
+      "latency_ms": 412.30470000300556,
       "input_tokens": 6182,
       "output_tokens": 106,
       "gold_tables": [
@@ -269,7 +269,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 171.79780002334155,
+      "latency_ms": 399.39089998370036,
       "input_tokens": 6166,
       "output_tokens": 118,
       "gold_tables": [
@@ -304,7 +304,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 11.453899991465732,
+      "latency_ms": 24.727500014705583,
       "input_tokens": 5910,
       "output_tokens": 107,
       "gold_tables": [
@@ -338,7 +338,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 260.240999981761,
+      "latency_ms": 606.5913999918848,
       "input_tokens": 6149,
       "output_tokens": 116,
       "gold_tables": [
@@ -373,7 +373,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 289.6309000207111,
+      "latency_ms": 685.4587999987416,
       "input_tokens": 6261,
       "output_tokens": 167,
       "gold_tables": [
@@ -408,7 +408,7 @@
       "error_message": "query returned 0 rows",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 97.43309998884797,
+      "latency_ms": 192.24750000284985,
       "input_tokens": 6317,
       "output_tokens": 169,
       "gold_tables": [
@@ -443,7 +443,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 88.64099998027086,
+      "latency_ms": 185.8586999878753,
       "input_tokens": 5774,
       "output_tokens": 143,
       "gold_tables": [
@@ -476,7 +476,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 286.03270000894554,
+      "latency_ms": 629.582699999446,
       "input_tokens": 5542,
       "output_tokens": 92,
       "gold_tables": [
@@ -509,7 +509,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 9.385600016685203,
+      "latency_ms": 18.91549999709241,
       "input_tokens": 5557,
       "output_tokens": 101,
       "gold_tables": [
@@ -542,7 +542,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 206.42219998990186,
+      "latency_ms": 457.38199999323115,
       "input_tokens": 6215,
       "output_tokens": 124,
       "gold_tables": [
@@ -577,7 +577,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 183.75440000090748,
+      "latency_ms": 420.8752000122331,
       "input_tokens": 6180,
       "output_tokens": 115,
       "gold_tables": [
@@ -611,7 +611,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 82.74849998997524,
+      "latency_ms": 195.13009997899644,
       "input_tokens": 6099,
       "output_tokens": 110,
       "gold_tables": [
@@ -644,7 +644,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 90.7088000094518,
+      "latency_ms": 206.6560999955982,
       "input_tokens": 5552,
       "output_tokens": 95,
       "gold_tables": [
@@ -677,7 +677,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 174.98559999512509,
+      "latency_ms": 435.3056999971159,
       "input_tokens": 6189,
       "output_tokens": 118,
       "gold_tables": [
@@ -712,7 +712,7 @@
       "error_message": "query returned 0 rows",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 184.44280000403523,
+      "latency_ms": 418.4252000122797,
       "input_tokens": 5900,
       "output_tokens": 119,
       "gold_tables": [
@@ -746,7 +746,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 534.3588000105228,
+      "latency_ms": 2818.6665999819525,
       "input_tokens": 6366,
       "output_tokens": 117,
       "gold_tables": [
@@ -781,7 +781,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 16.037800000049174,
+      "latency_ms": 28.787000017473474,
       "input_tokens": 6189,
       "output_tokens": 152,
       "gold_tables": [
@@ -817,7 +817,7 @@
       "error_message": "query returned 0 rows",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 196.36129998252727,
+      "latency_ms": 396.62340001086704,
       "input_tokens": 5965,
       "output_tokens": 140,
       "gold_tables": [
@@ -851,7 +851,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 76.38269997551106,
+      "latency_ms": 203.02499999525025,
       "input_tokens": 6154,
       "output_tokens": 112,
       "gold_tables": [
@@ -885,7 +885,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 816.189300006954,
+      "latency_ms": 1775.1856000104453,
       "input_tokens": 6209,
       "output_tokens": 175,
       "gold_tables": [
@@ -921,7 +921,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 42.360000021290034,
+      "latency_ms": 65.21439997595735,
       "input_tokens": 6144,
       "output_tokens": 191,
       "gold_tables": [
@@ -954,7 +954,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 260.33770001959056,
+      "latency_ms": 512.467699998524,
       "input_tokens": 6284,
       "output_tokens": 156,
       "gold_tables": [
@@ -989,7 +989,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 52.43390001123771,
+      "latency_ms": 108.70949999662116,
       "input_tokens": 6240,
       "output_tokens": 192,
       "gold_tables": [
@@ -1023,7 +1023,7 @@
       "error_message": "query returned 0 rows",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 371.5652999817394,
+      "latency_ms": 782.4782000097912,
       "input_tokens": 5883,
       "output_tokens": 91,
       "gold_tables": [
@@ -1058,7 +1058,7 @@
       "error_message": "",
       "repair_attempted": true,
       "first_pass_match": false,
-      "latency_ms": 473.51380001055077,
+      "latency_ms": 1055.9974999923725,
       "input_tokens": 10934,
       "output_tokens": 245,
       "gold_tables": [
@@ -1094,7 +1094,7 @@
       "error_message": "query returned 0 rows",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 288.8229000091087,
+      "latency_ms": 693.323599989526,
       "input_tokens": 5916,
       "output_tokens": 117,
       "gold_tables": [
@@ -1129,7 +1129,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 370.51410001004115,
+      "latency_ms": 821.3303000084125,
       "input_tokens": 6207,
       "output_tokens": 140,
       "gold_tables": [
@@ -1165,7 +1165,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 659.7460000193678,
+      "latency_ms": 1391.2196999881417,
       "input_tokens": 6184,
       "output_tokens": 136,
       "gold_tables": [
@@ -1201,7 +1201,7 @@
       "error_message": "",
       "repair_attempted": true,
       "first_pass_match": false,
-      "latency_ms": 23.128600005293265,
+      "latency_ms": 47.31390002416447,
       "input_tokens": 10974,
       "output_tokens": 271,
       "gold_tables": [
@@ -1236,7 +1236,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 15.975199989043176,
+      "latency_ms": 32.65030001057312,
       "input_tokens": 5562,
       "output_tokens": 116,
       "gold_tables": [
@@ -1269,7 +1269,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 33.853900007670745,
+      "latency_ms": 68.48480002372526,
       "input_tokens": 5565,
       "output_tokens": 121,
       "gold_tables": [
@@ -1302,7 +1302,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 187.31190002290532,
+      "latency_ms": 359.70840000663884,
       "input_tokens": 6172,
       "output_tokens": 115,
       "gold_tables": [
@@ -1337,7 +1337,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 341.94519999437034,
+      "latency_ms": 728.206899977522,
       "input_tokens": 6178,
       "output_tokens": 142,
       "gold_tables": [
@@ -1372,7 +1372,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 330.9247999859508,
+      "latency_ms": 672.6688999915496,
       "input_tokens": 6195,
       "output_tokens": 131,
       "gold_tables": [
@@ -1407,7 +1407,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 330.62409999547526,
+      "latency_ms": 674.178999994183,
       "input_tokens": 6255,
       "output_tokens": 165,
       "gold_tables": [
@@ -1442,7 +1442,7 @@
       "error_message": "query returned 0 rows",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 292.85670001991093,
+      "latency_ms": 719.5461000083014,
       "input_tokens": 6182,
       "output_tokens": 109,
       "gold_tables": [
@@ -1478,7 +1478,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 369.8454999830574,
+      "latency_ms": 806.8591999763157,
       "input_tokens": 6105,
       "output_tokens": 91,
       "gold_tables": [
@@ -1513,7 +1513,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 381.454099988332,
+      "latency_ms": 837.5043999985792,
       "input_tokens": 6426,
       "output_tokens": 146,
       "gold_tables": [
@@ -1543,13 +1543,13 @@
       "question": "Among all the posts posted by the most influential user, identify the percentage with a score above 50.",
       "gold_sql": "SELECT CAST(SUM(CASE WHEN T2.Score > 50 THEN 1 ELSE 0 END) AS REAL) * 100 / COUNT(T1.Id) FROM users T1 INNER JOIN posts T2 ON T1.Id = T2.OwnerUserId INNER JOIN ( SELECT MAX(Reputation) AS max_reputation FROM users ) T3 ON T1.Reputation = T3.max_reputation",
       "pred_sql": "SELECT 100.0 * COUNT(p.Id) / (SELECT COUNT(p2.Id) FROM posts p2 JOIN users u2 ON p2.OwnerUserId = u2.Id WHERE u2.Reputation = (SELECT MAX(Reputation) FROM users)) AS percentage FROM posts p JOIN users u ON p.OwnerUserId = u.Id WHERE p.Score > 50 AND u.Reputation = (SELECT MAX(Reputation) FROM users)",
-      "match": false,
+      "match": true,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
       "repair_attempted": false,
-      "first_pass_match": false,
-      "latency_ms": 60263.764800009085,
+      "first_pass_match": true,
+      "latency_ms": 2882858.694800001,
       "input_tokens": 6282,
       "output_tokens": 190,
       "gold_tables": [
@@ -1567,8 +1567,8 @@
         "tags"
       ],
       "pred_row_count": 1,
-      "gold_row_count": 0,
-      "comparison_reason": "gold execution failed"
+      "gold_row_count": 1,
+      "comparison_reason": ""
     },
     {
       "question_id": 704,
@@ -1584,7 +1584,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 17.508799995994195,
+      "latency_ms": 214.38489999854937,
       "input_tokens": 5873,
       "output_tokens": 108,
       "gold_tables": [
@@ -1617,7 +1617,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 92.07069998956285,
+      "latency_ms": 744.9150999891572,
       "input_tokens": 5557,
       "output_tokens": 114,
       "gold_tables": [
@@ -1650,7 +1650,7 @@
       "error_message": "",
       "repair_attempted": true,
       "first_pass_match": false,
-      "latency_ms": 308.06189999566413,
+      "latency_ms": 2775.0742999778595,
       "input_tokens": 11046,
       "output_tokens": 252,
       "gold_tables": [
@@ -1685,7 +1685,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 357.4122999852989,
+      "latency_ms": 1022.8522999968845,
       "input_tokens": 5881,
       "output_tokens": 116,
       "gold_tables": [
@@ -1719,7 +1719,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 84.2553999973461,
+      "latency_ms": 223.60290001961403,
       "input_tokens": 6246,
       "output_tokens": 167,
       "gold_tables": [

@@ -180,6 +180,50 @@ class TestExecutionAccuracy:
         assert execution_accuracy([False, False]) == 0.0
 
 
+class TestNumericBucketing:
+    """The set path must put int, float and Decimal on one tolerance grid.
+
+    Quantising floats but not ints hashed gold `5` to 5 and pred `5.0` to
+    5_000_000, so a correct answer scored as a miss. That is stricter than BIRD's
+    own scorer, which sets raw Python tuples — where `5 == 5.0` collapses — and
+    it contradicted the apples-to-apples claim in `compare_results`' docstring.
+    """
+
+    def test_int_gold_matches_float_pred(self) -> None:
+        # gold `COUNT(*)` → int; pred `CAST(COUNT(*) AS REAL)` → float.
+        assert compare_results([(5,)], [(5.0,)]).match
+
+    def test_int_gold_matches_decimal_pred(self) -> None:
+        # Postgres hands numeric back as Decimal; _normalise_cell floats it.
+        assert compare_results([(5,)], [(Decimal("5"),)]).match
+
+    def test_set_and_ordered_paths_agree(self) -> None:
+        """The same pair must not score differently just because gold has ORDER BY.
+
+        The ordered path compares through `_cell_equal`'s tolerance and always
+        matched these; only the set path disagreed.
+        """
+        gold, pred = [(5,)], [(5.0,)]
+        assert compare_results(gold, pred).match
+        assert compare_results(gold, pred, gold_sql="SELECT c FROM t ORDER BY c").match
+
+    def test_tolerance_spans_int_and_float(self) -> None:
+        assert compare_results([(5,)], [(5.0000004,)]).match
+        assert not compare_results([(5,)], [(5.1,)]).match
+
+    def test_bool_still_collapses_with_int(self) -> None:
+        # Exactly what a raw Python set does: hash(True) == hash(1).
+        assert compare_results([(True,)], [(1,)]).match
+
+    def test_large_ints_stay_distinct_on_the_grid(self) -> None:
+        # The grid must not collapse neighbouring ids just because it scales by 1e6.
+        assert not compare_results([(10_000_000_001,)], [(10_000_000_002,)]).match
+
+    def test_strings_and_none_pass_through(self) -> None:
+        assert compare_results([("a", None)], [("a", None)]).match
+        assert not compare_results([("a",)], [("b",)]).match
+
+
 class TestSchemaRecall:
     def test_all_tables_present(self) -> None:
         assert schema_recall_at_k(["Album", "Artist"], ["Album", "Artist", "Track"])

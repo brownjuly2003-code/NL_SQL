@@ -216,15 +216,33 @@ def _cell_equal(a: Any, b: Any) -> bool:
 
 
 def _hashable(row: tuple[Any, ...]) -> tuple[Any, ...]:
-    """Project a row into a hashable representation for multiset comparison.
+    """Project a row into a hashable representation for set comparison.
 
-    Floats are quantised to the tolerance grid so that 1.0000001 and 1.0
-    bucket together. Strings/ints/None pass through.
+    Every number — int, float, and (post-`_normalise_cell`) Decimal — goes onto
+    the same tolerance grid, so 1.0000001, 1.0 and 1 all bucket together.
+    Strings/None pass through.
+
+    Quantising floats but *not* ints used to split the two apart: gold `5` hashed
+    to 5 while pred `5.0` hashed to 5_000_000, and the set comparison called a
+    correct answer a miss. That was stricter than BIRD's own scorer, which sets
+    raw Python tuples where `5 == 5.0` and the two collapse — precisely the
+    apples-to-apples property `compare_results` claims. The ordered path never
+    had the bug (it compares with `_cell_equal`'s tolerance), so the same
+    (gold, pred) pair scored differently depending on whether gold had ORDER BY.
+
+    `bool` is a subclass of `int` and is quantised with them, keeping `True`
+    equal to `1` exactly as a raw Python set would.
+
+    Grid precision: `v / 1e-6` is exact for |v| < 2**53 / 1e6 ≈ 9e9 and stays
+    injective (float step < 1e6) up to ~4.5e15 — far beyond any BIRD magnitude.
     """
     out: list[Any] = []
     for v in row:
-        if isinstance(v, float):
-            out.append(round(v / _FLOAT_TOLERANCE) if v == v else "__NaN__")
+        if isinstance(v, int | float):
+            if isinstance(v, float) and v != v:  # NaN
+                out.append("__NaN__")
+            else:
+                out.append(round(v / _FLOAT_TOLERANCE))
         else:
             out.append(v)
     return tuple(out)

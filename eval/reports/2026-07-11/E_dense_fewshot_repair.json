@@ -12,8 +12,7 @@
     "latency_p50_ms": 172.93875000905246,
     "latency_p95_ms": 5453.678050002716,
     "tokens_p50": 5445.5,
-    "tokens_p95": 11969.05,
-    "matched": 116
+    "tokens_p95": 11969.05
   },
   "per_difficulty": {
     "simple": {
@@ -3248,7 +3247,7 @@
       ],
       "pred_row_count": 1,
       "gold_row_count": 1,
-      "comparison_reason": "ordered row 0 mismatch: gold=('Fisichella',), pred=('Räikkönen',)"
+      "comparison_reason": "ordered row 0 mismatch: gold=('Fisichella',), pred=('R\u00e4ikk\u00f6nen',)"
     },
     {
       "question_id": 859,
