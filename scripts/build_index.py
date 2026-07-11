@@ -60,14 +60,24 @@ def build_for_db(
     *,
     sample_size: int = DEFAULT_SAMPLE_SIZE,
     registry: DatabaseRegistry | None = None,
+    column_descriptions: bool = False,
 ) -> int:
     registry = registry or get_default_registry()
     spec = registry.get(db_id)
     print(f"[introspect] {db_id} ({spec.url})")
     tables = introspect(spec.make_engine(), sample_size=sample_size)
     # BIRD explains its own cryptic columns in database_description/*.csv next to
-    # the .sqlite file. Postgres targets have no such directory and get nothing.
-    descriptions = load_column_descriptions(spec.url) if spec.dialect == "sqlite" else {}
+    # the .sqlite file. Off by default: measured on n=200 (config E, evidence-first
+    # prompt) it *cost* 1.5pp — 61.0% -> 59.5%, all of it on `moderate`. The
+    # descriptions run to thousands of characters per table, and the schema block
+    # they inflate pushes the question back into the middle of the prompt, undoing
+    # the reordering that won those points in the first place. Kept behind a flag
+    # because a column-level (not table-level) retrieval could still make them pay.
+    descriptions = (
+        load_column_descriptions(spec.url)
+        if column_descriptions and spec.dialect == "sqlite"
+        else {}
+    )
     described = sum(len(cols) for cols in descriptions.values())
     print(f"[chunk] {len(tables)} tables → chunks ({described} columns carry BIRD descriptions)")
     chunks = to_chunks(tables, db_id=db_id, column_descriptions=descriptions)
@@ -125,6 +135,15 @@ def build_parser() -> argparse.ArgumentParser:
         default="bird_codebase_community",
         help="registry id served by --pg-dsn (default: bird_codebase_community)",
     )
+    parser.add_argument(
+        "--column-descriptions",
+        action="store_true",
+        help=(
+            "fold BIRD's database_description/*.csv prose into each column. OFF by "
+            "default: measured, it costs 1.5pp EA (61.0%% -> 59.5%% on n=200) — the "
+            "descriptions inflate the schema block enough to bury the question again"
+        ),
+    )
     return parser
 
 
@@ -164,7 +183,13 @@ def main(argv: list[str] | None = None) -> int:
 
     total = 0
     for db_id in targets:
-        total += build_for_db(idx, db_id, sample_size=args.sample_size, registry=registry)
+        total += build_for_db(
+            idx,
+            db_id,
+            sample_size=args.sample_size,
+            registry=registry,
+            column_descriptions=args.column_descriptions,
+        )
     print(f"[summary] indexed {total} chunks across {len(targets)} db(s)")
     return 0
 
