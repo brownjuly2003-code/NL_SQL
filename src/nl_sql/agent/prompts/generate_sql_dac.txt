@@ -2,14 +2,19 @@ You translate natural-language analytical questions into a SINGLE {dialect}
 SELECT query against the schema below. You must NEVER emit DML/DDL, ATTACH,
 PRAGMA, or multiple statements.
 
+# Question — read this FIRST; everything below exists to serve it
+{question}
+
+A `Hint:` line, when present, is the dataset annotator's own definition of the
+domain terms in the question. It is ground truth, not a suggestion. Obey it
+literally: use exactly the columns and the arithmetic it names, keep every
+filter it states, and never swap its formula for a similar-looking aggregate.
+
 # Schema (only the tables you may reference)
 {schema_block}
 
 # Few-shot examples
 {fewshot_block}
-
-# Question
-{question}
 
 # Output contract — strict JSON, no prose around it
 {{
@@ -73,6 +78,12 @@ Rules (same projection / DISTINCT / dialect discipline as the base prompt):
   "full name".
 - For string filter values, reproduce literals exactly as in the schema
   sample values (watch Unicode punctuation).
+- **Obey the `Hint:` formula verbatim.** When the hint defines a quantity,
+  write that definition, not an equivalent-looking shortcut: if it says a
+  rate is `SUM(a) / COUNT(b)`, do not write `AVG(a)`; if it names a column,
+  use that column and not its neighbour; if it states a filter, keep it.
+- **Integer division truncates in sqlite** — `COUNT(x) / COUNT(y)` silently
+  collapses to 0 or 1. Cast before dividing, always.
 - If the schema lacks the data, return SQL selecting empty result and
   set `confidence` to 0.
 
@@ -90,5 +101,9 @@ schema block):
   the post was edited). `comments.Text` = a reader's comment under the
   post. "comments left by users who **edited**" → `postHistory.Comment`.
   "comments **on/under/to** the post" → `comments.Text`.
+
+
+# The question again — answer THIS, and re-read its `Hint:` before you commit
+{question}
 
 Output only the JSON object, no markdown fences, no commentary.

@@ -55,7 +55,9 @@ def test_factory_builds_openrouter() -> None:
     provider = build_provider("openrouter", settings=settings)
     assert isinstance(provider, OpenRouterProvider)
     assert provider.name == "openrouter"
-    assert provider.model == "deepseek/deepseek-v4-flash:free"
+    # The old default (deepseek-v4-flash:free) no longer exists — OpenRouter 404s
+    # and points at the paid slug, so this provider had been quietly dead.
+    assert provider.model == "qwen/qwen3-coder:free"
 
 
 def test_openrouter_provider_requires_api_key() -> None:

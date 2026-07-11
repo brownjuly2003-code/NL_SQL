@@ -320,13 +320,21 @@ def run_config_e(
     primary_sample_size: int = 3,
     extended_sample_size: int = 0,
     enable_bird_rescue_hints: bool = False,
+    fewshot_top_k: int = 0,
     progress: Callable[[int, int, EvalRecord], None] | None = None,
 ) -> EvalRun:
     """Run configuration E (config C + repair_once enabled) — final v2 config.
 
-    The only difference from C is that the repair branch fires on the first
+    The difference from C is that the repair branch fires on the first
     validate/execute failure. Results capture both first-pass and final EA
     so the methodology report can isolate the repair contribution.
+
+    `fewshot_top_k` defaults to 0 — E historically ran with an empty few-shot
+    block despite the name, so config D (fewshot, no repair) and config E
+    (repair, no fewshot) each had half the story. Passing it a non-zero k draws
+    from the same BIRD *train* pool config D uses (69 databases, zero overlap
+    with the 11 dev databases — `scripts/build_fewshot_index.py` asserts it), so
+    there is no leakage in combining them.
     """
     pipeline = build_pipeline(
         PipelineConfig(
@@ -336,7 +344,8 @@ def run_config_e(
             registry=registry,
             enable_bird_rescue_hints=enable_bird_rescue_hints,
             schema_top_k=schema_top_k,
-            fewshot_top_k=0,
+            fewshot_top_k=fewshot_top_k,
+            cross_db_fewshot=fewshot_top_k > 0,
             fk_hops=fk_hops,
             table_budget=table_budget,
             statement_timeout_ms=statement_timeout_ms,

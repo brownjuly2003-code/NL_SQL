@@ -51,7 +51,11 @@ class Settings(BaseSettings):
     # deepseek-v4-flash:free returned valid JSON+SQL on probe (LIMIT/OFFSET
     # correct for 7th-row case). Other live free models cycle; check
     # `D:\TXT\Free API Keys.txt` / smoke before switching.
-    openrouter_model: str = "deepseek/deepseek-v4-flash:free"
+    # `deepseek/deepseek-v4-flash:free` used to live here and no longer exists —
+    # OpenRouter answers 404 and points at the paid slug, so this provider had
+    # been quietly dead. qwen3-coder is free, code-specialised and long-context;
+    # note the free tier is rate-limited upstream (429) and needs retry patience.
+    openrouter_model: str = "qwen/qwen3-coder:free"
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
 
     # Perplexity browser path via local GraceKelly (D:\GraceKelly). Free

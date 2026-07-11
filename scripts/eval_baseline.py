@@ -18,6 +18,7 @@ import argparse
 import sys
 import time
 from pathlib import Path
+from typing import Any
 
 import chromadb
 
@@ -438,6 +439,11 @@ def main(argv: list[str] | None = None) -> int:
             )
         else:
             runner = run_config_c if args.config == "C" else run_config_e
+            # Only E takes a few-shot pool: C is the no-repair, no-fewshot ablation
+            # and must stay that way to remain comparable with its own history.
+            extra: dict[str, Any] = (
+                {} if args.config == "C" else {"fewshot_top_k": args.fewshot_top_k}
+            )
             run = runner(
                 sample,
                 sql_provider=sql_provider,
@@ -452,6 +458,7 @@ def main(argv: list[str] | None = None) -> int:
                 primary_sample_size=args.primary_sample_size,
                 extended_sample_size=args.extended_sample_size,
                 progress=_on_progress,
+                **extra,
             )
     elapsed = time.perf_counter() - started
 
