@@ -208,6 +208,31 @@ def main(argv: list[str] | None = None) -> int:
         ),
     )
     parser.add_argument(
+        "--dialect",
+        choices=["sqlite", "postgresql"],
+        default="sqlite",
+        help=(
+            "SQL dialect of the run. 'postgresql' loads BIRD's Postgres gold "
+            "(mini_dev_postgresql.json — 312/500 golds are rewritten for PG, e.g. "
+            "STRFTIME → TO_CHAR) and prompts the model for Postgres SQL. Requires "
+            "--pg-dsn, and every sampled example must resolve to a Postgres-backed "
+            "database (default: sqlite)."
+        ),
+    )
+    parser.add_argument(
+        "--pg-dsn",
+        default="",
+        help=(
+            "Postgres DSN serving --pg-db-id (owner or read-only role). Load it "
+            "first: scripts/extract_pg_dump_slice.py + psql, see docs/03_eval_methodology.md §14."
+        ),
+    )
+    parser.add_argument(
+        "--pg-db-id",
+        default="bird_codebase_community",
+        help="registry id served by --pg-dsn (default: bird_codebase_community)",
+    )
+    parser.add_argument(
         "--provider",
         choices=["mistral", "groq", "github_models", "ollama", "perplexity", "openrouter"],
         default="mistral",
@@ -228,7 +253,11 @@ def main(argv: list[str] | None = None) -> int:
         print("[error] invalid --only-qids: expected comma-separated integers", file=sys.stderr)
         return 3
 
-    examples = load_bird_mini_dev(Path(args.bird_root))
+    if args.dialect == "postgresql" and not args.pg_dsn:
+        print("[error] --dialect postgresql requires --pg-dsn", file=sys.stderr)
+        return 3
+
+    examples = load_bird_mini_dev(Path(args.bird_root), dialect=args.dialect)
     if args.db:
         examples = [e for e in examples if e.registry_db_id == args.db]
         if not examples:
@@ -258,12 +287,29 @@ def main(argv: list[str] | None = None) -> int:
             return 3
     print(f"[info] loaded {len(examples)} examples → sampled {len(sample)} (seed={args.seed})")
 
-    registry = get_default_registry()
+    registry = get_default_registry(pg_dsn=args.pg_dsn, pg_db_id=args.pg_db_id)
     missing = sorted({e.registry_db_id for e in sample} - set(registry.ids()))
     if missing:
         print(
             f"[error] sampled examples reference unregistered DBs: {missing}\n"
             f"  registered: {registry.ids()}",
+            file=sys.stderr,
+        )
+        return 4
+
+    # Gold SQL is dialect-specific: BIRD's Postgres gold uses TO_CHAR/CAST where
+    # the SQLite gold uses STRFTIME. Executing it against a SQLite engine would
+    # not error out loudly enough — it would just fail the query and score a
+    # miss, quietly reporting a bogus EA. Refuse the run instead.
+    wrong_engine = sorted(
+        {e.registry_db_id for e in sample if registry.get(e.registry_db_id).dialect != args.dialect}
+    )
+    if wrong_engine:
+        print(
+            f"[error] --dialect {args.dialect} but these DBs are not backed by "
+            f"{args.dialect}: {wrong_engine}\n"
+            f"  load one first (scripts/extract_pg_dump_slice.py) and pass "
+            f"--pg-dsn/--pg-db-id, or narrow the run with --db {args.pg_db_id}",
             file=sys.stderr,
         )
         return 4

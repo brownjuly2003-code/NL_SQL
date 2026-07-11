@@ -64,7 +64,7 @@ def test_eval_baseline_skips_incompatible_prior_json(
     monkeypatch.setattr(
         eval_baseline,
         "load_bird_mini_dev",
-        lambda path: [
+        lambda path, **kwargs: [
             BirdExample(
                 question_id=1,
                 db_id="d",
@@ -82,7 +82,12 @@ def test_eval_baseline_skips_incompatible_prior_json(
     )
     monkeypatch.setattr(eval_baseline, "CachingLLMProvider", lambda raw, **kwargs: raw)
     monkeypatch.setattr(
-        eval_baseline, "get_default_registry", lambda: SimpleNamespace(ids=lambda: ["bird_d"])
+        eval_baseline,
+        "get_default_registry",
+        lambda **kwargs: SimpleNamespace(
+            ids=lambda: ["bird_d"],
+            get=lambda db_id: SimpleNamespace(dialect="sqlite"),
+        ),
     )
     monkeypatch.setattr(eval_baseline, "run_config_a", lambda *args, **kwargs: run)
     monkeypatch.setattr(
@@ -145,7 +150,7 @@ def test_eval_baseline_only_qids_skips_dev_split(
     monkeypatch.setattr(
         eval_baseline,
         "load_bird_mini_dev",
-        lambda path: [
+        lambda path, **kwargs: [
             BirdExample(
                 question_id=1205,
                 db_id="thrombosis_prediction",
@@ -186,7 +191,10 @@ def test_eval_baseline_only_qids_skips_dev_split(
     monkeypatch.setattr(
         eval_baseline,
         "get_default_registry",
-        lambda: SimpleNamespace(ids=lambda: ["bird_student_club", "bird_thrombosis_prediction"]),
+        lambda **kwargs: SimpleNamespace(
+            ids=lambda: ["bird_student_club", "bird_thrombosis_prediction"],
+            get=lambda db_id: SimpleNamespace(dialect="sqlite"),
+        ),
     )
 
     def fake_run_config_a(examples, **kwargs):

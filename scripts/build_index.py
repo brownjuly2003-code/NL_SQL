@@ -26,7 +26,7 @@ import chromadb
 
 from nl_sql.agent.graph import PipelineConfig
 from nl_sql.config import get_settings
-from nl_sql.db.registry import get_default_registry
+from nl_sql.db.registry import DatabaseRegistry, get_default_registry
 from nl_sql.llm.cache import CachingEmbeddingProvider
 from nl_sql.llm.providers.base import EmbeddingProvider
 from nl_sql.llm.providers.mistral import MistralProvider
@@ -53,8 +53,14 @@ mixture appendix breaks if the index is built with more samples than
 runtime advertises."""
 
 
-def build_for_db(idx: SchemaIndex, db_id: str, *, sample_size: int = DEFAULT_SAMPLE_SIZE) -> int:
-    registry = get_default_registry()
+def build_for_db(
+    idx: SchemaIndex,
+    db_id: str,
+    *,
+    sample_size: int = DEFAULT_SAMPLE_SIZE,
+    registry: DatabaseRegistry | None = None,
+) -> int:
+    registry = registry or get_default_registry()
     spec = registry.get(db_id)
     print(f"[introspect] {db_id} ({spec.url})")
     tables = introspect(spec.make_engine(), sample_size=sample_size)
@@ -98,6 +104,22 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Disable diskcache wrapper around the embedding provider.",
     )
+    parser.add_argument(
+        "--pg-dsn",
+        default="",
+        help=(
+            "Postgres DSN. When set, --pg-db-id is served by Postgres instead of "
+            "SQLite, and the chunks are introspected from the live Postgres schema "
+            "(lower-cased identifiers, real timestamptz). Build these into a "
+            "SEPARATE --persist dir: chunk ids are keyed by db_id, so a Postgres "
+            "build would otherwise overwrite the SQLite chunks for the same db."
+        ),
+    )
+    parser.add_argument(
+        "--pg-db-id",
+        default="bird_codebase_community",
+        help="registry id served by --pg-dsn (default: bird_codebase_community)",
+    )
     return parser
 
 
@@ -132,12 +154,12 @@ def main(argv: list[str] | None = None) -> int:
     )
     idx = SchemaIndex(persist_dir=persist, embedder=embedder, client=client)
 
-    registry = get_default_registry()
+    registry = get_default_registry(pg_dsn=args.pg_dsn, pg_db_id=args.pg_db_id)
     targets = registry.ids() if args.db == "all" else [args.db]
 
     total = 0
     for db_id in targets:
-        total += build_for_db(idx, db_id, sample_size=args.sample_size)
+        total += build_for_db(idx, db_id, sample_size=args.sample_size, registry=registry)
     print(f"[summary] indexed {total} chunks across {len(targets)} db(s)")
     return 0
 

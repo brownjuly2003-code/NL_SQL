@@ -49,21 +49,17 @@ def get_default_registry(
     - data/bird_mini_dev/MINIDEV/dev_databases/<db>/<db>.sqlite   → id=f"bird_{db}"
 
     When ``pg_dsn`` is non-empty, a Postgres-backed database is also registered
-    under ``pg_db_id`` (load it first with scripts/load_postgres.py). The DSN
+    under ``pg_db_id`` (load it first with scripts/load_postgres.py, or — for a
+    BIRD slice with Postgres gold — scripts/extract_pg_dump_slice.py). The DSN
     should point at the read-only role; the engine additionally forces read-only
     transactions (see db/connection.py).
+
+    Registration order matters: Postgres is registered *last*, so passing an id
+    that a SQLite scan also produces (e.g. ``pg_db_id="bird_codebase_community"``)
+    deliberately re-points that database at Postgres. That is how the Postgres
+    eval runs the same BIRD questions against a different engine.
     """
     registry = DatabaseRegistry()
-
-    if pg_dsn:
-        registry.register(
-            DatabaseSpec(
-                id=pg_db_id,
-                dialect="postgresql",
-                url=pg_dsn,
-                description=pg_description,
-            )
-        )
 
     chinook_path = data_root / "chinook" / "Chinook.sqlite"
     if chinook_path.exists():
@@ -89,5 +85,15 @@ def get_default_registry(
                         description=f"BIRD Mini-Dev / {db_dir.name}.",
                     )
                 )
+
+    if pg_dsn:
+        registry.register(
+            DatabaseSpec(
+                id=pg_db_id,
+                dialect="postgresql",
+                url=pg_dsn,
+                description=pg_description,
+            )
+        )
 
     return registry

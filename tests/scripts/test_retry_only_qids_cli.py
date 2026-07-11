@@ -190,7 +190,7 @@ def test_eval_baseline_rejects_missing_only_qids_before_provider_setup(
     monkeypatch.setattr(
         eval_baseline,
         "load_bird_mini_dev",
-        lambda path: [],
+        lambda path, **kwargs: [],
     )
     monkeypatch.setattr(
         eval_baseline,
