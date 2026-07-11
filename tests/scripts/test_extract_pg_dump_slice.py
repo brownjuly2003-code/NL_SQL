@@ -21,6 +21,7 @@ from pathlib import Path
 
 import pytest
 from scripts.extract_pg_dump_slice import (
+    DEFAULT_TABLES_JSON,
     Section,
     _verify,
     bird_tables,
@@ -172,6 +173,35 @@ def test_verify_passes_on_a_complete_slice() -> None:
     assert _verify(kept, {"posts", "circuits"}) == []
 
 
+def test_bird_tables_parses_a_tables_json(tmp_path: Path) -> None:
+    tables_json = tmp_path / "dev_tables.json"
+    tables_json.write_text(
+        json.dumps(
+            [
+                {"db_id": "formula_1", "table_names_original": ["circuits", "drivers"]},
+                {"db_id": "codebase_community", "table_names_original": ["posts", "postHistory"]},
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    assert bird_tables("codebase_community", tables_json) == {"posts", "posthistory"}
+
+
+def test_bird_tables_rejects_an_unknown_db(tmp_path: Path) -> None:
+    tables_json = tmp_path / "dev_tables.json"
+    tables_json.write_text(
+        json.dumps([{"db_id": "formula_1", "table_names_original": ["circuits"]}]), encoding="utf-8"
+    )
+
+    with pytest.raises(KeyError, match="unknown BIRD db_id"):
+        bird_tables("not_a_bird_database", tables_json)
+
+
+@pytest.mark.skipif(
+    not DEFAULT_TABLES_JSON.is_file(),
+    reason="BIRD Mini-Dev not downloaded (scripts/download_data.py bird-mini-dev)",
+)
 def test_bird_tables_reads_the_real_dev_tables_json() -> None:
     tables = bird_tables("codebase_community")
 
@@ -185,11 +215,6 @@ def test_bird_tables_reads_the_real_dev_tables_json() -> None:
         "users",
         "votes",
     }
-
-
-def test_bird_tables_rejects_an_unknown_db() -> None:
-    with pytest.raises(KeyError, match="unknown BIRD db_id"):
-        bird_tables("not_a_bird_database")
 
 
 def test_extract_reads_from_a_real_file(tmp_path: Path) -> None:
@@ -214,15 +239,20 @@ def test_extract_reads_from_a_real_file(tmp_path: Path) -> None:
     }
 
 
+@pytest.mark.skipif(
+    not DEFAULT_TABLES_JSON.is_file(),
+    reason="BIRD Mini-Dev not downloaded (scripts/download_data.py bird-mini-dev)",
+)
 def test_dev_tables_json_table_names_are_globally_unique() -> None:
     """The slice keys on table name alone — that is only sound if names don't collide.
 
     If BIRD ever ships two databases sharing a table name, the slice would silently
     pull in the other database's rows. Pin the property that makes it safe.
+
+    Skipped when the dataset isn't downloaded (CI): this asserts a property of the
+    BIRD data, not of our code, so there is nothing to check without the data.
     """
-    entries = json.loads(
-        Path("data/bird_mini_dev/MINIDEV/dev_tables.json").read_text(encoding="utf-8")
-    )
+    entries = json.loads(DEFAULT_TABLES_JSON.read_text(encoding="utf-8"))
     seen: dict[str, str] = {}
     collisions: list[str] = []
     for entry in entries:
