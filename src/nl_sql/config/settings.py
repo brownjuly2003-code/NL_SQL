@@ -72,7 +72,12 @@ class Settings(BaseSettings):
     # through GraceKelly's live catalog to "Claude Sonnet 5.0".
     gracekelly_model: str = "claude-sonnet-5"
     gracekelly_base_url: str = "http://127.0.0.1:8011"
-    gracekelly_timeout_seconds: float = 180.0
+    gracekelly_timeout_seconds: float = 900.0
+    """Browser path, so this is a human-scale wait, not an API round-trip.
+    Measured on the NL_SQL generation prompt (schema + few-shot + rules, ~6k
+    tokens) against Perplexity: 150-436s per call. The former 180s default
+    timed out mid-benchmark and surfaced as `pipeline_exception`, which scores
+    as a miss and silently understates the model. 900s leaves headroom."""
 
     mistral_api_key: str = Field(default="", validation_alias="MISTRAL_API_KEY")
     github_token: str = Field(default="", validation_alias="GITHUB_TOKEN")

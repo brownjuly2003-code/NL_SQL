@@ -22,7 +22,7 @@ from typing import Any
 
 import chromadb
 
-from nl_sql.config import get_settings
+from nl_sql.config import Settings, get_settings
 from nl_sql.db.registry import get_default_registry
 from nl_sql.eval import (
     EvalRecord,
@@ -45,6 +45,26 @@ from nl_sql.llm.providers import build_provider
 from nl_sql.llm.providers.base import EmbeddingProvider, LLMProvider
 from nl_sql.llm.providers.mistral import MistralProvider
 from nl_sql.schema_index.indexer import SchemaIndex
+
+# Which Settings field carries the generation model for each provider, so
+# `--sql-model` can retarget one without editing .env.
+_MODEL_FIELD: dict[str, str] = {
+    "mistral": "mistral_gen_model",
+    "groq": "groq_model",
+    "github_models": "github_models_model",
+    "ollama": "ollama_gen_model",
+    "openrouter": "openrouter_model",
+    "perplexity": "perplexity_browser_model",
+    "gracekelly": "gracekelly_model",
+}
+
+
+def _build_provider_with_model(
+    name: str, settings: Settings, model_override: str | None
+) -> LLMProvider:
+    if model_override:
+        settings = settings.model_copy(update={_MODEL_FIELD[name]: model_override})
+    return build_provider(name, settings=settings)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -211,6 +231,40 @@ def main(argv: list[str] | None = None) -> int:
         help="config E: render the schema block in M-Schema form (same story as --dac)",
     )
     parser.add_argument(
+        "--compact-prompt",
+        action="store_true",
+        help=(
+            "config E: use generate_sql_compact.txt — evidence-first like the "
+            "default, but without the coaching the default accumulated for "
+            "codestral (Chinook-taught DISTINCT rule, projection drilling, "
+            "per-database disambiguation). Intended for frontier models, where "
+            "that coaching is noise and prompt length is latency."
+        ),
+    )
+    parser.add_argument(
+        "--critique",
+        action="store_true",
+        help=(
+            "config E: enable the post-execute grounded-critique node "
+            "(PipelineConfig.enable_grounded_critique) — a cheap row-count-shape "
+            "heuristic (NOT an LLM call) that compares the executed row count "
+            "against a shape inferred from the question text and routes a "
+            "mismatch to repair_once. The only lever that can send a 'valid SQL, "
+            "wrong rows' result (error_kind=None) into repair. Default off."
+        ),
+    )
+    parser.add_argument(
+        "--retry-on-empty",
+        action="store_true",
+        help=(
+            "config E: route an EMPTY_RESULT outcome to repair_once "
+            "(PipelineConfig.verify_retry_on_empty) — the same lever config G "
+            "hardcodes on, exposed here so it can be measured on top of E in "
+            "isolation from G's other defaults (fewshot/sort/cross-db). "
+            "Default off."
+        ),
+    )
+    parser.add_argument(
         "--extended-sample-size",
         type=int,
         default=0,
@@ -250,12 +304,40 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument(
         "--provider",
-        choices=["mistral", "groq", "github_models", "ollama", "perplexity", "openrouter"],
+        choices=[
+            "mistral",
+            "groq",
+            "github_models",
+            "ollama",
+            "perplexity",
+            "openrouter",
+            "gracekelly",
+        ],
         default="mistral",
         help=(
             "LLM provider for generation (embedding stays mistral — only "
             "Mistral implements EmbeddingProvider). Used for the "
             "architecture §1 provider bakeoff."
+        ),
+    )
+    parser.add_argument(
+        "--sql-model",
+        default=None,
+        help=(
+            "override the generation model for --provider (e.g. gpt-5-6-terra, "
+            "gemini-3-1-pro, claude-sonnet-5 for gracekelly). Default: the "
+            "provider's configured model."
+        ),
+    )
+    parser.add_argument(
+        "--explain-provider",
+        default=None,
+        help=(
+            "provider for the explain_trace caption (default: same as --provider). "
+            "The caption never enters the EA comparison, so on a slow/metered "
+            "generation provider (gracekelly drives a browser: ~56s and one "
+            "Perplexity quota unit per call) point this at `mistral` to halve "
+            "both wall-clock and quota without touching the measured number."
         ),
     )
     args = parser.parse_args(argv)
@@ -335,18 +417,22 @@ def main(argv: list[str] | None = None) -> int:
         print("[error] MISTRAL_API_KEY not set in .env", file=sys.stderr)
         return 2
 
-    raw_sql_provider = build_provider(args.provider, settings=settings)
+    raw_sql_provider = _build_provider_with_model(args.provider, settings, args.sql_model)
     print(f"[info] provider: {args.provider} (model={raw_sql_provider.model})")
-    sql_provider: LLMProvider
-    if args.no_cache:
-        sql_provider = raw_sql_provider
-        print("[info] cache: DISABLED (--no-cache)")
-    else:
-        sql_provider = CachingLLMProvider(
-            raw_sql_provider,
+
+    def _wrap_cache(provider: LLMProvider) -> LLMProvider:
+        if args.no_cache:
+            return provider
+        return CachingLLMProvider(
+            provider,
             cache_dir=settings.llm_cache_dir,
             size_limit_gb=settings.llm_cache_size_limit_gb,
         )
+
+    sql_provider: LLMProvider = _wrap_cache(raw_sql_provider)
+    if args.no_cache:
+        print("[info] cache: DISABLED (--no-cache)")
+    else:
         print(f"[info] cache: ENABLED at {settings.llm_cache_dir}/")
 
     started = time.perf_counter()
@@ -396,7 +482,16 @@ def main(argv: list[str] | None = None) -> int:
             )
         )
         index = SchemaIndex(persist_dir=persist_dir, embedder=embedder, client=chroma_client)
-        explain_provider = sql_provider  # codestral works for caption too in eval
+        # The caption never enters the EA comparison. Keeping it on the same
+        # provider is fine for codestral, but on a browser-driven provider it
+        # would double both wall-clock and Perplexity quota for zero effect on
+        # the measured number — so allow pinning it elsewhere.
+        explain_provider: LLMProvider = sql_provider
+        if args.explain_provider and args.explain_provider != args.provider:
+            explain_provider = _wrap_cache(
+                _build_provider_with_model(args.explain_provider, settings, None)
+            )
+            print(f"[info] explain provider: {args.explain_provider} (caption only, not scored)")
         if args.config == "F":
             temps = tuple(float(x) for x in args.sql_candidate_temperatures.split(",") if x.strip())
             print(f"[info] self-consistency: {len(temps)} candidates @ {temps}")
@@ -463,6 +558,9 @@ def main(argv: list[str] | None = None) -> int:
                     "fewshot_top_k": args.fewshot_top_k,
                     "use_dac_prompt": args.dac,
                     "use_m_schema": args.m_schema,
+                    "use_compact_prompt": args.compact_prompt,
+                    "enable_grounded_critique": args.critique,
+                    "verify_retry_on_empty": args.retry_on_empty,
                 }
             )
             run = runner(
