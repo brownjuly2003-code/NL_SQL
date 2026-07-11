@@ -47,7 +47,5 @@ def test_rescue_hints_absent_by_default() -> None:
 
 
 def test_rescue_hints_present_when_enabled() -> None:
-    rendered = render_schema_block(
-        _student_club_expense_context(), enable_bird_rescue_hints=True
-    )
+    rendered = render_schema_block(_student_club_expense_context(), enable_bird_rescue_hints=True)
     assert "# Schema-link hints" in rendered

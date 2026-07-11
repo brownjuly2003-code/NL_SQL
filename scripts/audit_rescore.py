@@ -19,6 +19,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+from typing import Any
 
 from nl_sql.db import DatabaseSpec
 from nl_sql.db.connection import execute_readonly, sqlite_url_readonly
@@ -50,7 +51,7 @@ def main() -> int:
                 engine, r["gold_sql"], statement_timeout_ms=30_000, row_cap=10_000
             )
             pred_sql = r.get("pred_sql") or ""
-            pred_rows: list = []
+            pred_rows: list[Any] = []
             pred_failed = False
             if pred_sql.strip():
                 try:

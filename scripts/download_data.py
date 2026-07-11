@@ -92,7 +92,7 @@ def download_bird_mini_dev() -> None:
 
         url = f"https://drive.google.com/uc?id={BIRD_MINI_DEV_GDRIVE_ID}"
         print(f"[gdown] {url} → {archive}")
-        gdown.download(url, str(archive), quiet=False)
+        gdown.download(url, str(archive), quiet=False)  # type: ignore[attr-defined]  # gdown ships no stubs
     else:
         print(f"[skip] {archive} already downloaded ({archive.stat().st_size:,} bytes)")
     _write_checksum(archive)

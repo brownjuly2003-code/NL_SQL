@@ -3,7 +3,7 @@ name = "nl-sql"
 version = "0.1.0"
 description = "Portfolio demo: NL→SQL assistant with measurable accuracy, schema-RAG, safety guards"
 readme = "README.md"
-requires-python = ">=3.12,<3.14"
+requires-python = ">=3.13,<3.14"
 authors = [{ name = "Julia Edomskikh" }]
 license = { text = "MIT" }
 
@@ -91,9 +91,14 @@ ignore = [
 [tool.mypy]
 python_version = "3.13"
 strict = true
-mypy_path = "src"
+# app/ resolves its sibling modules (i18n, theme, components.*) with app/ on the
+# path — same as the Streamlit runtime, where app/ is the working dir.
+mypy_path = ["src", "app"]
 explicit_package_bases = true
 disallow_untyped_decorators = false   # FastAPI decorators are fine
+# Frozen legacy voting scripts (known compare-defect) and a rough proof-of-concept
+# are not type-maintained.
+exclude = ["scripts/archive/", "scripts/wider_sc_poc.py"]
 
 [[tool.mypy.overrides]]
 module = ["tests.*"]
@@ -112,7 +117,7 @@ module = ["diskcache.*"]
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
-module = ["plotly.*", "streamlit", "pandas", "pandas.*"]
+module = ["plotly.*", "streamlit", "pandas", "pandas.*", "gdown", "pyarrow.*"]
 ignore_missing_imports = true
 
 # Unofficial Perplexity client (github.com/helallao/perplexity-ai): optional

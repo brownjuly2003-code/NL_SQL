@@ -21,7 +21,7 @@ import sys
 from pathlib import Path
 
 from nl_sql.eval.report import load_run_from_json, write_html_report, write_json_report
-from nl_sql.eval.runner import EvalRecord, EvalRun, _summarise  # type: ignore[attr-defined]
+from nl_sql.eval.runner import EvalRecord, EvalRun, _summarise
 
 
 def main(argv: list[str] | None = None) -> int:

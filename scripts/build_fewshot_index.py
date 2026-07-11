@@ -41,7 +41,7 @@ def _load_train_examples(
     *,
     limit: int | None = None,
 ) -> list[FewShotExample]:
-    table = pq.read_table(parquet_path)
+    table = pq.read_table(parquet_path)  # type: ignore[no-untyped-call]  # pyarrow stubs mark this untyped
     df = table.to_pandas()
     if limit:
         df = df.head(limit)
