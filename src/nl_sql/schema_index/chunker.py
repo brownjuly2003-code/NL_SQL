@@ -12,6 +12,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
+from nl_sql.schema_index.descriptions import ColumnDescriptions
 from nl_sql.schema_index.introspector import TableInfo
 
 BusinessHints = dict[str, list[str]]
@@ -40,19 +41,37 @@ def to_chunks(
     db_id: str,
     *,
     business_hints: BusinessHints | None = None,
+    column_descriptions: ColumnDescriptions | None = None,
 ) -> list[SchemaChunk]:
     """Render one chunk per table.
 
     `business_hints` (optional) attaches 1-2 domain phrases per table — kept
     out of the chunk if missing rather than guessed by the LLM. Same hints
     appear verbatim in chunk text and in metadata for downstream display.
+
+    `column_descriptions` (optional) is BIRD's own prose for each column, loaded
+    from `database_description/*.csv` (see `schema_index.descriptions`). BIRD
+    names columns cryptically — `sname`, `dname`, `Enroll12` — and expects the
+    reader to consult those files; a model that never sees them is guessing.
+    Databases without the files (Chinook, Postgres targets) render as before.
     """
     hints_map = business_hints or {}
-    return [_chunk_for_table(t, db_id=db_id, hints=hints_map.get(t.name, [])) for t in tables]
+    desc_map = column_descriptions or {}
+    return [
+        _chunk_for_table(
+            t,
+            db_id=db_id,
+            hints=hints_map.get(t.name, []),
+            descriptions=desc_map.get(t.name.lower(), {}),
+        )
+        for t in tables
+    ]
 
 
-def _chunk_for_table(table: TableInfo, *, db_id: str, hints: list[str]) -> SchemaChunk:
-    text = _render_table_text(table, hints=hints)
+def _chunk_for_table(
+    table: TableInfo, *, db_id: str, hints: list[str], descriptions: dict[str, str]
+) -> SchemaChunk:
+    text = _render_table_text(table, hints=hints, descriptions=descriptions)
     fk_targets = tuple(sorted({fk.referred_table for fk in table.foreign_keys}))
     metadata = {
         "db_id": db_id,
@@ -73,7 +92,9 @@ def _chunk_for_table(table: TableInfo, *, db_id: str, hints: list[str]) -> Schem
     )
 
 
-def _render_table_text(table: TableInfo, *, hints: list[str]) -> str:
+def _render_table_text(
+    table: TableInfo, *, hints: list[str], descriptions: dict[str, str] | None = None
+) -> str:
     """Pretty multi-line description used as the embedded text body.
 
     Layout (stable for snapshot-style tests and for prompt rendering downstream):
@@ -82,12 +103,14 @@ def _render_table_text(table: TableInfo, *, hints: list[str]) -> str:
         Primary key: <cols>
         Columns:
           - <col>: <type> [PK] [NULL?] | nulls=<n>, distinct=<n> | samples: v1, v2, v3
+              -- <what BIRD says this column means>
           ...
         Foreign keys:
           - (<col>, ...) -> <other_table>(<col>, ...)
         Business hints:
           - <hint>
     """
+    desc_map = descriptions or {}
     lines: list[str] = [f"Table: {table.name} (rows={table.row_count})"]
     if table.primary_key_columns:
         lines.append(f"Primary key: {', '.join(table.primary_key_columns)}")
@@ -104,6 +127,11 @@ def _render_table_text(table: TableInfo, *, hints: list[str]) -> str:
         samples = _format_samples(col.sample_values)
         suffix = f" | samples: {samples}" if samples else ""
         lines.append(f"  - {col.name}: {col.type} [{' '.join(flags)}] | {stats}{suffix}")
+        # Own line: these run long, and folding them into the stats line above
+        # would bury the samples the model needs for literal values.
+        described = desc_map.get(col.name.lower())
+        if described:
+            lines.append(f"      -- {described}")
 
     if table.foreign_keys:
         lines.append("Foreign keys:")

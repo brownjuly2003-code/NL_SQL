@@ -31,6 +31,7 @@ from nl_sql.llm.cache import CachingEmbeddingProvider
 from nl_sql.llm.providers.base import EmbeddingProvider
 from nl_sql.llm.providers.mistral import MistralProvider
 from nl_sql.schema_index.chunker import to_chunks
+from nl_sql.schema_index.descriptions import load_column_descriptions
 from nl_sql.schema_index.indexer import SCHEMA_COLLECTION, SchemaIndex
 from nl_sql.schema_index.introspector import introspect
 
@@ -64,8 +65,12 @@ def build_for_db(
     spec = registry.get(db_id)
     print(f"[introspect] {db_id} ({spec.url})")
     tables = introspect(spec.make_engine(), sample_size=sample_size)
-    print(f"[chunk] {len(tables)} tables → chunks")
-    chunks = to_chunks(tables, db_id=db_id)
+    # BIRD explains its own cryptic columns in database_description/*.csv next to
+    # the .sqlite file. Postgres targets have no such directory and get nothing.
+    descriptions = load_column_descriptions(spec.url) if spec.dialect == "sqlite" else {}
+    described = sum(len(cols) for cols in descriptions.values())
+    print(f"[chunk] {len(tables)} tables → chunks ({described} columns carry BIRD descriptions)")
+    chunks = to_chunks(tables, db_id=db_id, column_descriptions=descriptions)
     print(f"[index] embedding + upserting {len(chunks)} chunks")
     n = idx.index_schema(chunks)
     print(f"[done] {db_id}: {n} chunks indexed")
