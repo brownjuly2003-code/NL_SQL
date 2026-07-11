@@ -40,6 +40,8 @@ def classify(path: str) -> str | None:
             return "internal root-level planning note"
         if path.startswith("_ref_"):
             return "internal root-level reference scratch"
+        if path.startswith("_NEXT_SESSION"):
+            return "internal session handoff (root entry point)"
         if _DATE_NOTE.match(path):
             return "internal root-level dated session note"
     if path == "docs/NEXT_SESSION.md":
@@ -81,6 +83,7 @@ def self_test() -> int:
         "plan_for_pres.md",
         "_ref_presentation3.html",
         "27_05_26.md",
+        "_NEXT_SESSION.md",
         "docs/NEXT_SESSION.md",
         ".claude/settings.json",
         "scratchpad/tmp.py",
