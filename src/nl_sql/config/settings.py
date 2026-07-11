@@ -54,7 +54,7 @@ class Settings(BaseSettings):
     openrouter_model: str = "deepseek/deepseek-v4-flash:free"
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
 
-    # Perplexity browser path via local GraceKelly (D:\GraceKells). Free
+    # Perplexity browser path via local GraceKelly (D:\GraceKelly). Free
     # because it rides the user's Perplexity Pro subscription via Playwright.
     # `claude-sonnet-4-6` here is the Perplexity menu label, not the
     # Anthropic API model id — GraceKelly resolves it to the browser path.

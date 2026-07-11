@@ -380,3 +380,32 @@ Config B (BM25 cards) is intentionally absent from the shipped pipeline — dens
 - [ ] Bakeoff на 30 вопросов × 3 providers работает
 - [x] README результат-таблицы заполнены реальными числами (2026-05-12)
 - [ ] Hard checkpoint week 3 пройден (EA ≥35% или scope-down принят)
+
+---
+
+## 13. Итоговые результаты — три честных уровня (2026-07-11)
+
+Одно число вводит в заблуждение, поэтому метрика BIRD Mini-Dev (n=200, SQLite, $0 free-tier) разложена по слоям. Только **уровень 1** включён в продукт (Streamlit UI и `/ask`); уровни 2–3 — eval-конфигурация.
+
+| Уровень | EA | Что это | В продукте? | Воспроизводимость |
+|---|---:|---|:--:|---|
+| 1. Reproducible single-run | **57.5%** (115/200) | Чистый пайплайн на codestral, один прогон, config E (dense + repair), без голосования и подсказок. First-pass 56.0%; simple 71.6% / moderate 53.5% / challenging 41.2%. | да | одна команда, детерминированно |
+| 2. + multi-provider voting | 85.5% | Само-консистентность + голосование по провайдерам (Groq / OpenRouter / Perplexity-bridge). | eval | архив; не «с нуля» (Perplexity-cookie-bridge истёк 16.06) |
+| 3. + per-question schema-link hints | **94.0%** (188/200) | 11 hint-блоков под конкретные BIRD-вопросы (`_hints.py`); адаптация под annotation-quirks. simple 97.0% / moderate 92.9% / challenging 91.2%. | eval (`enable_bird_rescue_hints`, off) | архив-merge v22→v31; consistency проверяется `audit_rescore.py` (0 mismatches) |
+
+### Воспроизвести
+
+```powershell
+# Уровень 1 (продуктовый пайплайн, seed=0, детерминированный dev_split):
+uv run python scripts/eval_baseline.py --config E --n 200
+# Уровень 3 (hint-assisted, eval-only):
+uv run python scripts/eval_baseline.py --config E --n 200 --bird-rescue-hints
+```
+
+Уровень 1 воспроизводится одной командой на free-tier Mistral. Уровень 3 воспроизводит hint-assisted число на том же прогоне с флагом. Уровень 2 — архивная трасса: часть rescues шла через Perplexity-cookie-bridge, которого больше нет; `audit_rescore.py` подтверждает консистентность архива, но «с нуля» этот слой сейчас не пересобирается.
+
+### Честность витрины
+
+94.0% выше human-expert baseline (BIRD paper, 92.96%) на +1.04pp — но это **hint-assisted слой**, кодирующий ответы к конкретным вопросам теста, а не провайдер-уровневая победа. Поэтому он выключен в продукте по умолчанию: живое демо и API отдают уровень 1 (57.5%). `GET /eval/latest` отдаёт именно уровень 1 — число, которого достигает сам API. Разделение на слои показывает и инженерию (воспроизводимые 57.5%), и научную честность (какой слой что даёт).
+
+На Arcwise-corrected gold (Jin et al., CIDR/VLDB 2026) — 74.37% (148/199): noise-floor после исправления annotation-ошибок BIRD.

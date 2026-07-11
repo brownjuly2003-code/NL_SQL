@@ -81,6 +81,7 @@ The UI reads `MISTRAL_API_KEY` from `.env`; copy `.env.example` first.
 
 | Файл | Содержание |
 |---|---|
+| [docs/BACKLOG.md](docs/BACKLOG.md) | Живой трекер: что сделано, что gated, что won't-fix |
 | [docs/00_task.md](docs/00_task.md) | Постановка задачи (что / почему / scope / DoD) |
 | [docs/01_architecture.md](docs/01_architecture.md) | v1 — superseded, оставлен как исторический |
 | [docs/02_architecture_v2.md](docs/02_architecture_v2.md) | **Active baseline** — lean архитектура после CX+KM review |

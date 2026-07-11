@@ -20,6 +20,7 @@ Rate limit:
 from __future__ import annotations
 
 import logging
+import os
 import secrets
 import time
 import uuid
@@ -250,8 +251,6 @@ class Singletons(NamedTuple):
 def _make_singletons() -> Singletons:
     """Lazy: build the pipeline only when the first /ask hits — keeps /healthz
     fast and avoids touching Chroma when the API is used for status probes."""
-    import os
-
     settings = get_settings()
     registry, schema_index, sql_provider, explain_provider = _build_pipeline_components(settings)
     # Eval-script env toggles bootstrap into PipelineConfig once at boot;
