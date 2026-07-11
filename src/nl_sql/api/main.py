@@ -185,17 +185,24 @@ class _TokenBucket:
 
     Default: 60 requests per 60 seconds. Single-process state — fine for the
     portfolio demo. Move to Redis if/when running multiple replicas.
+
+    Buckets for keys that stopped calling are swept once per window: without
+    that, `_hits` is an unbounded dict keyed by remote input and grows for the
+    life of the process.
     """
 
     def __init__(self, *, max_req: int = 60, window_s: int = 60) -> None:
         self.max_req = max_req
         self.window_s = window_s
         self._hits: dict[str, deque[float]] = defaultdict(deque)
+        self._last_sweep = time.time()
 
     def check(self, key: str) -> tuple[bool, int]:
         now = time.time()
-        bucket = self._hits[key]
         cutoff = now - self.window_s
+        if now - self._last_sweep >= self.window_s:
+            self._sweep(cutoff)
+        bucket = self._hits[key]
         while bucket and bucket[0] < cutoff:
             bucket.popleft()
         if len(bucket) >= self.max_req:
@@ -203,6 +210,27 @@ class _TokenBucket:
             return False, max(retry_after, 1)
         bucket.append(now)
         return True, 0
+
+    def _sweep(self, cutoff: float) -> None:
+        stale = [k for k, hits in self._hits.items() if not hits or hits[-1] < cutoff]
+        for k in stale:
+            del self._hits[k]
+        self._last_sweep = time.time()
+
+
+def _key_matches(supplied: str | None, expected: str) -> bool:
+    """Constant-time API-key compare that can't be crashed by the header.
+
+    `secrets.compare_digest` raises TypeError on `str` holding any codepoint
+    above 127, and Starlette decodes headers as latin-1 — so a single accented
+    byte in X-API-Key turned a 401 into an unhandled 500. Compare bytes.
+    """
+    if supplied is None:
+        return False
+    return secrets.compare_digest(
+        supplied.encode("utf-8", "surrogateescape"),
+        expected.encode("utf-8", "surrogateescape"),
+    )
 
 
 # ---------------------------------------------------------- bootstrap
@@ -282,8 +310,8 @@ def create_app() -> FastAPI:
         version=__version__,
         description=(
             "Portfolio API: natural-language questions → SQL → executed rows. "
-            "BIRD Mini-Dev 57.5% reproducible single-run (codestral, $0); the "
-            "hint-assisted 94.0% headline is eval-only. Chinook 100%. AST safety guards."
+            "BIRD Mini-Dev 58.0% reproducible single-run (codestral, $0); the "
+            "hint-assisted headline is eval-only. Chinook 100%. AST safety guards."
         ),
     )
     settings = get_settings()
@@ -297,21 +325,22 @@ def create_app() -> FastAPI:
         x_api_key: str | None = Header(default=None, alias="X-API-Key"),
     ) -> str:
         # 1. Auth — only enforced when a key is configured. Constant-time compare
-        #    so a timing side-channel can't leak the key byte by byte (the
-        #    `and` short-circuits, so compare_digest only runs when a key is set).
-        if api_key_env and (
-            x_api_key is None or not secrets.compare_digest(x_api_key, api_key_env)
-        ):
+        #    so a timing side-channel can't leak the key byte by byte.
+        if api_key_env and not _key_matches(x_api_key, api_key_env):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="missing or invalid X-API-Key header",
             )
 
         # 2. Rate limit — ALWAYS on, even with no key. A keyless public deploy is
-        #    otherwise unthrottled (the README promises 60 req/min). Bucket by key
-        #    when present, else by client IP.
+        #    otherwise unthrottled (the README promises 60 req/min).
+        #    Bucket by API key ONLY when a key is configured — in that branch the
+        #    header has just been verified, so it is trusted input. With no key
+        #    configured the header is unauthenticated attacker input: bucketing on
+        #    it let a caller mint a fresh bucket per request with a random header
+        #    and never hit the limit at all. Fall back to the client IP.
         client_host = request.client.host if request.client else "unknown"
-        bucket_key = x_api_key or client_host
+        bucket_key = x_api_key if (api_key_env and x_api_key) else client_host
         ok, retry_after = rate_limiter.check(bucket_key)
         if not ok:
             raise HTTPException(
@@ -428,7 +457,7 @@ def create_app() -> FastAPI:
     def eval_latest() -> EvalLatestResponse:
         """Metadata of the reproducible single-run baseline (codestral, no voting,
         no BIRD rescue hints) — the number this API's own pipeline achieves. The
-        94.0% headline is the eval-only hint-assisted layer; see README for the
+        hint-assisted headline is an eval-only layer; see README for the
         three-tier breakdown."""
         import json
 

@@ -382,3 +382,41 @@ def test_ask_500_is_redacted_with_trace_id(client_with_fakes: TestClient) -> Non
     assert "hunter2" not in detail
     assert "/srv/secret/path" not in detail
     assert "trace_id=" in detail
+
+
+def test_a_random_key_per_request_cannot_dodge_the_limiter(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """With no key configured, X-API-Key is unauthenticated, caller-controlled input.
+
+    The limiter bucketed on it regardless, so a fresh random header per request
+    minted a fresh bucket and the 60/min limit never fired — on exactly the
+    keyless public deploy it was added to protect (and `_hits` grew unbounded).
+    It must fall back to the client IP whenever no key is configured.
+    """
+    monkeypatch.delenv("NL_SQL_API_KEY", raising=False)
+    app = create_app()
+    app.dependency_overrides[get_singletons] = lambda: _make_fake_singletons()
+    client = TestClient(app)
+
+    for i in range(60):
+        r = client.get("/databases", headers={"X-API-Key": f"burner-{i}"})
+        assert r.status_code == 200, r.json()
+
+    r = client.get("/databases", headers={"X-API-Key": "burner-60"})
+    assert r.status_code == 429
+
+
+def test_non_ascii_api_key_is_401_not_500(monkeypatch: pytest.MonkeyPatch) -> None:
+    """`secrets.compare_digest` raises TypeError on a str holding any codepoint
+    above 127, and Starlette decodes headers as latin-1 — so one accented byte in
+    X-API-Key turned the 401 into an unhandled 500 (with a traceback in the log).
+    """
+    monkeypatch.setenv("NL_SQL_API_KEY", "correct-secret")
+    app = create_app()
+    app.dependency_overrides[get_singletons] = lambda: _make_fake_singletons()
+    # Sent as raw bytes: httpx refuses to encode a non-ASCII str header, but curl
+    # and any raw HTTP client will put the byte on the wire, and Starlette hands
+    # it to us latin-1-decoded.
+    r = TestClient(app).get("/databases", headers={"X-API-Key": "wrông-secret".encode("latin-1")})
+    assert r.status_code == 401
