@@ -283,7 +283,8 @@ def create_app() -> FastAPI:
         version=__version__,
         description=(
             "Portfolio API: natural-language questions → SQL → executed rows. "
-            "BIRD Mini-Dev 57% hybrid, Chinook 100%, $0 budget, AST safety guards."
+            "BIRD Mini-Dev 57.5% reproducible single-run (codestral, $0); the "
+            "hint-assisted 94.0% headline is eval-only. Chinook 100%. AST safety guards."
         ),
     )
     settings = get_settings()
@@ -426,10 +427,13 @@ def create_app() -> FastAPI:
 
     @app.get("/eval/latest", response_model=EvalLatestResponse, tags=["transparency"])
     def eval_latest() -> EvalLatestResponse:
-        """Returns metadata of the latest hybrid eval report committed to repo."""
+        """Metadata of the reproducible single-run baseline (codestral, no voting,
+        no BIRD rescue hints) — the number this API's own pipeline achieves. The
+        94.0% headline is the eval-only hint-assisted layer; see README for the
+        three-tier breakdown."""
         import json
 
-        baseline = under_root("eval", "baselines", "hybrid_n200_v0.json")
+        baseline = under_root("eval", "baselines", "reproducible_n200.json")
         if not baseline.exists():
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
