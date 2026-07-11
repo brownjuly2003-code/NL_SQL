@@ -323,6 +323,9 @@ def run_config_e(
     fewshot_top_k: int = 0,
     use_dac_prompt: bool = False,
     use_m_schema: bool = False,
+    use_compact_prompt: bool = False,
+    enable_grounded_critique: bool = False,
+    verify_retry_on_empty: bool = False,
     progress: Callable[[int, int, EvalRecord], None] | None = None,
 ) -> EvalRun:
     """Run configuration E (config C + repair_once enabled) — final v2 config.
@@ -342,6 +345,24 @@ def run_config_e(
     reachable only from `api/main.py`'s env toggles — the eval harness could not
     measure either, so neither had a number against the product config. Both are
     plumbed here now; both default off.
+
+    `enable_grounded_critique` (default False): threads through to
+    `PipelineConfig.enable_grounded_critique`. On a successful (non-empty,
+    error-free) execute, `nodes/grounded_critique.py` compares the actual row
+    count to a shape inferred from the question text (or from the planner's
+    `expected_row_count`, when `enable_planner` is also on) and, on a mismatch,
+    routes to `repair_once` with the shape complaint as `last_error`. It is a
+    cheap heuristic, not an LLM call — see the node docstring for exactly what
+    it checks. This is the only lever that can route a "valid SQL, wrong rows"
+    outcome (error_kind=None) into repair; the ordinary validate/execute routes
+    never see those. Was reachable in `graph.py`/`PipelineConfig` but never
+    plumbed to the eval CLI, so it had no EA number. Off by default.
+
+    `verify_retry_on_empty` (default False): the same lever `run_config_g`
+    hardcodes to True, exposed here so it can be measured on top of E in
+    isolation from G's other defaults (fewshot_top_k=3, sort_schema_block=True,
+    cross_db_fewshot=True). Routes an EMPTY_RESULT outcome to `repair_once`
+    instead of short-circuiting to deterministic_format.
     """
     pipeline = build_pipeline(
         PipelineConfig(
@@ -362,6 +383,9 @@ def run_config_e(
             extended_sample_size=extended_sample_size,
             use_dac_prompt=use_dac_prompt,
             use_m_schema=use_m_schema,
+            use_compact_prompt=use_compact_prompt,
+            enable_grounded_critique=enable_grounded_critique,
+            verify_retry_on_empty=verify_retry_on_empty,
         )
     )
     records: list[EvalRecord] = []
@@ -373,6 +397,7 @@ def run_config_e(
             statement_timeout_ms=statement_timeout_ms,
             row_cap=row_cap,
             disable_repair=False,
+            verify_retry_on_empty=verify_retry_on_empty,
         )
         records.append(record)
         if progress is not None:

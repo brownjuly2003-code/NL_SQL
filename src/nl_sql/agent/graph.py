@@ -140,6 +140,14 @@ class PipelineConfig:
     (`generate_sql_dac.txt`) which decomposes multi-clause questions into
     sub-questions before composing SQL. Replaces the legacy `NLSQL_DAC=1`
     env toggle; `api/main.py` reads the env once at boot and threads it here."""
+    use_compact_prompt: bool = False
+    """When True, use `generate_sql_compact.txt` — the same evidence-first
+    ordering, but stripped of the coaching the default prompt accumulated for
+    codestral (Chinook-taught DISTINCT rule, heavy projection drilling,
+    per-database disambiguation). Retains only what is dataset-true (obey the
+    BIRD `Hint:` formula), dialect-true (integer division truncates) or
+    grading-true (project exactly the named columns). Intended for frontier
+    models, where the coaching is noise and the prompt length is latency."""
     enable_bird_rescue_hints: bool = False
     """When True, inject the per-question BIRD schema-link "rescue" hints
     (`_hints.py::_render_schema_link_hints_appendix`) into the schema block.
@@ -195,6 +203,7 @@ def build_pipeline(config: PipelineConfig) -> CompiledStateGraph[Any, Any, Any, 
             temperature=config.sql_temperature,
             use_m_schema=config.use_m_schema,
             use_dac_prompt=config.use_dac_prompt,
+            use_compact_prompt=config.use_compact_prompt,
             enable_bird_rescue_hints=config.enable_bird_rescue_hints,
         ),
         "validate": make_validate_node(),

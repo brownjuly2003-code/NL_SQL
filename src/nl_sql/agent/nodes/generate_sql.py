@@ -29,6 +29,7 @@ def make_generate_sql_node(
     sort_schema_block: bool = False,
     use_m_schema: bool = False,
     use_dac_prompt: bool = False,
+    use_compact_prompt: bool = False,
     enable_bird_rescue_hints: bool = False,
 ) -> Callable[[PipelineState], PipelineState]:
     def node(state: PipelineState) -> PipelineState:
@@ -48,10 +49,19 @@ def make_generate_sql_node(
                 sort_alphabetically=sort_schema_block,
                 enable_bird_rescue_hints=enable_bird_rescue_hints,
             )
-        # CHASE-SQL divide-and-conquer prompt — decomposes multi-clause questions
-        # into sub-questions before composing SQL. Driven by
-        # `PipelineConfig.use_dac_prompt`; api/main.py bootstraps from `NLSQL_DAC=1`.
-        prompt_name = "generate_sql_dac" if use_dac_prompt else "generate_sql"
+        # Prompt selection. The default `generate_sql` grew around codestral:
+        # heavy projection coaching, a DISTINCT rule taught on Chinook tables,
+        # per-database disambiguation. `generate_sql_compact` keeps only what is
+        # dataset- or dialect-true and drops the model-specific coaching, which
+        # matters for a frontier model on a metered browser path — the long
+        # prompt is both the coaching it does not need and the latency it pays
+        # for. DAC (CHASE-SQL divide-and-conquer) is the third option.
+        if use_compact_prompt:
+            prompt_name = "generate_sql_compact"
+        elif use_dac_prompt:
+            prompt_name = "generate_sql_dac"
+        else:
+            prompt_name = "generate_sql"
         prompt = load_prompt(
             prompt_name,
             dialect=dialect,
