@@ -73,6 +73,12 @@ class Settings(BaseSettings):
     groq_api_key: str = Field(default="", validation_alias="GROQ_API_KEY")
     openrouter_api_key: str = Field(default="", validation_alias="OPENROUTER_API_KEY")
 
+    # Optional API auth for the FastAPI surface. When empty, /ask and /databases
+    # are open — but the rate limiter still applies (keyed by client IP), so a
+    # keyless public deploy is not unthrottled. Read here (not os.environ) so a
+    # value in .env is honoured, per the api/main module docstring.
+    api_key: str = Field(default="", validation_alias="NL_SQL_API_KEY")
+
     # diskcache for LLM generate/embed responses (per docs/02_architecture_v2.md §6.5).
     # Two subdirs ("gen", "embed") are created under this root by `nl_sql.llm.cache`.
     llm_cache_dir: str = ".cache/llm"

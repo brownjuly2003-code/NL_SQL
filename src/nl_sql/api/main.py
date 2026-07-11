@@ -19,6 +19,8 @@ Rate limit:
 
 from __future__ import annotations
 
+import logging
+import secrets
 import time
 import uuid
 from collections import defaultdict, deque
@@ -43,6 +45,8 @@ from nl_sql.llm.providers import build_provider
 from nl_sql.llm.providers.base import EmbeddingProvider, LLMProvider
 from nl_sql.llm.providers.mistral import MistralProvider
 from nl_sql.schema_index.indexer import SchemaIndex
+
+logger = logging.getLogger("nl_sql.api")
 
 # ---------------------------------------------------------- response models
 
@@ -95,6 +99,7 @@ class AskResponse(BaseModel):
     rows: list[list[Any]] | None
     columns: list[str] | None
     row_count: int
+    truncated: bool
     caption: str
     output_format: str | None
     error_kind: str | None
@@ -129,10 +134,12 @@ def _result_to_response(result: PipelineRunResult, *, latency_ms: float) -> AskR
     rows: list[list[Any]] | None = None
     columns: list[str] | None = None
     row_count = 0
+    truncated = False
     if result.outcome is not None and result.outcome.result is not None:
         rows = [list(r) for r in result.outcome.result.rows]
         columns = list(result.outcome.result.columns)
         row_count = result.outcome.result.row_count
+        truncated = result.outcome.result.truncated
 
     trace_steps: list[TraceStep] = []
     for step in result.trace:
@@ -158,6 +165,7 @@ def _result_to_response(result: PipelineRunResult, *, latency_ms: float) -> AskR
         rows=rows,
         columns=columns,
         row_count=row_count,
+        truncated=truncated,
         caption=result.caption,
         output_format=fmt_name,
         error_kind=result.error_kind.value if result.error_kind else None,
@@ -277,32 +285,37 @@ def create_app() -> FastAPI:
     settings = get_settings()
     rate_limiter = _TokenBucket(max_req=60, window_s=60)
 
-    api_key_env = ""  # `NL_SQL_API_KEY` via env, optional
-    import os
-
-    api_key_env = os.environ.get("NL_SQL_API_KEY", "")
+    # Read from Settings (honours .env), not os.environ directly.
+    api_key_env = settings.api_key
 
     async def require_api_key(
         request: Request,
         x_api_key: str | None = Header(default=None, alias="X-API-Key"),
     ) -> str:
-        if not api_key_env:
-            # Auth off entirely when no key is configured — useful for local
-            # eval drivers and the Streamlit UI bootstrapping side-by-side.
-            return "anonymous"
-        if x_api_key != api_key_env:
+        # 1. Auth — only enforced when a key is configured. Constant-time compare
+        #    so a timing side-channel can't leak the key byte by byte (the
+        #    `and` short-circuits, so compare_digest only runs when a key is set).
+        if api_key_env and (
+            x_api_key is None or not secrets.compare_digest(x_api_key, api_key_env)
+        ):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="missing or invalid X-API-Key header",
             )
-        ok, retry_after = rate_limiter.check(x_api_key)
+
+        # 2. Rate limit — ALWAYS on, even with no key. A keyless public deploy is
+        #    otherwise unthrottled (the README promises 60 req/min). Bucket by key
+        #    when present, else by client IP.
+        client_host = request.client.host if request.client else "unknown"
+        bucket_key = x_api_key or client_host
+        ok, retry_after = rate_limiter.check(bucket_key)
         if not ok:
             raise HTTPException(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
                 detail=f"rate limit exceeded; retry in {retry_after}s",
                 headers={"Retry-After": str(retry_after)},
             )
-        return x_api_key
+        return x_api_key or "anonymous"
 
     # --------------------------------------------------------- health / ready
 
@@ -394,10 +407,15 @@ def create_app() -> FastAPI:
                 dialect=spec.dialect,
                 verify_retry_on_empty=True,
             )
-        except Exception as exc:  # pragma: no cover — defensive
+        except Exception as exc:
+            # Never leak exception text (paths, driver internals, provider
+            # payloads) to the client. Log the detail server-side under a
+            # trace_id the caller can quote in a bug report.
+            trace_id = str(uuid.uuid4())
+            logger.exception("pipeline crashed [trace_id=%s]", trace_id)
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"pipeline crashed: {type(exc).__name__}: {exc}",
+                detail=f"internal pipeline error (trace_id={trace_id})",
             ) from exc
         latency_ms = (time.perf_counter() - t0) * 1000.0
         return _result_to_response(result, latency_ms=latency_ms)

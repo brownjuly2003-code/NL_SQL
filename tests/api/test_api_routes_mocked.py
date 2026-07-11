@@ -318,3 +318,67 @@ def test_rate_limit_kicks_in_after_max_req(monkeypatch: pytest.MonkeyPatch) -> N
     assert r.status_code == 429
     assert "rate limit" in r.json()["detail"]
     assert r.headers.get("Retry-After") is not None
+
+
+def test_rate_limit_applies_to_anonymous_requests(monkeypatch: pytest.MonkeyPatch) -> None:
+    """No API key configured → auth is off, but the limiter still throttles by IP.
+
+    This is the B1 regression: previously require_api_key returned "anonymous"
+    before ever calling the limiter, so a keyless public deploy had no limit.
+    """
+    monkeypatch.delenv("NL_SQL_API_KEY", raising=False)
+    app = create_app()
+    app.dependency_overrides[get_singletons] = lambda: _make_fake_singletons()
+    client = TestClient(app)
+
+    for _ in range(60):
+        r = client.get("/databases")
+        assert r.status_code == 200, r.json()
+
+    r = client.get("/databases")
+    assert r.status_code == 429
+    assert r.headers.get("Retry-After") is not None
+
+
+def test_wrong_api_key_is_rejected(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A present-but-wrong key → 401 (exercises the constant-time compare path)."""
+    monkeypatch.setenv("NL_SQL_API_KEY", "correct-secret")
+    app = create_app()
+    app.dependency_overrides[get_singletons] = lambda: _make_fake_singletons()
+    r = TestClient(app).get("/databases", headers={"X-API-Key": "wrong-secret"})
+    assert r.status_code == 401
+
+
+def test_ask_response_exposes_truncated_flag(client_with_fakes: TestClient) -> None:
+    """B3: the client can tell a full result from a row-capped one."""
+    result = _make_pipeline_result()
+    assert result.outcome is not None
+    assert result.outcome.result is not None
+    truncated_result = QueryResult(
+        rows=result.outcome.result.rows,
+        columns=result.outcome.result.columns,
+        row_count=result.outcome.result.row_count,
+        truncated=True,
+        elapsed_ms=1.0,
+    )
+    result.outcome = ExecutionOutcome(
+        sql=result.outcome.sql,
+        validation=result.outcome.validation,
+        result=truncated_result,
+    )
+    with patch("nl_sql.api.main.run_pipeline", return_value=result):
+        r = client_with_fakes.post("/ask", json={"question": "q", "db_id": "chinook"})
+    assert r.status_code == 200
+    assert r.json()["truncated"] is True
+
+
+def test_ask_500_is_redacted_with_trace_id(client_with_fakes: TestClient) -> None:
+    """B2: a pipeline crash returns a generic message + trace_id, not the exc text."""
+    secret_detail = "psycopg.OperationalError: password=hunter2 at /srv/secret/path"
+    with patch("nl_sql.api.main.run_pipeline", side_effect=RuntimeError(secret_detail)):
+        r = client_with_fakes.post("/ask", json={"question": "q", "db_id": "chinook"})
+    assert r.status_code == 500
+    detail = r.json()["detail"]
+    assert "hunter2" not in detail
+    assert "/srv/secret/path" not in detail
+    assert "trace_id=" in detail
