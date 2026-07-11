@@ -25,7 +25,6 @@ import time
 import uuid
 from collections import defaultdict, deque
 from functools import lru_cache
-from pathlib import Path
 from typing import Any, NamedTuple
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Request, status
@@ -44,6 +43,7 @@ from nl_sql.llm.cache import CachingEmbeddingProvider, CachingLLMProvider
 from nl_sql.llm.providers import build_provider
 from nl_sql.llm.providers.base import EmbeddingProvider, LLMProvider
 from nl_sql.llm.providers.mistral import MistralProvider
+from nl_sql.paths import under_root
 from nl_sql.schema_index.indexer import SchemaIndex
 
 logger = logging.getLogger("nl_sql.api")
@@ -224,8 +224,12 @@ def _build_pipeline_components(
     embedder: EmbeddingProvider = CachingEmbeddingProvider(
         raw_embed, cache_dir=settings.llm_cache_dir
     )
-    schema_index = SchemaIndex(persist_dir="chroma_data", embedder=embedder)
-    registry = get_default_registry()
+    schema_index = SchemaIndex(persist_dir=str(under_root("chroma_data")), embedder=embedder)
+    registry = get_default_registry(
+        pg_dsn=settings.pg_dsn,
+        pg_db_id=settings.pg_db_id,
+        pg_description=settings.pg_description,
+    )
     return registry, schema_index, sql_provider, explain_provider
 
 
@@ -425,7 +429,7 @@ def create_app() -> FastAPI:
         """Returns metadata of the latest hybrid eval report committed to repo."""
         import json
 
-        baseline = Path("eval/baselines/hybrid_n200_v0.json")
+        baseline = under_root("eval", "baselines", "hybrid_n200_v0.json")
         if not baseline.exists():
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,

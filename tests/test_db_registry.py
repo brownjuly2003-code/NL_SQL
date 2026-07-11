@@ -59,3 +59,18 @@ def test_default_registry_uses_readonly_urls(tmp_path: Path) -> None:
     spec = reg.get("chinook")
 
     assert spec.url == sqlite_url_readonly(chinook)
+
+
+def test_default_registry_registers_postgres_when_dsn_given(tmp_path: Path) -> None:
+    dsn = "postgresql://nl_sql_ro:pwd@localhost:5433/nl_sql_demo"
+    reg = get_default_registry(data_root=tmp_path, pg_dsn=dsn, pg_db_id="pg_demo")
+
+    assert "pg_demo" in reg.ids()
+    spec = reg.get("pg_demo")
+    assert spec.dialect == "postgresql"
+    assert spec.url == dsn
+
+
+def test_default_registry_skips_postgres_without_dsn(tmp_path: Path) -> None:
+    reg = get_default_registry(data_root=tmp_path)
+    assert not any(reg.get(db_id).dialect == "postgresql" for db_id in reg.ids())

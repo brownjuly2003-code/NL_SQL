@@ -19,6 +19,7 @@ from pathlib import Path
 from typing import Any, Literal
 
 from sqlalchemy import Connection, Engine, create_engine, text
+from sqlalchemy.engine import make_url
 
 Dialect = Literal["sqlite", "postgresql"]
 
@@ -53,8 +54,42 @@ def _build_engine(spec: DatabaseSpec) -> Engine:
     if spec.dialect == "sqlite":
         return _build_sqlite_readonly_engine(Path(spec.url))
     if spec.dialect == "postgresql":
-        return create_engine(spec.url, future=True, pool_pre_ping=True)
+        return _build_postgres_readonly_engine(spec.url)
     raise ValueError(f"unsupported dialect: {spec.dialect}")
+
+
+def _normalise_pg_driver(url: str) -> str:
+    """Force the psycopg (v3) driver for bare ``postgresql://`` DSNs.
+
+    SQLAlchemy resolves an unqualified ``postgresql://`` to the psycopg2 driver,
+    which is not installed here (only psycopg 3 is). Left unqualified, every
+    Postgres connection would die with ModuleNotFoundError — which is exactly
+    why the Postgres path had never actually run. Explicit ``+psycopg`` /
+    ``+psycopg2`` DSNs are respected as-is.
+    """
+    parsed = make_url(url)
+    if parsed.drivername == "postgresql":
+        parsed = parsed.set(drivername="postgresql+psycopg")
+    return parsed.render_as_string(hide_password=False)
+
+
+def _build_postgres_readonly_engine(url: str) -> Engine:
+    """Engine whose every transaction is genuinely READ ONLY.
+
+    The read-only guarantee comes from SQLAlchemy's ``postgresql_readonly``
+    execution option, which sets the connection read-only at transaction start
+    (the correct point). An earlier implementation issued
+    ``SET default_transaction_read_only = on`` from inside an already-open
+    transaction — Postgres fixes a transaction's read-only status at BEGIN, so
+    that statement was a no-op for the current transaction and the "layer 1"
+    read-only defence never actually engaged.
+    """
+    return create_engine(
+        _normalise_pg_driver(url),
+        future=True,
+        pool_pre_ping=True,
+        execution_options={"postgresql_readonly": True},
+    )
 
 
 def _build_sqlite_readonly_engine(path: Path) -> Engine:
@@ -114,8 +149,12 @@ def execute_readonly(
 def _apply_runtime_limits(conn: Connection, statement_timeout_ms: int) -> None:
     dialect = conn.engine.dialect.name
     if dialect == "postgresql":
+        # statement_timeout takes effect immediately for subsequent statements in
+        # this session, so setting it here (inside the transaction) is correct.
+        # Read-only is NOT set here — it is applied at transaction start by the
+        # engine's postgresql_readonly execution option (see
+        # _build_postgres_readonly_engine); issuing it here would be a no-op.
         conn.execute(text(f"SET statement_timeout = {int(statement_timeout_ms)}"))
-        conn.execute(text("SET default_transaction_read_only = on"))
     elif dialect == "sqlite":
         # SQLite has no per-query timeout knob in the URL API; use connection
         # progress handler at the dbapi level.

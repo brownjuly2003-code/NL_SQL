@@ -12,8 +12,11 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from nl_sql.db.connection import DatabaseSpec, sqlite_url_readonly
+from nl_sql.paths import under_root
 
-DATA_ROOT = Path("data")
+# Anchored to the repo root (not CWD) so scanning finds the data/ tree no matter
+# where the process was launched from — Streamlit/uvicorn/pytest don't agree on CWD.
+DATA_ROOT = under_root("data")
 
 
 @dataclass(slots=True)
@@ -32,14 +35,35 @@ class DatabaseRegistry:
         return sorted(self.specs)
 
 
-def get_default_registry(data_root: Path = DATA_ROOT) -> DatabaseRegistry:
+def get_default_registry(
+    data_root: Path = DATA_ROOT,
+    *,
+    pg_dsn: str = "",
+    pg_db_id: str = "pg_codebase_community",
+    pg_description: str = "",
+) -> DatabaseRegistry:
     """Build a registry by scanning the data/ tree.
 
     Resolution order:
     - data/chinook/Chinook.sqlite                                 → id="chinook"
     - data/bird_mini_dev/MINIDEV/dev_databases/<db>/<db>.sqlite   → id=f"bird_{db}"
+
+    When ``pg_dsn`` is non-empty, a Postgres-backed database is also registered
+    under ``pg_db_id`` (load it first with scripts/load_postgres.py). The DSN
+    should point at the read-only role; the engine additionally forces read-only
+    transactions (see db/connection.py).
     """
     registry = DatabaseRegistry()
+
+    if pg_dsn:
+        registry.register(
+            DatabaseSpec(
+                id=pg_db_id,
+                dialect="postgresql",
+                url=pg_dsn,
+                description=pg_description,
+            )
+        )
 
     chinook_path = data_root / "chinook" / "Chinook.sqlite"
     if chinook_path.exists():

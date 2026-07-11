@@ -4,7 +4,9 @@ from typing import Literal
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-ProviderName = Literal["mistral", "github_models", "groq", "ollama", "openrouter"]
+ProviderName = Literal[
+    "mistral", "github_models", "groq", "ollama", "openrouter", "perplexity", "gracekelly"
+]
 
 
 class Settings(BaseSettings):
@@ -78,6 +80,14 @@ class Settings(BaseSettings):
     # keyless public deploy is not unthrottled. Read here (not os.environ) so a
     # value in .env is honoured, per the api/main module docstring.
     api_key: str = Field(default="", validation_alias="NL_SQL_API_KEY")
+
+    # Optional Postgres target. When `pg_dsn` is set, the registry registers a
+    # Postgres-backed database under `pg_db_id`. Point it at the read-only role
+    # (nl_sql_ro) for defence in depth — the engine also forces read-only
+    # transactions on top (see db/connection.py). Empty = SQLite-only (default).
+    pg_dsn: str = Field(default="", validation_alias="NL_SQL_PG_DSN")
+    pg_db_id: str = "pg_codebase_community"
+    pg_description: str = "StackExchange-derived BIRD codebase_community, loaded into Postgres 16."
 
     # diskcache for LLM generate/embed responses (per docs/02_architecture_v2.md §6.5).
     # Two subdirs ("gen", "embed") are created under this root by `nl_sql.llm.cache`.
