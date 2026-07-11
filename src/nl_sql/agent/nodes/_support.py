@@ -133,6 +133,7 @@ def render_schema_block(
     context: ContextBundle | None,
     *,
     sort_alphabetically: bool = False,
+    enable_bird_rescue_hints: bool = False,
 ) -> str:
     """Render schema chunks + FK neighbours into a single text block.
 
@@ -164,9 +165,13 @@ def render_schema_block(
     join_hints = _render_join_hints_appendix(all_hits)
     if join_hints:
         blocks.append(join_hints)
-    schema_link_hints = _render_schema_link_hints_appendix(context, all_hits)
-    if schema_link_hints:
-        blocks.append(schema_link_hints)
+    # BIRD per-question rescue hints are eval-only (they encode gold answers for
+    # specific benchmark questions). Off by default so the product path never
+    # serves a canned answer — see PipelineConfig.enable_bird_rescue_hints.
+    if enable_bird_rescue_hints:
+        schema_link_hints = _render_schema_link_hints_appendix(context, all_hits)
+        if schema_link_hints:
+            blocks.append(schema_link_hints)
     appendix = _render_extended_samples_appendix(context.extended_samples)
     if appendix:
         blocks.append(appendix)

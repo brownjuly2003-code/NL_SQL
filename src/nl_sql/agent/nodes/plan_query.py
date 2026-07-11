@@ -28,6 +28,7 @@ def make_plan_node(
     max_tokens: int = 600,
     temperature: float = 0.0,
     sort_schema_block: bool = False,
+    enable_bird_rescue_hints: bool = False,
 ) -> Callable[[PipelineState], PipelineState]:
     def node(state: PipelineState) -> PipelineState:
         question = state.get("question", "")
@@ -36,7 +37,11 @@ def make_plan_node(
         prompt = load_prompt(
             "plan",
             dialect=dialect,
-            schema_block=render_schema_block(context, sort_alphabetically=sort_schema_block),
+            schema_block=render_schema_block(
+                context,
+                sort_alphabetically=sort_schema_block,
+                enable_bird_rescue_hints=enable_bird_rescue_hints,
+            ),
             fewshot_block=render_fewshot_block(context),
             question=question,
         )

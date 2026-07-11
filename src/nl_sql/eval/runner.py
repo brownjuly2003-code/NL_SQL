@@ -133,6 +133,7 @@ def run_config_a(
     row_cap: int = 10_000,
     sample_size: int = 3,
     max_tokens: int = 1024,
+    enable_bird_rescue_hints: bool = False,
     progress: Callable[[int, int, EvalRecord], None] | None = None,
 ) -> EvalRun:
     """Run configuration A (full_schema baseline) against `examples`.
@@ -186,6 +187,7 @@ def run_config_c(
     sort_schema_block: bool = False,
     primary_sample_size: int = 3,
     extended_sample_size: int = 0,
+    enable_bird_rescue_hints: bool = False,
     progress: Callable[[int, int, EvalRecord], None] | None = None,
 ) -> EvalRun:
     """Run configuration C (dense schema cards + FK 1-hop, no fewshot, no repair).
@@ -201,6 +203,7 @@ def run_config_c(
             explain_provider=explain_provider,
             schema_index=schema_index,
             registry=registry,
+            enable_bird_rescue_hints=enable_bird_rescue_hints,
             schema_top_k=schema_top_k,
             fewshot_top_k=0,
             fk_hops=fk_hops,
@@ -250,6 +253,7 @@ def run_config_d(
     primary_sample_size: int = 3,
     extended_sample_size: int = 0,
     cross_db_fewshot: bool = True,
+    enable_bird_rescue_hints: bool = False,
     progress: Callable[[int, int, EvalRecord], None] | None = None,
 ) -> EvalRun:
     """Run configuration D (config C + cross-db fewshot, no repair).
@@ -266,6 +270,7 @@ def run_config_d(
             explain_provider=explain_provider,
             schema_index=schema_index,
             registry=registry,
+            enable_bird_rescue_hints=enable_bird_rescue_hints,
             schema_top_k=schema_top_k,
             fewshot_top_k=fewshot_top_k,
             fk_hops=fk_hops,
@@ -314,6 +319,7 @@ def run_config_e(
     sort_schema_block: bool = False,
     primary_sample_size: int = 3,
     extended_sample_size: int = 0,
+    enable_bird_rescue_hints: bool = False,
     progress: Callable[[int, int, EvalRecord], None] | None = None,
 ) -> EvalRun:
     """Run configuration E (config C + repair_once enabled) — final v2 config.
@@ -328,6 +334,7 @@ def run_config_e(
             explain_provider=explain_provider,
             schema_index=schema_index,
             registry=registry,
+            enable_bird_rescue_hints=enable_bird_rescue_hints,
             schema_top_k=schema_top_k,
             fewshot_top_k=0,
             fk_hops=fk_hops,
@@ -378,6 +385,7 @@ def run_config_f(
     primary_sample_size: int = 3,
     extended_sample_size: int = 0,
     cross_db_fewshot: bool = False,
+    enable_bird_rescue_hints: bool = False,
     progress: Callable[[int, int, EvalRecord], None] | None = None,
 ) -> EvalRun:
     """Run configuration F (self-consistency execution-based voting).
@@ -404,6 +412,7 @@ def run_config_f(
                 explain_provider=explain_provider,
                 schema_index=schema_index,
                 registry=registry,
+                enable_bird_rescue_hints=enable_bird_rescue_hints,
                 schema_top_k=schema_top_k,
                 fewshot_top_k=fewshot_top_k,
                 fk_hops=fk_hops,
@@ -457,6 +466,7 @@ def run_config_g(
     primary_sample_size: int = 3,
     extended_sample_size: int = 0,
     cross_db_fewshot: bool = True,
+    enable_bird_rescue_hints: bool = False,
     progress: Callable[[int, int, EvalRecord], None] | None = None,
 ) -> EvalRun:
     """Run configuration G (config D + verify-retry on empty/error).
@@ -478,6 +488,7 @@ def run_config_g(
             explain_provider=explain_provider,
             schema_index=schema_index,
             registry=registry,
+            enable_bird_rescue_hints=enable_bird_rescue_hints,
             schema_top_k=schema_top_k,
             fewshot_top_k=fewshot_top_k,
             fk_hops=fk_hops,

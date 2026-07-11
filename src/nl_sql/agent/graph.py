@@ -140,6 +140,14 @@ class PipelineConfig:
     (`generate_sql_dac.txt`) which decomposes multi-clause questions into
     sub-questions before composing SQL. Replaces the legacy `NLSQL_DAC=1`
     env toggle; `api/main.py` reads the env once at boot and threads it here."""
+    enable_bird_rescue_hints: bool = False
+    """When True, inject the per-question BIRD schema-link "rescue" hints
+    (`_hints.py::_render_schema_link_hints_appendix`) into the schema block.
+    These are annotation-quirk adaptations tied to specific BIRD Mini-Dev
+    questions and lift the benchmark to 94.0% EA — so they belong ONLY in the
+    eval configuration, never in the product path. Default False: the live
+    Streamlit/API pipeline must not serve a canned answer to a benchmark
+    question. `scripts/eval_baseline.py --bird-rescue-hints` turns them on."""
 
 
 @dataclass(slots=True)
@@ -185,11 +193,13 @@ def build_pipeline(config: PipelineConfig) -> CompiledStateGraph[Any, Any, Any, 
             temperature=config.sql_temperature,
             use_m_schema=config.use_m_schema,
             use_dac_prompt=config.use_dac_prompt,
+            enable_bird_rescue_hints=config.enable_bird_rescue_hints,
         ),
         "validate": make_validate_node(),
         "repair_once": make_repair_once_node(
             config.sql_provider,
             sort_schema_block=config.sort_schema_block,
+            enable_bird_rescue_hints=config.enable_bird_rescue_hints,
         ),
         "execute": make_execute_node(
             registry=config.registry,
@@ -204,6 +214,7 @@ def build_pipeline(config: PipelineConfig) -> CompiledStateGraph[Any, Any, Any, 
             config.sql_provider,
             sort_schema_block=config.sort_schema_block,
             temperature=config.sql_temperature,
+            enable_bird_rescue_hints=config.enable_bird_rescue_hints,
         )
     if config.enable_grounded_critique:
         nodes["grounded_critique"] = make_grounded_critique_node()

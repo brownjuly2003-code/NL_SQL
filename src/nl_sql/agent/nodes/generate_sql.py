@@ -29,6 +29,7 @@ def make_generate_sql_node(
     sort_schema_block: bool = False,
     use_m_schema: bool = False,
     use_dac_prompt: bool = False,
+    enable_bird_rescue_hints: bool = False,
 ) -> Callable[[PipelineState], PipelineState]:
     def node(state: PipelineState) -> PipelineState:
         question = state.get("question", "")
@@ -42,7 +43,11 @@ def make_generate_sql_node(
         if use_m_schema:
             schema_text = render_m_schema(context)
         else:
-            schema_text = render_schema_block(context, sort_alphabetically=sort_schema_block)
+            schema_text = render_schema_block(
+                context,
+                sort_alphabetically=sort_schema_block,
+                enable_bird_rescue_hints=enable_bird_rescue_hints,
+            )
         # CHASE-SQL divide-and-conquer prompt — decomposes multi-clause questions
         # into sub-questions before composing SQL. Driven by
         # `PipelineConfig.use_dac_prompt`; api/main.py bootstraps from `NLSQL_DAC=1`.

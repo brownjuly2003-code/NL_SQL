@@ -154,6 +154,16 @@ def main(argv: list[str] | None = None) -> int:
         ),
     )
     parser.add_argument(
+        "--bird-rescue-hints",
+        action="store_true",
+        help=(
+            "inject the per-question BIRD schema-link rescue hints (the "
+            "annotation-quirk adaptation layer that lifts EA to 94.0%%). Eval-only "
+            "and OFF by default — the product pipeline never serves these. Turn on "
+            "to reproduce the hint-assisted headline number."
+        ),
+    )
+    parser.add_argument(
         "--primary-sample-size",
         type=int,
         default=3,
@@ -339,6 +349,7 @@ def main(argv: list[str] | None = None) -> int:
                 fk_hops=args.fk_hops,
                 table_budget=args.table_budget,
                 sort_schema_block=args.sort_schema_block,
+                enable_bird_rescue_hints=args.bird_rescue_hints,
                 primary_sample_size=args.primary_sample_size,
                 extended_sample_size=args.extended_sample_size,
                 sql_candidate_temperatures=temps,
@@ -357,6 +368,7 @@ def main(argv: list[str] | None = None) -> int:
                 fk_hops=args.fk_hops,
                 table_budget=args.table_budget,
                 sort_schema_block=args.sort_schema_block,
+                enable_bird_rescue_hints=args.bird_rescue_hints,
                 primary_sample_size=args.primary_sample_size,
                 extended_sample_size=args.extended_sample_size,
                 progress=_on_progress,
@@ -373,6 +385,7 @@ def main(argv: list[str] | None = None) -> int:
                 fk_hops=args.fk_hops,
                 table_budget=args.table_budget,
                 sort_schema_block=args.sort_schema_block,
+                enable_bird_rescue_hints=args.bird_rescue_hints,
                 primary_sample_size=args.primary_sample_size,
                 extended_sample_size=args.extended_sample_size,
                 progress=_on_progress,
@@ -389,6 +402,7 @@ def main(argv: list[str] | None = None) -> int:
                 fk_hops=args.fk_hops,
                 table_budget=args.table_budget,
                 sort_schema_block=args.sort_schema_block,
+                enable_bird_rescue_hints=args.bird_rescue_hints,
                 primary_sample_size=args.primary_sample_size,
                 extended_sample_size=args.extended_sample_size,
                 progress=_on_progress,

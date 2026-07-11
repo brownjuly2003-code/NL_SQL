@@ -5,8 +5,17 @@ from nl_sql.schema_index.indexer import SchemaQueryHit
 from nl_sql.schema_index.retriever import ContextBundle
 
 
+def _render_with_hints(context: ContextBundle) -> str:
+    """These tests exercise the BIRD rescue-hint layer, which is off by default.
+
+    Force it on so the fixtures assert on the hint text; the default-off behaviour
+    is pinned separately in test_bird_rescue_hints_flag.py.
+    """
+    return render_schema_block(context, enable_bird_rescue_hints=True)
+
+
 def test_student_club_expense_type_hint_points_to_event_type() -> None:
-    rendered = render_schema_block(
+    rendered = _render_with_hints(
         ContextBundle(
             db_id="student_club",
             question="Identify the type of expenses and their total value approved for October Meeting event.",
@@ -28,7 +37,7 @@ def test_student_club_expense_type_hint_points_to_event_type() -> None:
 
 
 def test_student_club_expense_type_hint_is_question_scoped() -> None:
-    rendered = render_schema_block(
+    rendered = _render_with_hints(
         ContextBundle(
             db_id="student_club",
             question="List every expense description for October Meeting.",
@@ -48,7 +57,7 @@ def test_student_club_expense_type_hint_is_question_scoped() -> None:
 
 
 def test_toxicology_double_bond_hint_avoids_bond_id_shortcut() -> None:
-    rendered = render_schema_block(
+    rendered = _render_with_hints(
         ContextBundle(
             db_id="toxicology",
             question="What elements are in a double type bond?",
@@ -88,7 +97,7 @@ def test_toxicology_double_bond_hint_avoids_bond_id_shortcut() -> None:
 
 
 def test_formula_1_track_number_hint_points_to_driverstandings() -> None:
-    rendered = render_schema_block(
+    rendered = _render_with_hints(
         ContextBundle(
             db_id="formula_1",
             question="Which race was Alex Yoong in when he was in track number less than 20?",
@@ -120,7 +129,7 @@ def test_formula_1_track_number_hint_points_to_driverstandings() -> None:
 
 
 def test_formula_1_track_number_hint_is_question_scoped() -> None:
-    rendered = render_schema_block(
+    rendered = _render_with_hints(
         ContextBundle(
             db_id="formula_1",
             question="Which race did Lewis Hamilton finish first in?",
@@ -145,7 +154,7 @@ def test_formula_1_track_number_hint_is_question_scoped() -> None:
 
 
 def test_formula_1_lap_time_recorded_hint_includes_milliseconds_first() -> None:
-    rendered = render_schema_block(
+    rendered = _render_with_hints(
         ContextBundle(
             db_id="formula_1",
             question="What is the best lap time recorded? List the driver and race with such recorded lap time.",
@@ -185,7 +194,7 @@ def test_formula_1_lap_time_recorded_hint_includes_milliseconds_first() -> None:
 
 
 def test_formula_1_lap_time_recorded_hint_is_question_scoped() -> None:
-    rendered = render_schema_block(
+    rendered = _render_with_hints(
         ContextBundle(
             db_id="formula_1",
             question="What is the surname of the driver with the best lap time in race number 19 in the second qualifying period?",
@@ -215,7 +224,7 @@ def test_formula_1_lap_time_recorded_hint_is_question_scoped() -> None:
 
 
 def test_thrombosis_higher_than_normal_hint_joins_examination() -> None:
-    rendered = render_schema_block(
+    rendered = _render_with_hints(
         ContextBundle(
             db_id="thrombosis_prediction",
             question="How many patients with an Ig G higher than normal?",
@@ -249,7 +258,7 @@ def test_thrombosis_higher_than_normal_hint_joins_examination() -> None:
 
 
 def test_thrombosis_higher_than_normal_hint_is_question_scoped() -> None:
-    rendered = render_schema_block(
+    rendered = _render_with_hints(
         ContextBundle(
             db_id="thrombosis_prediction",
             question="Among the patients with a normal Ig G level, how many of them have symptoms?",
@@ -279,7 +288,7 @@ def test_thrombosis_higher_than_normal_hint_is_question_scoped() -> None:
 
 
 def test_debit_card_top_spending_hint_points_to_yearmonth_consumption() -> None:
-    rendered = render_schema_block(
+    rendered = _render_with_hints(
         ContextBundle(
             db_id="debit_card_specializing",
             question=(
@@ -323,7 +332,7 @@ def test_debit_card_top_spending_hint_points_to_yearmonth_consumption() -> None:
 
 
 def test_debit_card_top_spending_hint_is_question_scoped() -> None:
-    rendered = render_schema_block(
+    rendered = _render_with_hints(
         ContextBundle(
             db_id="debit_card_specializing",
             question="Which year recorded the most consumption of gas paid in CZK?",
@@ -353,7 +362,7 @@ def test_debit_card_top_spending_hint_is_question_scoped() -> None:
 
 
 def test_thrombosis_anti_centromere_hint_points_to_laboratory() -> None:
-    rendered = render_schema_block(
+    rendered = _render_with_hints(
         ContextBundle(
             db_id="thrombosis_prediction",
             question=(
@@ -388,7 +397,7 @@ def test_thrombosis_anti_centromere_hint_points_to_laboratory() -> None:
 
 
 def test_thrombosis_anti_centromere_hint_is_question_scoped() -> None:
-    rendered = render_schema_block(
+    rendered = _render_with_hints(
         ContextBundle(
             db_id="thrombosis_prediction",
             question="How many patients with an Ig G higher than normal?",
@@ -413,7 +422,7 @@ def test_thrombosis_anti_centromere_hint_is_question_scoped() -> None:
 
 
 def test_card_games_triggered_ability_hint_points_to_rulings_text() -> None:
-    rendered = render_schema_block(
+    rendered = _render_with_hints(
         ContextBundle(
             db_id="card_games",
             question="How many unknown power cards contain info about the triggered ability",
@@ -449,7 +458,7 @@ def test_card_games_triggered_ability_hint_points_to_rulings_text() -> None:
 
 
 def test_card_games_triggered_ability_hint_is_question_scoped() -> None:
-    rendered = render_schema_block(
+    rendered = _render_with_hints(
         ContextBundle(
             db_id="card_games",
             question="How many cards have infinite power?",
@@ -474,7 +483,7 @@ def test_card_games_triggered_ability_hint_is_question_scoped() -> None:
 
 
 def test_thrombosis_oldest_sjs_patient_hint_includes_birthday_as_third_column() -> None:
-    rendered = render_schema_block(
+    rendered = _render_with_hints(
         ContextBundle(
             db_id="thrombosis_prediction",
             question=(
@@ -512,7 +521,7 @@ def test_thrombosis_oldest_sjs_patient_hint_includes_birthday_as_third_column() 
 
 
 def test_thrombosis_oldest_sjs_patient_hint_is_question_scoped() -> None:
-    rendered = render_schema_block(
+    rendered = _render_with_hints(
         ContextBundle(
             db_id="thrombosis_prediction",
             question="How many SJS patients are female?",
@@ -537,7 +546,7 @@ def test_thrombosis_oldest_sjs_patient_hint_is_question_scoped() -> None:
 
 
 def test_european_football_2_highest_buildup_hint_sorts_asc_and_joins_team() -> None:
-    rendered = render_schema_block(
+    rendered = _render_with_hints(
         ContextBundle(
             db_id="european_football_2",
             question=(
@@ -570,7 +579,7 @@ def test_european_football_2_highest_buildup_hint_sorts_asc_and_joins_team() -> 
 
 
 def test_european_football_2_highest_buildup_hint_is_question_scoped() -> None:
-    rendered = render_schema_block(
+    rendered = _render_with_hints(
         ContextBundle(
             db_id="european_football_2",
             question="List all teams from Germany.",
@@ -595,7 +604,7 @@ def test_european_football_2_highest_buildup_hint_is_question_scoped() -> None:
 
 
 def test_california_schools_lowest_excellence_rate_hint_overrides_column_order() -> None:
-    rendered = render_schema_block(
+    rendered = _render_with_hints(
         ContextBundle(
             db_id="california_schools",
             question=(
@@ -636,7 +645,7 @@ def test_california_schools_lowest_excellence_rate_hint_overrides_column_order()
 
 
 def test_california_schools_lowest_excellence_rate_hint_is_question_scoped() -> None:
-    rendered = render_schema_block(
+    rendered = _render_with_hints(
         ContextBundle(
             db_id="california_schools",
             question="List all schools in Los Angeles county.",

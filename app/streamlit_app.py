@@ -1,7 +1,7 @@
 """Streamlit UI for the NL→SQL assistant.
 
-Modern light surface: white background, one calm indigo accent, soft
-shadows and rounded corners (Inter for text, JetBrains Mono for code).
+Modern light surface: warm stone palette on white, one terracotta accent,
+soft shadows and rounded corners (Manrope for text, JetBrains Mono for code).
 Controls live in a top bar — database, mode and the EN/RU language
 toggle; the sidebar keeps only the schema explorer, advanced retrieval
 knobs and clear-chat. Bilingual chrome (data questions stay in their

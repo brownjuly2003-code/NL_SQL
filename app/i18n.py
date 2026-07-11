@@ -27,18 +27,22 @@ I18N: dict[str, dict[str, str]] = {
         "metric_percent": "100%",
         "metric_caption": "30 dev + 30 held-out, balanced split, all ten query categories at 100% on the free-tier codestral pipeline.",
         "research_kicker": "BIRD Mini-Dev research benchmark",
-        "research_value": "94.0% / 200",
-        "research_short": "Above the human-expert baseline · $0 external cost",
+        "research_value": "57.5% / 200",
+        "research_short": "Reproducible single-run (codestral, $0). Hint-assisted eval tier reaches 94.0%.",
         "methodology_label": "How the score was reached",
         "research_caption": (
-            "Hybrid pipeline: "
+            "This demo runs the reproducible pipeline — 57.5% EA, one free-tier codestral pass, "
+            "no benchmark rescue hints (they are off by default). The 94.0% headline is an "
+            "eval-only layer that adds per-question schema-link hints; it is documented below for "
+            "transparency, not served here. "
+            "Eval hybrid pipeline: "
             "<span class='nl-term' title='Mistral codestral-latest — SQL-specialised generation model, free tier'>codestral</span> + "
             "<span class='nl-term' title='Anthropic Claude 4.5 Sonnet via Perplexity Pro browser bridge — used on the hard tier'>Sonnet 4.6 bridge</span> + "
             "<span class='nl-term' title='Per-failure re-prompt with executable-shape feedback — only on frozen failures, no T=0 noise'>grounded-critique retry</span> + "
             "<span class='nl-term' title='helallao reverse-engineered HTTPS bridge to Perplexity backend — Grok 4.1, GPT-5.2, Claude 4.5 Sonnet, kimi-k2-thinking, gpt-5.2-thinking + DAC on residue, claude-4.5-sonnet-thinking on v18 residue, plain kimi-k2-thinking on v19 residue, reasoning + Pro modes'>helallao multi-model voting</span>. "
             "Scored under "
             "<span class='nl-term' title='bird-bench/mini_dev evaluation_ex.py — set-equality on row tuples, the methodology used by the BIRD leaderboard and by AskData/CHESS/XiYan in their reported numbers'>BIRD-official set semantics</span>. "
-            "+46.2pp over the GPT-4 zero-shot reference (47.8%), $0 external cost. **Above human-expert baseline 92.96% (BIRD paper) by +1.04pp.** "
+            "The hint-assisted tier is +46.2pp over the GPT-4 zero-shot reference (47.8%) at $0 external cost, and edges the human-expert baseline 92.96% (BIRD paper) by +1.04pp — but on a per-question rescue layer, not a provider-level win. "
             "On <span class='nl-term' title='Jin et al., CIDR/VLDB 2026, arXiv:2601.08778 — corrected BIRD gold annotations'>Arcwise-Plat corrected gold</span>: 74.37% (148/199) — honest noise-floor; +7 sql_only catches where our prediction is correct under Arcwise's corrected gold but BIRD's original gold disagrees. "
             "Seven late-stage model rescues on v16→v22, two archive-audit rescores on v23/v24 (qid 1205 via archive sweep, qid 959 via archive-rescore after the day-5 bind-bug fix), and nine targeted P3.F schema-link hints on v25→v31: qid 902 (driverStandings.position vs results.position), qid 1531 (yearmonth.Consumption subquery + SUM(Price/Amount) row-wise), qid 894 (lapTimes.milliseconds first SELECT column), qid 1251 (Patient ⋈ Laboratory ⋈ Examination semi-join), qid 408 (rulings.text filter via cards.uuid join + COUNT(DISTINCT cards.id)), qid 1275 (Laboratory.CENTROMEA/SSB IN ('negative','0') instead of fabricated tokens against Examination), qid 1168 (override projection-discipline: include Patient.Birthday as third SELECT column + ORDER BY Birthday ASC LIMIT 1 on JOIN), qid 1029 (european_football_2 positional inversion: 'highest buildUpPlaySpeed' = lower numeric value, sort ASC + INNER JOIN Team), qid 37 (california_schools 'lowest excellence rate' — BIRD inverts question word-order 'Street, City, Zip and State' to SELECT (Street, City, State, Zip); 'excellence rate' = NumGE1500 / NumTstTakr ASC LIMIT 1 directly on JOIN). Every cell verified via audit_rescore.py — 0 mismatches."
         ),
@@ -110,18 +114,21 @@ I18N: dict[str, dict[str, str]] = {
         "metric_percent": "100%",
         "metric_caption": "30 dev + 30 held-out, сбалансированный сплит, все десять категорий запросов на 100% через бесплатный codestral.",
         "research_kicker": "Исследовательский бенчмарк BIRD Mini-Dev",
-        "research_value": "94,0% / 200",
-        "research_short": "Выше human-expert baseline · внешние расходы — ноль",
+        "research_value": "57,5% / 200",
+        "research_short": "Воспроизводимый single-run (codestral, $0). Hint-assisted eval-уровень — 94,0%.",
         "methodology_label": "Как получен результат",
         "research_caption": (
-            "Гибридный пайплайн: "
+            "Это демо гоняет воспроизводимый пайплайн — 57,5% EA, один прогон на free-tier codestral, "
+            "без benchmark-подсказок (они выключены по умолчанию). 94,0% — eval-only слой с per-question "
+            "schema-link подсказками; ниже он раскрыт для прозрачности, но здесь не подаётся. "
+            "Eval-гибрид: "
             "<span class='nl-term' title='Mistral codestral-latest — модель, специализированная под генерацию SQL, бесплатный тариф'>codestral</span> + "
             "<span class='nl-term' title='Anthropic Claude 4.5 Sonnet через браузерный мост Perplexity Pro — на сложных кейсах'>мост к Sonnet 4.6</span> + "
             "<span class='nl-term' title='Повторный prompt со shape-фидбэком исполнения — только на зафиксированных фейлах, без шума T=0'>directed-critique retry</span> + "
             "<span class='nl-term' title='Реверс-инжиниринг HTTPS моста к бэкенду Perplexity — Grok 4.1, GPT-5.2, Claude 4.5 Sonnet, kimi-k2-thinking, gpt-5.2-thinking + DAC на residue, claude-4.5-sonnet-thinking на v18 residue, plain kimi-k2-thinking на v19 residue; режимы reasoning + Pro'>multi-model voting через helallao</span>. "
             "Scoring — "
             "<span class='nl-term' title='bird-bench/mini_dev evaluation_ex.py — set-равенство на результирующих кортежах. Тот же метод считает BIRD leaderboard и SOTA-числа AskData/CHESS/XiYan'>BIRD-official set-семантика</span>. "
-            "+46,2 п.п. над zero-shot GPT-4 (47,8%), внешние расходы — ноль. **Выше human-expert baseline 92,96% (BIRD paper) на +1,04 п.п.** "
+            "Hint-assisted уровень — +46,2 п.п. над zero-shot GPT-4 (47,8%) при нулевых внешних расходах, и на +1,04 п.п. выше human-expert baseline 92,96% (BIRD paper) — но за счёт per-question rescue-слоя, не провайдер-уровневой победы. "
             "На <span class='nl-term' title='Jin et al., CIDR/VLDB 2026, arXiv:2601.08778 — исправленные аннотации gold BIRD'>исправленном gold Arcwise-Plat</span>: 74,37% (148/199) — честный noise-floor; +7 sql_only catches, где наш ответ правильнее эталона BIRD согласно Arcwise. "
             "Семь late-stage rescue по моделям на пути v16→v22, плюс v23/v24 — archive-sweep и archive-rescore (qid 1205 / qid 959 после day-5 bind-bug fix), плюс v25→v31 — девять узких P3.F schema-link hint'ов: qid 902 (driverStandings.position вместо results.position), qid 1531 (subquery по yearmonth.Consumption + SUM(Price/Amount) построчно), qid 894 (lapTimes.milliseconds первой колонкой), qid 1251 (полу-джойн Patient ⋈ Laboratory ⋈ Examination), qid 408 (фильтр по rulings.text через join cards.uuid + COUNT(DISTINCT cards.id)), qid 1275 (Laboratory.CENTROMEA/SSB IN ('negative','0') вместо несуществующих Examination columns + invented '-'/'+-' tokens), qid 1168 (override projection-discipline: Patient.Birthday как 3-я колонка SELECT + ORDER BY Birthday ASC LIMIT 1 прямо на JOIN), qid 1029 (european_football_2 positional inversion: 'highest buildUpPlaySpeed' = меньшее число, sort ASC + INNER JOIN Team), qid 37 (california_schools 'lowest excellence rate' — BIRD инвертирует word-order вопроса 'Street, City, Zip and State' в SELECT (Street, City, State, Zip); 'excellence rate' = NumGE1500 / NumTstTakr ASC LIMIT 1 прямо на JOIN). Каждая ячейка верифицирована через audit_rescore.py — 0 mismatches."
         ),

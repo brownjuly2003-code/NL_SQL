@@ -1,23 +1,37 @@
 # NL→SQL Assistant
 
-[![Live demo](https://img.shields.io/badge/live_demo-HF_Space-FF6F00?logo=huggingface&logoColor=white)](https://liovina-nl-sql.hf.space) ![Python](https://img.shields.io/badge/python-3.12+-3776AB?logo=python&logoColor=white) ![Tests](https://img.shields.io/badge/tests-316_passing-brightgreen) ![BIRD Mini-Dev](https://img.shields.io/badge/BIRD_Mini--Dev-94.0%25_EA-brightgreen) ![License](https://img.shields.io/badge/license-MIT-blue)
+[![Live demo](https://img.shields.io/badge/live_demo-HF_Space-FF6F00?logo=huggingface&logoColor=white)](https://liovina-nl-sql.hf.space) [![CI](https://github.com/brownjuly2003-code/NL_SQL/actions/workflows/ci.yml/badge.svg)](https://github.com/brownjuly2003-code/NL_SQL/actions/workflows/ci.yml) ![Python](https://img.shields.io/badge/python-3.13-3776AB?logo=python&logoColor=white) ![BIRD Mini-Dev](https://img.shields.io/badge/BIRD_Mini--Dev-57.5%25_reproducible_/_94.0%25_hint--assisted-brightgreen) ![License](https://img.shields.io/badge/license-MIT-blue)
 
 Portfolio demo для Senior Data Engineer / Data Analyst. Принимает вопрос на естественном языке (RU/EN), возвращает ответ из реляционной БД в одной из четырёх форм: число, предложение, таблица, график. Всегда показывает использованный SQL и объяснение. AST-guard + read-only execution + row cap — без шанса на DML/DDL побег.
 
-**Статус:** Stages 1–10 закрыты. Production FastAPI surface, hybrid retrieval (grounded-critique directed retry + multi-provider voting + Sonnet 4.6 bridge через GraceKelly), редизайн Streamlit UI с EN/RU-переключателем (детали дизайна — в разделе UI ниже). **316 тестов зелёные**, ruff / mypy --strict clean. Live API verified: Mistral + Groq + Perplexity Pro.
+**Статус:** Stages 1–10 закрыты. Production FastAPI surface, retrieval-augmented LangGraph pipeline, редизайн Streamlit UI с EN/RU-переключателем (детали дизайна — в разделе UI ниже). Тесты, ruff и mypy --strict гоняются в CI (бейдж выше — живой). Live API verified на Mistral + Groq.
 
-**Headline metrics**
+**Headline metric — три честных уровня (BIRD Mini-Dev SQLite, n=200, $0 free-tier)**
 
-- **Chinook demo workload (n=60): 100% EA — 60/60.** 30 dev + 30 held-out, сбалансированный split, без overfitting. Все 10 категорий запросов (count/list/filter/aggregation/group-by/having/join-2/join-3/top-n/date-filter) на 100% через free-tier codestral — реальный analyst workload.
-- **BIRD Mini-Dev SQLite (n=200, hard research benchmark):**
-  - **94.0% EA на published BIRD gold** (188/200) — выше human-expert baseline 92.96% (+1.04pp), BIRD-official set-equality scoring, на $0 free-tier budget. Per-tier: simple 97.0% / moderate 92.9% / challenging 91.2%.
-  - **74.37% EA на Arcwise-corrected gold** (Jin et al., CIDR/VLDB 2026) — честный noise-floor после исправления annotation-ошибок в BIRD. Отчёт: [docs/corrected_gold_evaluation.md](docs/corrected_gold_evaluation.md).
-  - **+9 auditable cases**, где наш pred правильнее ошибочного BIRD gold — подтверждение reasoning, не memorization.
-  - Выше #1 paid system AskData+GPT-4o (81.95%, +12.05pp) и всех published free-tier no-FT решений (Arctic-32B 71.83%, CSC-SQL 73.67%, XiYan 75.63%); GPT-4 zero-shot — 47.8%.
-  - _Caveat (portfolio-honest):_ финальные +5pp (v22 → v31) — это archive-rescore после bind-bug fix плюс девять per-qid acceptance-gated schema-link подсказок, не новые провайдер-уровневые победы. Каждая ячейка верифицирована через `scripts/audit_rescore.py` (0 mismatches).
-- **Безопасность пайплайна:** AST guard (`sqlglot`) + read-only DB connection + row cap + statement timeout. DML/DDL/multi-statement/ATTACH/PRAGMA отбрасываются до execution.
+Одно число вводило бы в заблуждение, поэтому метрика разложена по слоям. Только уровень 1 включён в продукт (Streamlit UI и `/ask`); уровни 2–3 — eval-конфигурация.
 
-Полная по-версионная lift-трасса (47% → 94%), saturation-evidence и audit-методология — в [docs/03_eval_methodology.md](docs/03_eval_methodology.md) и [`docs/SESSION_HANDOFF.md`](docs/SESSION_HANDOFF.md).
+| Уровень | EA | Что это | В продукте? |
+|---|---:|---|:--:|
+| **1. Reproducible single-run** | **57.5%** | Чистый пайплайн на free-tier codestral, один прогон, без голосования и подсказок. Воспроизводится одной командой (ниже). | ✅ да |
+| **2. + multi-provider voting** | 85.5% | Само-консистентность + голосование по нескольким провайдерам. Archive-документировано; не воспроизводится «с нуля» (Perplexity-bridge истёк 16.06) — см. методологию. | ❌ eval |
+| **3. + per-question schema-link hints** | **94.0%** | Слой адаптаций под annotation-quirks конкретных BIRD-вопросов (188/200). Поднимает бенчмарк, но кодирует ответы к тесту — поэтому **выключен в продукте по умолчанию** (`enable_bird_rescue_hints`, off). | ❌ eval |
+
+Уровень 1 — first-pass 56.0%, per-tier simple 71.6% / moderate 53.5% / challenging 41.2% ([`eval/baselines/reproducible_n200.json`](eval/baselines/reproducible_n200.json), отдаётся `GET /eval/latest`). Уровень 3 — per-tier simple 97.0% / moderate 92.9% / challenging 91.2%.
+
+```powershell
+# Воспроизвести уровень 1 (одна команда, детерминированный split, seed=0):
+uv run python scripts/eval_baseline.py --config E --n 200
+# Уровень 3 (hint-assisted, eval-only) — добавить флаг:
+uv run python scripts/eval_baseline.py --config E --n 200 --bird-rescue-hints
+```
+
+Почему так честнее: уровень 3 (94.0%) выше human-expert baseline (92.96%), но стоит на per-question подсказках — открыв `_hints.py`, ревьюер увидит их сразу. Разделение на слои показывает и инженерию (воспроизводимые 57.5%), и научную честность (какой именно слой что даёт), вместо одного числа, которое злой ревьюер спишет целиком.
+
+- **Chinook demo workload (n=60): 100% EA — 60/60.** 30 dev + 30 held-out, сбалансированный split. Все 10 категорий (count/list/filter/aggregation/group-by/having/join-2/join-3/top-n/date-filter) через free-tier codestral — реальный analyst workload.
+- **74.37% EA на Arcwise-corrected gold** (Jin et al., CIDR/VLDB 2026) — noise-floor после исправления annotation-ошибок BIRD. Отчёт: [docs/corrected_gold_evaluation.md](docs/corrected_gold_evaluation.md).
+- **Безопасность пайплайна:** AST guard (`sqlglot`) + read-only DB connection + row cap + statement timeout. DML/DDL/multi-statement/ATTACH/PRAGMA/`SELECT … INTO` отбрасываются до execution.
+
+Полная по-версионная lift-трасса, saturation-evidence и audit-методология — в [docs/03_eval_methodology.md](docs/03_eval_methodology.md).
 
 **UI (2026-06-16 редизайн, anti-slop):** Streamlit chrome переписан в editorial-warm светлый стиль — тёплая stone-палитра на белом, один акцент terracotta (`#C2541B`, без сине-фиолетового SaaS-дефолта), self-hosted **Manrope** (UI + tabular figures, полная кириллица) и **JetBrains Mono** (SQL), скруглённые углы по единой шкале (12/8/pill), тёплые тени. Контролы вынесены в закреплённый (sticky) верхний бар: база, режим и переключатель EN↔RU. В сайдбаре остались только schema explorer, advanced retrieval и clear chat — без скролла. Hero + две stat-карточки + свёрнутый блок методологии. Контраст текста/кнопок/ссылок проверен на WCAG AA, focus-ring на всех интерактивных элементах. Без эмодзи и стоковых иконок. Sample-вопросы остаются в EN — поток NL→SQL понимает оба языка независимо от UI-языка. Живой Space `liovina-nl-sql.hf.space` задеплоен на этот дизайн; скриншоты ниже пересняты с live.
 
@@ -25,21 +39,19 @@ Portfolio demo для Senior Data Engineer / Data Analyst. Принимает в
 |:--:|:--:|
 | ![NL→SQL UI English hero (live)](docs/ui-live-en.png) | ![NL→SQL UI Russian hero (live)](docs/ui-live-ru.png) |
 
-Скриншоты сняты с live HF Space (<https://liovina-nl-sql.hf.space>), 1440×900 viewport, default DB `bird_california_schools`. Сняты на более раннем билде (в подписи на изображении — историческая метрика); актуальная метрика репозитория — **94.0% EA** (v31).
+Скриншоты сняты с live HF Space (<https://liovina-nl-sql.hf.space>), 1440×900 viewport, default DB `bird_california_schools`. Сняты на более раннем билде (в подписи на изображении — историческая метрика); актуальная метрика — **57.5% reproducible / 94.0% hint-assisted** (см. таблицу трёх уровней выше).
 
 **47-секундный live-demo (без звука, headless 1440×900):**
 
 https://github.com/brownjuly2003-code/NL_SQL/raw/main/docs/ui-live-demo.mp4
 
-Три бита: (1) hero с метрикой (видео снято на более раннем билде; актуальная метрика репозитория — **94.0% EA**), (2) клик по sample-вопросу → SQL с подсветкой + COUNT(4) ответ за ~5.5 c через codestral, (3) переключение EN ↔ RU без перезагрузки. Источник — live HF Space, не локалхост.
+Три бита: (1) hero с метрикой (видео снято на более раннем билде; актуальная метрика — **57.5% reproducible / 94.0% hint-assisted**, см. таблицу выше), (2) клик по sample-вопросу → SQL с подсветкой + COUNT(4) ответ за ~5.5 c через codestral, (3) переключение EN ↔ RU без перезагрузки. Источник — live HF Space, не локалхост.
 
 **Что есть кроме eval:**
 - Streamlit UI с modes (Accurate/Fast/Debug), schema explorer, sample questions, show-working trace, confidence labels.
 - FastAPI surface: `POST /ask`, `GET /databases`, `GET /eval/latest`, `GET /readyz`, X-API-Key auth + token-bucket rate limit (60 req/min).
 - Diagnostic harness: `scripts/error_taxonomy.py` классифицирует провалы (filter_or_value / row_count_off / order_by_off / exec_failed / empty) для целевой работы с конкретными bucket'ами.
 - Provider abstraction под Mistral / Groq / GitHub Models / Ollama / Perplexity browser bridge — модель меняется без переписывания пайплайна.
-
-См. [`docs/SESSION_HANDOFF.md`](docs/SESSION_HANDOFF.md) — single source of truth для следующей сессии.
 
 **Live demo:** <https://liovina-nl-sql.hf.space> (Hugging Face Spaces, Docker runtime, free tier). Cold start ~30 c при первом заходе, дальше interactive. Default DB — `bird_california_schools`; в sidebar можно переключить на любую из 9 shipped DBs (chinook + 8 BIRD).
 
@@ -62,14 +74,13 @@ make ui                                          # or: uv run streamlit run app/
 
 The UI reads `MISTRAL_API_KEY` from `.env`; copy `.env.example` first.
 
-For the public Streamlit Cloud demo (free, ~5 min setup), see
-[`DEPLOY.md`](DEPLOY.md).
+Публичный демо — Hugging Face Space (Docker). Как он деплоится (tracked-only + prune),
+см. [`DEPLOY.md`](DEPLOY.md).
 
 ## Документация
 
 | Файл | Содержание |
 |---|---|
-| [docs/SESSION_HANDOFF.md](docs/SESSION_HANDOFF.md) | **Where we stopped, what to do next** — open this first |
 | [docs/00_task.md](docs/00_task.md) | Постановка задачи (что / почему / scope / DoD) |
 | [docs/01_architecture.md](docs/01_architecture.md) | v1 — superseded, оставлен как исторический |
 | [docs/02_architecture_v2.md](docs/02_architecture_v2.md) | **Active baseline** — lean архитектура после CX+KM review |
@@ -81,13 +92,13 @@ For the public Streamlit Cloud demo (free, ~5 min setup), see
 - **Mistral API** (`codestral-latest` для SQL, `mistral-large-latest` для NL caption, `mistral-embed`) + provider abstraction (GitHub Models / Ollama)
 - **Hard budget: $0 external cost.** Primary: Mistral La Plateforme (`codestral-latest` SQL + `mistral-large-latest` NL + `mistral-embed`). Voting layers cycled через free-tier Groq (llama-3.3-70b / qwen3-32b / gpt-oss-20b — TPM/TPD-bounded) + OpenRouter free models (nemotron-3-super-120b — 50/day account-wide) + Sonnet 4.6 via GraceKelly Perplexity bridge (Chrome-gated). См. `docs/v11_saturation_evidence.md` для actual reach × rescues × why-stopped per провайдер.
 - **ChromaDB** — 2 коллекции: `schema_chunks` + `fewshot_qsql`
-- **Postgres 16** + **SQLite** — target БД (StackExchange-mini + Chinook + BIRD Mini-Dev)
+- **SQLite** (read-only) — target БД по умолчанию: Chinook + 11 BIRD Mini-Dev slices локально (вся eval на SQLite); на live Space — 9 (три самых больших > 100 MB/файл, см. DEPLOY.md).
+- **Postgres 16** — второй backend с genuinely read-only транзакциями (execution-option, не роль-плацебо); запускается локально через `docker-compose.yml` (profile `postgres`), данные грузятся `scripts/load_postgres.py` (`codebase_community` = StackExchange-mini). Read-only enforcement проверяется на живом PG16 в CI. На HF Space не тянется (SQLite-only деплой).
 - **sqlglot** — AST guard, dialect translation
-- **FastAPI + Pydantic v2** — API
-- **Streamlit** — UI v1 (Next.js opt-in после достижения eval-цифры)
+- **FastAPI + Pydantic v2** — API (X-API-Key + безусловный token-bucket rate-limit)
+- **Streamlit** — UI
 - **Plotly** — детерминированный chart picker, без LLM-generated specs
-- **Langfuse** — observability (без Prometheus / OTel)
-- **diskcache + vcr.py** — LLM API replay для CI и nightly eval
+- **diskcache** — кэш LLM generate/embed ответов (используется и для быстрого детерминированного прогона eval)
 
 ## Eval — где мы и где потолок
 
@@ -105,15 +116,17 @@ For the public Streamlit Cloud demo (free, ~5 min setup), see
 | + targeted P3.F schema-link hints + archive-rescore v22–v31 (2026-05-26) | — | **94.0%** ✅ |
 | GPT-4 zero-shot reference | — | 47.8% |
 | Published SOTA (paid API + fine-tuning) | — | 73–76% (CHESS) |
-| **Human expert baseline (BIRD paper)** | — | **92.96% (мы выше: +1.04pp)** |
+| Human expert baseline (BIRD paper) | — | 92.96% |
 
-> Полная по-версионная трасса (v16-audit → v31, per-qid rescues, saturation-evidence, audit-методология) — в [`docs/03_eval_methodology.md`](docs/03_eval_methodology.md) и [`docs/SESSION_HANDOFF.md`](docs/SESSION_HANDOFF.md).
+Это историческая lift-трасса архива, не воспроизводимое одно число. Уровни 85.5% и 94.0% — voting- и hint-assisted (eval-only, см. таблицу трёх уровней в начале). Воспроизводимый продуктовый пайплайн — **57.5%** (уровень 1). Число 94.0% выше human-expert baseline, но это hint-assisted слой, а не провайдер-уровневая победа.
+
+> Полная по-версионная трасса, per-qid rescues, saturation-evidence и audit-методология — в [`docs/03_eval_methodology.md`](docs/03_eval_methodology.md).
 
 Калибровка: GPT-4 zero-shot на BIRD Mini-Dev = 47.8 / 40.8 / 35.8% EX (SQLite/MySQL/PostgreSQL). Все наши числа на SQLite split — `dev_split` deterministic, seed=0.
 
 ## Roadmap
 
-8-10 недель, 12 этапов. Подробно в `docs/02_architecture_v2.md` §11.
+Stages 1–10 закрыты (см. статус выше). Дальнейшие этапы и архитектурный контекст — `docs/02_architecture_v2.md` §11.
 
 ## License
 
