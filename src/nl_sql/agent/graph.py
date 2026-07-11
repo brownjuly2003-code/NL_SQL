@@ -144,10 +144,12 @@ class PipelineConfig:
     """When True, inject the per-question BIRD schema-link "rescue" hints
     (`_hints.py::_render_schema_link_hints_appendix`) into the schema block.
     These are annotation-quirk adaptations tied to specific BIRD Mini-Dev
-    questions and lift the benchmark to 94.0% EA — so they belong ONLY in the
-    eval configuration, never in the product path. Default False: the live
-    Streamlit/API pipeline must not serve a canned answer to a benchmark
-    question. `scripts/eval_baseline.py --bird-rescue-hints` turns them on."""
+    questions — they encode answers to the test, so they belong ONLY in the eval
+    configuration, never in the product path. On the reproducible single-run they
+    move EA from 58.0% to 62.5% (the archive's 94.0% is a merge of ~20 voting runs
+    with these on top, not this flag). Default False: the live Streamlit/API
+    pipeline must not serve a canned answer to a benchmark question.
+    `scripts/eval_baseline.py --bird-rescue-hints` turns them on."""
 
 
 @dataclass(slots=True)

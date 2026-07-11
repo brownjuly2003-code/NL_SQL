@@ -158,9 +158,9 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help=(
             "inject the per-question BIRD schema-link rescue hints (the "
-            "annotation-quirk adaptation layer that lifts EA to 94.0%%). Eval-only "
-            "and OFF by default — the product pipeline never serves these. Turn on "
-            "to reproduce the hint-assisted headline number."
+            "annotation-quirk adaptation layer). On the reproducible single-run this "
+            "takes EA from 58.0%% to 62.5%%. Eval-only and OFF by default — the product "
+            "pipeline never serves these."
         ),
     )
     parser.add_argument(

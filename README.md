@@ -1,6 +1,6 @@
 # NL→SQL Assistant
 
-[![Live demo](https://img.shields.io/badge/live_demo-HF_Space-FF6F00?logo=huggingface&logoColor=white)](https://liovina-nl-sql.hf.space) [![CI](https://github.com/brownjuly2003-code/NL_SQL/actions/workflows/ci.yml/badge.svg)](https://github.com/brownjuly2003-code/NL_SQL/actions/workflows/ci.yml) ![Python](https://img.shields.io/badge/python-3.13-3776AB?logo=python&logoColor=white) ![BIRD Mini-Dev](https://img.shields.io/badge/BIRD_Mini--Dev-57.5%25_reproducible_/_94.0%25_hint--assisted-brightgreen) ![License](https://img.shields.io/badge/license-MIT-blue)
+[![Live demo](https://img.shields.io/badge/live_demo-HF_Space-FF6F00?logo=huggingface&logoColor=white)](https://liovina-nl-sql.hf.space) [![CI](https://github.com/brownjuly2003-code/NL_SQL/actions/workflows/ci.yml/badge.svg)](https://github.com/brownjuly2003-code/NL_SQL/actions/workflows/ci.yml) ![Python](https://img.shields.io/badge/python-3.13-3776AB?logo=python&logoColor=white) ![BIRD Mini-Dev](https://img.shields.io/badge/BIRD_Mini--Dev-58.0%25_reproducible-brightgreen) ![License](https://img.shields.io/badge/license-MIT-blue)
 
 Portfolio demo для Senior Data Engineer / Data Analyst. Принимает вопрос на естественном языке (RU/EN), возвращает ответ из реляционной БД в одной из четырёх форм: число, предложение, таблица, график. Всегда показывает использованный SQL и объяснение. AST-guard + read-only execution + row cap — без шанса на DML/DDL побег.
 
@@ -10,22 +10,25 @@ Portfolio demo для Senior Data Engineer / Data Analyst. Принимает в
 
 Одно число вводило бы в заблуждение, поэтому метрика разложена по слоям. Только уровень 1 включён в продукт (Streamlit UI и `/ask`); уровни 2–3 — eval-конфигурация.
 
-| Уровень | EA | Что это | В продукте? |
-|---|---:|---|:--:|
-| **1. Reproducible single-run** | **57.5%** | Чистый пайплайн на free-tier codestral, один прогон, без голосования и подсказок. Воспроизводится одной командой (ниже). | ✅ да |
-| **2. + multi-provider voting** | 85.5% | Само-консистентность + голосование по нескольким провайдерам. Archive-документировано; не воспроизводится «с нуля» (Perplexity-bridge истёк 16.06) — см. методологию. | ❌ eval |
-| **3. + per-question schema-link hints** | **94.0%** | Слой адаптаций под annotation-quirks конкретных BIRD-вопросов (188/200). Поднимает бенчмарк, но кодирует ответы к тесту — поэтому **выключен в продукте по умолчанию** (`enable_bird_rescue_hints`, off). | ❌ eval |
+| Уровень | EA | Что это | В продукте? | Воспроизводится? |
+|---|---:|---|:--:|:--:|
+| **1. Reproducible single-run** | **58.0%** | Чистый пайплайн на free-tier codestral, один прогон, без голосования и подсказок (116/200). | ✅ да | ✅ одной командой |
+| **2. + per-question schema-link hints** | **62.5%** | Тот же прогон с флагом `--bird-rescue-hints` (125/200): 11 hint-блоков под annotation-quirks конкретных BIRD-вопросов. Кодирует ответы к тесту — **в продукте выключен** (`enable_bird_rescue_hints`, off). | ❌ eval | ✅ одной командой |
+| **3. + multi-provider voting** | 85.5% | Само-консистентность + голосование по нескольким провайдерам. | ❌ eval | ❌ архив (Perplexity-bridge истёк 16.06) |
+| **4. + hints поверх voting-архива** | 94.0% | **Не «пайплайн с подсказками», а накопительный merge ~20 слоёв** (188/200): голосование codestral + Sonnet 4.6 + GPT-5.2 + Grok-4.1 + Kimi-K2 + Llama-4 + Qwen3 + gpt-oss через Groq/OpenRouter/Perplexity-мосты, плюс archive-rescore и те же hints. | ❌ eval | ❌ архив |
 
-Уровень 1 — first-pass 56.0%, per-tier simple 71.6% / moderate 53.5% / challenging 41.2% ([`eval/baselines/reproducible_n200.json`](eval/baselines/reproducible_n200.json), отдаётся `GET /eval/latest`). Уровень 3 — per-tier simple 97.0% / moderate 92.9% / challenging 91.2%.
+Уровень 1 — first-pass 56.5%, per-tier simple 71.6% / moderate 53.5% / challenging 44.1% ([`eval/baselines/reproducible_n200.json`](eval/baselines/reproducible_n200.json), отдаётся `GET /eval/latest`).
 
 ```powershell
-# Воспроизвести уровень 1 (одна команда, детерминированный split, seed=0):
-uv run python scripts/eval_baseline.py --config E --n 200
-# Уровень 3 (hint-assisted, eval-only) — добавить флаг:
-uv run python scripts/eval_baseline.py --config E --n 200 --bird-rescue-hints
+# Уровень 1 (одна команда, детерминированный split, seed=0):
+uv run python scripts/eval_baseline.py --config E --n 200            # → 58.0%
+# Уровень 2 (hint-assisted, eval-only) — тот же прогон с флагом:
+uv run python scripts/eval_baseline.py --config E --n 200 --bird-rescue-hints   # → 62.5%
 ```
 
-Почему так честнее: уровень 3 (94.0%) выше human-expert baseline (92.96%), но стоит на per-question подсказках — открыв `_hints.py`, ревьюер увидит их сразу. Разделение на слои показывает и инженерию (воспроизводимые 57.5%), и научную честность (какой именно слой что даёт), вместо одного числа, которое злой ревьюер спишет целиком.
+Уровни 3–4 этими командами **не получить**: это архивные композиции многих прогонов разных провайдеров, а не конфигурация пайплайна. Артефакт уровня 4 — `eval/reports/2026-05-26/v31-v30-plus-p3f-q37-merged.json`; его поле `sql_model` перечисляет весь ансамбль.
+
+Почему так честнее: уровень 4 выше human-expert baseline (92.96%), но стоит на ансамбле из двух десятков прогонов **и** на per-question подсказках — открыв `_hints.py`, ревьюер увидит их сразу. Разделение на слои показывает и инженерию (воспроизводимые 58.0%), и научную честность (какой именно слой что даёт), вместо одного числа, которое злой ревьюер спишет целиком.
 
 - **Chinook demo workload (n=60): 100% EA — 60/60.** 30 dev + 30 held-out, сбалансированный split. Все 10 категорий (count/list/filter/aggregation/group-by/having/join-2/join-3/top-n/date-filter) через free-tier codestral — реальный analyst workload.
 - **74.37% EA на Arcwise-corrected gold** (Jin et al., CIDR/VLDB 2026) — noise-floor после исправления annotation-ошибок BIRD. Отчёт: [docs/corrected_gold_evaluation.md](docs/corrected_gold_evaluation.md).
@@ -39,13 +42,13 @@ uv run python scripts/eval_baseline.py --config E --n 200 --bird-rescue-hints
 |:--:|:--:|
 | ![NL→SQL UI English hero (live)](docs/ui-live-en.png) | ![NL→SQL UI Russian hero (live)](docs/ui-live-ru.png) |
 
-Скриншоты сняты с live HF Space (<https://liovina-nl-sql.hf.space>), 1440×900 viewport, default DB `bird_california_schools`. Сняты на более раннем билде (в подписи на изображении — историческая метрика); актуальная метрика — **57.5% reproducible / 94.0% hint-assisted** (см. таблицу трёх уровней выше).
+Скриншоты сняты с live HF Space (<https://liovina-nl-sql.hf.space>), 1440×900 viewport, default DB `bird_california_schools`. Сняты на более раннем билде (в подписи на изображении — историческая метрика); актуальная метрика — см. таблицу трёх уровней выше.
 
 **47-секундный live-demo (без звука, headless 1440×900):**
 
 https://github.com/brownjuly2003-code/NL_SQL/raw/main/docs/ui-live-demo.mp4
 
-Три бита: (1) hero с метрикой (видео снято на более раннем билде; актуальная метрика — **57.5% reproducible / 94.0% hint-assisted**, см. таблицу выше), (2) клик по sample-вопросу → SQL с подсветкой + COUNT(4) ответ за ~5.5 c через codestral, (3) переключение EN ↔ RU без перезагрузки. Источник — live HF Space, не локалхост.
+Три бита: (1) hero с метрикой (видео снято на более раннем билде; актуальная метрика — см. таблицу выше), (2) клик по sample-вопросу → SQL с подсветкой + COUNT(4) ответ за ~5.5 c через codestral, (3) переключение EN ↔ RU без перезагрузки. Источник — live HF Space, не локалхост.
 
 **Что есть кроме eval:**
 - Streamlit UI с modes (Accurate/Fast/Debug), schema explorer, sample questions, show-working trace, confidence labels.
@@ -119,7 +122,7 @@ The UI reads `MISTRAL_API_KEY` from `.env`; copy `.env.example` first.
 | Published SOTA (paid API + fine-tuning) | — | 73–76% (CHESS) |
 | Human expert baseline (BIRD paper) | — | 92.96% |
 
-Это историческая lift-трасса архива, не воспроизводимое одно число. Уровни 85.5% и 94.0% — voting- и hint-assisted (eval-only, см. таблицу трёх уровней в начале). Воспроизводимый продуктовый пайплайн — **57.5%** (уровень 1). Число 94.0% выше human-expert baseline, но это hint-assisted слой, а не провайдер-уровневая победа.
+Это историческая lift-трасса архива, не воспроизводимое одно число. Строки 85.5% и 94.0% — voting- и voting+hint-слои (eval-only, см. таблицу уровней в начале): каждая получена merge'ем множества прогонов разных провайдеров, а не одной конфигурацией. Воспроизводимый продуктовый пайплайн — **58.0%** (уровень 1), с подсказками — **62.5%** (уровень 2).
 
 > Полная по-версионная трасса, per-qid rescues, saturation-evidence и audit-методология — в [`docs/03_eval_methodology.md`](docs/03_eval_methodology.md).
 

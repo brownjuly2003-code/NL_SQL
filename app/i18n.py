@@ -27,13 +27,14 @@ I18N: dict[str, dict[str, str]] = {
         "metric_percent": "100%",
         "metric_caption": "30 dev + 30 held-out, balanced split, all ten query categories at 100% on the free-tier codestral pipeline.",
         "research_kicker": "BIRD Mini-Dev research benchmark",
-        "research_value": "57.5% / 200",
-        "research_short": "Reproducible single-run (codestral, $0). Hint-assisted eval tier reaches 94.0%.",
+        "research_value": "58.0% / 200",
+        "research_short": "Reproducible single-run (codestral, $0). With eval-only hints, the same run scores 62.5%.",
         "methodology_label": "How the score was reached",
         "research_caption": (
-            "This demo runs the reproducible pipeline — 57.5% EA, one free-tier codestral pass, "
-            "no benchmark rescue hints (they are off by default). The 94.0% headline is an "
-            "eval-only layer that adds per-question schema-link hints; it is documented below for "
+            "This demo runs the reproducible pipeline — 58.0% EA, one free-tier codestral pass, "
+            "no benchmark rescue hints (they are off by default; switching them on takes the same "
+            "run to 62.5%). The archive's 94.0% is a different animal: a merge of some twenty "
+            "voting runs across other providers, with those hints on top — documented below for "
             "transparency, not served here. "
             "Eval hybrid pipeline: "
             "<span class='nl-term' title='Mistral codestral-latest — SQL-specialised generation model, free tier'>codestral</span> + "
@@ -114,13 +115,14 @@ I18N: dict[str, dict[str, str]] = {
         "metric_percent": "100%",
         "metric_caption": "30 dev + 30 held-out, сбалансированный сплит, все десять категорий запросов на 100% через бесплатный codestral.",
         "research_kicker": "Исследовательский бенчмарк BIRD Mini-Dev",
-        "research_value": "57,5% / 200",
-        "research_short": "Воспроизводимый single-run (codestral, $0). Hint-assisted eval-уровень — 94,0%.",
+        "research_value": "58,0% / 200",
+        "research_short": "Воспроизводимый single-run (codestral, $0). С eval-подсказками тот же прогон даёт 62,5%.",
         "methodology_label": "Как получен результат",
         "research_caption": (
-            "Это демо гоняет воспроизводимый пайплайн — 57,5% EA, один прогон на free-tier codestral, "
-            "без benchmark-подсказок (они выключены по умолчанию). 94,0% — eval-only слой с per-question "
-            "schema-link подсказками; ниже он раскрыт для прозрачности, но здесь не подаётся. "
+            "Это демо гоняет воспроизводимый пайплайн — 58,0% EA, один прогон на free-tier codestral, "
+            "без benchmark-подсказок (они выключены по умолчанию; с ними тот же прогон даёт 62,5%). "
+            "Архивные 94,0% — это другое: merge примерно двадцати voting-прогонов по другим провайдерам, "
+            "поверх которых лежат те же подсказки; ниже он раскрыт для прозрачности, но здесь не подаётся. "
             "Eval-гибрид: "
             "<span class='nl-term' title='Mistral codestral-latest — модель, специализированная под генерацию SQL, бесплатный тариф'>codestral</span> + "
             "<span class='nl-term' title='Anthropic Claude 4.5 Sonnet через браузерный мост Perplexity Pro — на сложных кейсах'>мост к Sonnet 4.6</span> + "

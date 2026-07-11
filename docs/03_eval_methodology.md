@@ -389,24 +389,29 @@ Config B (BM25 cards) is intentionally absent from the shipped pipeline — dens
 
 | Уровень | EA | Что это | В продукте? | Воспроизводимость |
 |---|---:|---|:--:|---|
-| 1. Reproducible single-run | **57.5%** (115/200) | Чистый пайплайн на codestral, один прогон, config E (dense + repair), без голосования и подсказок. First-pass 56.0%; simple 71.6% / moderate 53.5% / challenging 41.2%. | да | одна команда, детерминированно |
-| 2. + multi-provider voting | 85.5% | Само-консистентность + голосование по провайдерам (Groq / OpenRouter / Perplexity-bridge). | eval | архив; не «с нуля» (Perplexity-cookie-bridge истёк 16.06) |
-| 3. + per-question schema-link hints | **94.0%** (188/200) | 11 hint-блоков под конкретные BIRD-вопросы (`_hints.py`); адаптация под annotation-quirks. simple 97.0% / moderate 92.9% / challenging 91.2%. | eval (`enable_bird_rescue_hints`, off) | архив-merge v22→v31; consistency проверяется `audit_rescore.py` (0 mismatches) |
+| 1. Reproducible single-run | **58.0%** (116/200) | Чистый пайплайн на codestral, один прогон, config E (dense + repair), без голосования и подсказок. First-pass 56.5%; simple 71.6% / moderate 53.5% / challenging 44.1%. | да | **одна команда**, детерминированно |
+| 2. + per-question schema-link hints | **62.5%** (125/200) | Тот же прогон с `--bird-rescue-hints`: 11 hint-блоков под конкретные BIRD-вопросы (`_hints.py`). First-pass 60.5%; simple 74.6% / moderate 58.6% / challenging 50.0%. | eval (`enable_bird_rescue_hints`, off) | **одна команда** |
+| 3. + multi-provider voting | 85.5% | Само-консистентность + голосование по провайдерам (Groq / OpenRouter / Perplexity-bridge). | eval | архив; не «с нуля» (Perplexity-cookie-bridge истёк 16.06) |
+| 4. + hints поверх voting-архива | **94.0%** (188/200) | Накопительный merge v22→v31 поверх уровня 3: голосование codestral + Sonnet 4.6 + GPT-5.2 + Grok-4.1 + Kimi-K2 + Llama-4-Scout + Qwen3 + gpt-oss, archive-rescore, и те же hints. simple 97.0% / moderate 92.9% / challenging 91.2%. | eval | архив-merge; consistency проверяется `audit_rescore.py` (0 mismatches) |
+
+**Почему 58.0%, а не 57.5% (третий проход, 2026-07-11).** Число выросло не от модели, а от починки скоринга. `_hashable` (set-путь компаратора) квантовал к сетке допуска только `float`, а `int` пропускал как есть: gold `5` ложился в корзину `5`, а pred `5.0` — в `5 000 000`, и верный ответ получал miss. Это **строже официального BIRD-скрипта**, который сравнивает сырые python-кортежи, где `5 == 5.0` схлопывается — то есть наша «apples-to-apples с лидербордом» была не вполне apples-to-apples. Order-sensitive путь (`_cell_equal`, допуск 1e-6) такие пары всегда засчитывал, поэтому одна и та же пара (gold, pred) скорилась по-разному в зависимости от того, есть ли в gold `ORDER BY`. Теперь int, float и (после `_normalise_cell`) Decimal лежат на одной сетке. Правка **монотонна** — она может только слить корзины, ошибочно разведённые, — поэтому ни один ранее засчитанный вопрос не мог пропасть. Вернулся один вопрос уровня challenging (41.2% → 44.1%). Postgres n=49 (49.0%) и SQLite-контроль n=49 (44.9%) не изменились, Chinook — по-прежнему 100%.
+
+Уровень 2 (85.5%) измерен архивным прогоном до этой правки и «с нуля» не пересобирается — читать его следует как число того скоринга.
 
 ### Воспроизвести
 
 ```powershell
 # Уровень 1 (продуктовый пайплайн, seed=0, детерминированный dev_split):
-uv run python scripts/eval_baseline.py --config E --n 200
-# Уровень 3 (hint-assisted, eval-only):
-uv run python scripts/eval_baseline.py --config E --n 200 --bird-rescue-hints
+uv run python scripts/eval_baseline.py --config E --n 200            # → 58.0% (116/200)
+# Уровень 2 (hint-assisted, eval-only) — тот же прогон с флагом:
+uv run python scripts/eval_baseline.py --config E --n 200 --bird-rescue-hints   # → 62.5% (125/200)
 ```
 
-Уровень 1 воспроизводится одной командой на free-tier Mistral. Уровень 3 воспроизводит hint-assisted число на том же прогоне с флагом. Уровень 2 — архивная трасса: часть rescues шла через Perplexity-cookie-bridge, которого больше нет; `audit_rescore.py` подтверждает консистентность архива, но «с нуля» этот слой сейчас не пересобирается.
+Уровни 1 и 2 воспроизводятся одной командой на free-tier Mistral. **Уровни 3 и 4 этими командами не получить** — и раньше эта страница утверждала обратное. Флаг `--bird-rescue-hints` добавляет подсказки к продуктовому single-run и даёт 62.5%, а не 94.0%: 94.0% — это накопительный merge примерно двадцати прогонов разных провайдеров (см. поле `sql_model` в `eval/reports/2026-05-26/v31-v30-plus-p3f-q37-merged.json`), поверх которого те же hints и лежат. Часть rescues шла через Perplexity-cookie-bridge, которого больше нет; `audit_rescore.py` подтверждает консистентность архива, но «с нуля» уровни 3–4 сейчас не пересобираются.
 
 ### Честность витрины
 
-94.0% выше human-expert baseline (BIRD paper, 92.96%) на +1.04pp — но это **hint-assisted слой**, кодирующий ответы к конкретным вопросам теста, а не провайдер-уровневая победа. Поэтому он выключен в продукте по умолчанию: живое демо и API отдают уровень 1 (57.5%). `GET /eval/latest` отдаёт именно уровень 1 — число, которого достигает сам API. Разделение на слои показывает и инженерию (воспроизводимые 57.5%), и научную честность (какой слой что даёт).
+Уровень 3 выше human-expert baseline (BIRD paper, 92.96%) — но это **hint-assisted слой**, кодирующий ответы к конкретным вопросам теста, а не провайдер-уровневая победа. Поэтому он выключен в продукте по умолчанию: живое демо и API отдают уровень 1 (58.0%). `GET /eval/latest` отдаёт именно уровень 1 — число, которого достигает сам API. Разделение на слои показывает и инженерию (воспроизводимые 58.0%), и научную честность (какой слой что даёт).
 
 На Arcwise-corrected gold (Jin et al., CIDR/VLDB 2026) — 74.37% (148/199): noise-floor после исправления annotation-ошибок BIRD.
 
