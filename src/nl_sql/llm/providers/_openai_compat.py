@@ -11,13 +11,19 @@ from __future__ import annotations
 import time
 from typing import Any, cast
 
-from openai import APIError, OpenAI
+from openai import APIError, OpenAI, RateLimitError
 
 from nl_sql.llm.providers.base import (
     GenerateRequest,
     GenerateResponse,
     ProviderError,
 )
+
+# Mistral La Plateforme free tier meters per-minute windows: a burst of calls
+# passes, then every request 429s until the window refills. The SDK's built-in
+# retries give up within seconds, so batch callers (eval) need minute-scale
+# patience here.
+RATE_LIMIT_BACKOFF_SECONDS: tuple[float, ...] = (15.0, 30.0, 60.0, 120.0)
 
 
 def chat_complete(
@@ -47,10 +53,20 @@ def chat_complete(
         kwargs["response_format"] = {"type": "json_object"}
 
     started = time.perf_counter()
-    try:
-        completion = client.chat.completions.create(**kwargs)
-    except APIError as exc:
-        raise ProviderError(f"chat.completions failed for model={model}: {exc}") from exc
+    completion = None
+    for delay in RATE_LIMIT_BACKOFF_SECONDS:
+        try:
+            completion = client.chat.completions.create(**kwargs)
+            break
+        except RateLimitError:
+            time.sleep(delay)
+        except APIError as exc:
+            raise ProviderError(f"chat.completions failed for model={model}: {exc}") from exc
+    if completion is None:
+        try:
+            completion = client.chat.completions.create(**kwargs)
+        except APIError as exc:
+            raise ProviderError(f"chat.completions failed for model={model}: {exc}") from exc
 
     latency_ms = (time.perf_counter() - started) * 1000.0
     choice = completion.choices[0]

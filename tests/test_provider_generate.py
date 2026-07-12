@@ -121,3 +121,29 @@ def test_generate_passes_system_prompt_when_provided() -> None:
     assert messages[0] == {"role": "system", "content": "you are a SQL expert"}
     assert messages[1] == {"role": "user", "content": "user q"}
     assert captured["temperature"] == pytest.approx(0.2)
+
+
+@respx.mock
+def test_mistral_generate_retries_rate_limit(monkeypatch: pytest.MonkeyPatch) -> None:
+    from nl_sql.llm.providers import _openai_compat
+
+    naps: list[float] = []
+    monkeypatch.setattr(_openai_compat.time, "sleep", naps.append)
+    rate_limited = httpx.Response(429, json={"object": "error", "type": "rate_limited"})
+    # The openai SDK itself retries a 429 twice before raising RateLimitError,
+    # so three 429s exhaust one SDK call and hand control to our backoff layer.
+    route = respx.post("https://api.mistral.ai/v1/chat/completions").mock(
+        side_effect=[
+            rate_limited,
+            rate_limited,
+            rate_limited,
+            httpx.Response(200, json=_completion_payload("codestral-latest", "SELECT 1;")),
+        ]
+    )
+    provider = MistralProvider(api_key="test-key")
+
+    response = provider.generate(GenerateRequest(prompt="say SELECT 1"))
+
+    assert route.call_count == 4
+    assert response.text == "SELECT 1;"
+    assert [nap for nap in naps if nap >= 15.0] == [15.0]
