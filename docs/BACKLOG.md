@@ -96,6 +96,29 @@ retrieve descriptions only for the columns a question plausibly touches.
 Rule of thumb this pass earned: **space at the top of the prompt is a scarce
 resource, and any lever that lengthens the prompt must pay for the room it takes.**
 
+## Next levers (research pass, 2026-07-12 — see `docs/quality_levers_research_2026-07.md`)
+
+After the lever-exhaustion day (eight levers measured dead or parity), two axes
+were researched: training-free techniques through July 2026 and free API tiers.
+Ranked shortlist:
+
+- ⛔ **Gemini 3 Flash as generator** — AI Studio free tier fits n=200 in a day
+  (1,500 req/day, no card); `_openai_compat.py` already speaks the protocol.
+  Gated on creating an API key. Highest-variance option; pilot rule binding —
+  only the full n=200 counts.
+- **Question-driven value retrieval (CHESS-style)** — the only technique lever
+  with strong isolated evidence (~5 pp in CHESS's ablation; honest estimate here
+  +0.5–2 pp, since static top-K samples are already in the prompt and only part
+  of the miss class is literal-grounding). Local code + one Mistral run, no keys.
+- ⛔ **Qwen3 Coder 480B via OpenRouter `:free`** — 50 req/day makes n=200 a
+  multi-day run; gated on an account/key and an endpoint canary.
+- Not worth runs (evidence in the research doc): DecoSearch-style decomposition,
+  reflective self-refinement, semantic post-repair, SEED auto-evidence.
+
+Side-fact for the ceiling story: ReViSQL's BIRD-Verified found defects in 61.1%
+of BIRD Train instances — a second team independently confirming the
+annotation-noise thesis behind the ~61–62% free-stack ceiling on this gold.
+
 ## Gated (needs a decision or an external host)
 
 - ⛔ **Sustained-load benchmark.** The data-migration half is done (above); a throughput/latency run under sustained load still wants a host that isn't the Windows dev box.
