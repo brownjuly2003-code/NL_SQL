@@ -96,28 +96,45 @@ retrieve descriptions only for the columns a question plausibly touches.
 Rule of thumb this pass earned: **space at the top of the prompt is a scarce
 resource, and any lever that lengthens the prompt must pay for the room it takes.**
 
-## Next levers (research pass, 2026-07-12 — see `docs/quality_levers_research_2026-07.md`)
+## Next levers (research, 2026-07-12 — see `docs/quality_levers_research_2026-07.md`)
 
-After the lever-exhaustion day (eight levers measured dead or parity), two axes
-were researched: training-free techniques through July 2026 and free API tiers.
-Ranked shortlist:
+After the lever-exhaustion day (eight levers measured dead or parity), three
+research passes mapped what is left: training-free techniques through July 2026,
+free API tiers, and a completeness sweep over the established named systems
+(DIN/DAIL/C3/MAC/PET/TA/E-SQL/RSL/MCS/CHASE/OpenSearch/Alpha/XiYan + the
+NL2SQL360 taxonomy). Ranked worklist — every measurement is a full n=200,
+flag-gated, one lever per run:
 
 - ⛔ **Gemini 3 Flash as generator** — AI Studio free tier fits n=200 in a day
   (1,500 req/day, no card); `_openai_compat.py` already speaks the protocol.
-  Gated on creating an API key. Highest-variance option; pilot rule binding —
-  only the full n=200 counts.
-- **Question-driven value retrieval (CHESS-style)** — the only technique lever
-  with strong isolated evidence (~5 pp in CHESS's ablation; honest estimate here
-  +0.5–2 pp, since static top-K samples are already in the prompt and only part
-  of the miss class is literal-grounding). Local code + one Mistral run, no keys.
+  Gated on creating an API key. Highest-variance option; pilot rule binding.
+- **Question-driven value retrieval (CHESS-style)** — ~5 pp in CHESS's ablation;
+  honest estimate here +0.5–2 pp (static top-K samples are already in the
+  prompt; only part of the miss class is literal grounding). No keys needed.
+- **DAIL-style few-shot selection** — mask schema tokens before embedding,
+  optional SQL-skeleton re-rank (MCS-SQL ablation +4.8%). Cheap upgrade of the
+  existing dense top-3 retrieval.
+- **Instance-aware synthetic few-shot** (CHASE, +9.3 in its single-generator
+  ablation — the largest legal number in the literature, discounted by the
+  DAC transfer precedent: their +6.2 measured −6.5 here).
+- **Question enrichment** (E-SQL, ~+5% on challenging, single-candidate by
+  design) and **error-class micro-prompts** (output-column completeness, yes/no
+  format, LIMIT discipline — priced at 1–2 questions each by the v18 audit).
+- **Intermediate representation / query-plan CoT** — held back on codestral
+  (CoT transfer risk); first in line for re-test if the generator changes.
 - ⛔ **Qwen3 Coder 480B via OpenRouter `:free`** — 50 req/day makes n=200 a
-  multi-day run; gated on an account/key and an endpoint canary.
+  multi-day run; gated on an account/key and an endpoint canary. Devstral —
+  a cheap probe on the existing key, low prior.
 - Not worth runs (evidence in the research doc): DecoSearch-style decomposition,
-  reflective self-refinement, semantic post-repair, SEED auto-evidence.
+  reflective self-refinement, semantic post-repair, SEED auto-evidence,
+  deterministic AST normalization, and every component that maps onto an
+  already-measured-dead channel (MAC/RSL/PET/Alpha/SQL-o1 parts).
 
-Side-fact for the ceiling story: ReViSQL's BIRD-Verified found defects in 61.1%
-of BIRD Train instances — a second team independently confirming the
-annotation-noise thesis behind the ~61–62% free-stack ceiling on this gold.
+Also queued: an Arcwise rescore of the current reproducible baseline (no-LLM,
+~90 s) so the honest triplet exists for the product number, and a public
+ceiling-anatomy write-up. Side-fact for the latter: ReViSQL's BIRD-Verified
+found defects in 61.1% of BIRD Train instances — a second team independently
+confirming the annotation-noise thesis behind the ~61–62% free-stack ceiling.
 
 ## Gated (needs a decision or an external host)
 

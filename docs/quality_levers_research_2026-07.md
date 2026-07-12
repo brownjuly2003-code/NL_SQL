@@ -9,8 +9,12 @@ schema narrowing, compact prompts). The reproducible single-run number is 61.5%
 (codestral, config E, n=200). Is there anything left that can move it on a
 free stack — no fine-tuning, no logits access, no candidate selection?
 
-Two research axes: (A) training-free techniques published or missed through
-July 2026; (B) free API tiers carrying models plausibly stronger than codestral.
+Three research passes: (A) training-free techniques published or missed through
+July 2026; (B) free API tiers carrying models plausibly stronger than codestral;
+(C) a completeness sweep over established named systems (DIN/DAIL/C3/MAC/PET/
+TA/E-SQL/RSL/MCS/CHASE/OpenSearch/Alpha/XiYan/SuperSQL + the NL2SQL360 taxonomy),
+decomposed into components and filtered by the constraints. (D) is the resulting
+ranked shortlist.
 
 ---
 
@@ -92,30 +96,63 @@ numbers for Gemini Flash variants, Kimi K2, or DeepSeek V3.x as bare generators.
 
 ---
 
-## C. Ranked shortlist
+## C. Second pass — sweep of established systems (completeness check)
 
-1. **Gemini 3 Flash as generator** (needs: an AI Studio API key — a decision,
-   not money). Near-zero engineering: `_openai_compat.py` already speaks the
-   OpenAI protocol and Gemini exposes an OpenAI-compatible endpoint; add a
-   provider entry, run config E n=200 in one day within free limits.
-   Highest variance of all options: could be anywhere from parity to a real
-   jump. **The pilot rule is binding** — browser-Sonnet went +16.6 at n=30 to
-   −3.0 at n=200; only the full slice counts.
-2. **Question-driven value retrieval** (needs: nothing — local code + one
-   Mistral run). Best-evidenced technique lever; modest honest estimate
-   (+0.5–2 pp); composes with #1 — worth measuring on codestral first so the
-   two levers stay attributable.
-3. **Qwen3 Coder 480B via OpenRouter free** (needs: account/key + patience or
-   $10 once). Only if #1 disappoints and the endpoint passes a canary.
-4. **Devstral probe** (needs: nothing). One cheap run only if bundled with
-   other work; prior is low.
+A follow-up sweep over the named, well-described systems of 2023–2026 (DIN-SQL,
+DAIL-SQL, C3, MAC-SQL, PET-SQL, TA-SQL, E-SQL, RSL-SQL, MCS-SQL, CHASE-SQL,
+OpenSearch-SQL, Alpha-SQL, SQL-o1, XiYan-SQL, SuperSQL) plus the NL2SQL360 /
+NL2SQL_Handbook taxonomy, decomposed into components and filtered by our
+constraints. Verdict: the taxonomy adds **five legal technique families** beyond
+section A, and confirms everything else reduces to channels we already measured.
 
-Not worth runs: DecoSearch-style decomposition, reflective refinement,
-semantic post-repair, SEED — table A2.
+Legal and genuinely unmeasured on this stack:
 
-If #1–#3 all land at parity, the free-stack ceiling thesis (~61–62% on this
-gold) gets its final confirmation, and the remaining value is the ceiling-anatomy
-write-up itself — now reinforced by the 61.1% BIRD-Train defect rate (A3).
+| Family | Best source & isolated number | Notes for our stack |
+|---|---|---|
+| **Instance-aware synthetic few-shot** — an extra LLM call writes 2–3 Q→SQL examples shaped like the test question, replacing retrieved shots | CHASE-SQL Table 4: 57.75 → **67.09 (+9.3)**, single generator, no selection — the strongest legal single-candidate number in the literature | Transfer risk is real: the same table's divide-and-conquer (+6.2 for them) measured **−6.5 here**. Ablations on Gemini 1.5 Pro are priors, not promises |
+| **Few-shot selection à la DAIL** — mask schema tokens in the question before embedding; optionally re-rank by SQL-skeleton similarity | DAIL-SQL; MCS-SQL ablation credits masked-question few-shot with **+4.8%**, its largest single component | Our current shots are dense top-3 on the raw question — the upgrade path is concrete and cheap |
+| **Question enrichment** — rewrite the question expanding conditions/steps/schema references, appended alongside the original | E-SQL (single-candidate by design): ~**+5% on challenging**; its predicate-augmentation module (−2% overall when removed) is draft-conditioned value grounding | Composes with value retrieval; one extra call per question |
+| **Intermediate representation** — symbolic/pandas-like plan first, SQL second | TA-SQL (TALOG module; +21% relative combined with its linking module, GPT-4); OpenSearch-SQL's SQL-Like IR | CoT-family transfer risk on codestral (the DAC precedent) |
+| **Calibration hints / error-class micro-prompts** — short bias-correcting rules (extra columns, wrong aggregation, LIMIT discipline, yes/no format) | C3-SQL (~1–2 pts, GPT-3.5 era); our own v18 residue audit priced output-column and answer-format rules at 1–2 questions each | Cheapest of all; rules must be narrow to avoid two-sided regressions |
+
+Confirmed dead-by-equivalence (components map 1:1 onto measured-dead channels):
+MAC-SQL (Selector=narrowing, Decomposer=DAC, Refiner=self-refinement), RSL-SQL
+(bidirectional linking=narrowing + binary selection + multi-turn correction),
+PET-SQL cross-consistency (=voting), Alpha-SQL / SQL-o1 (MCTS = multi-candidate
+by construction), DIN-SQL (decomposition + self-correction; only its difficulty
+routing is legal, with no isolated evidence), XiYan's fine-tuned parts, and
+CHASE's query fixer (=self-refinement) and tournament selector (fine-tuned,
+multi-candidate). Deterministic AST post-normalization: no survey shows EA gains
+from it — published post-processing wins are all LLM-fixers or execution-guided,
+both excluded; at 99% validity the expectation here is ~0.
+
+## D. Ranked shortlist (revised after the second pass)
+
+1. **Gemini 3 Flash as generator** (needs an AI Studio API key — a decision, not
+   money). Near-zero engineering: `_openai_compat.py` already speaks the OpenAI
+   protocol and Gemini exposes an OpenAI-compatible endpoint. Highest variance;
+   **the pilot rule is binding** — only the full n=200 counts.
+2. **Question-driven value retrieval** (needs nothing): best-evidenced targeted
+   lever, honest estimate +0.5–2 pp. Measure on codestral first for attribution.
+3. **DAIL-style few-shot selection** (needs nothing): cheap upgrade of the
+   existing retrieval; masked-question variant first, skeleton re-rank only if
+   the cheap variant shows signal.
+4. **Instance-aware synthetic few-shot** (needs nothing, 2× calls): the largest
+   literature number, discounted by the DAC transfer precedent.
+5. **Question enrichment** (needs nothing, 2× calls).
+6. **Error-class micro-prompts** (needs nothing, one run per bundle).
+7. **Intermediate representation / query-plan CoT** — hold on codestral (CoT
+   transfer risk), retry on the new generator if #1 lands.
+8. **Qwen3 Coder 480B via OpenRouter free** (account/key + patience or $10 once)
+   — only if #1 disappoints; canary the endpoint first.
+9. **Devstral probe** (needs nothing) — bundle with other work; low prior.
+
+Not worth runs: DecoSearch-style decomposition, reflective refinement, semantic
+post-repair, SEED, AST normalization — sections A2 and C.
+
+If the whole list lands at parity, the free-stack ceiling thesis (~61–62% on
+this gold) gets its final confirmation, and the remaining value is the
+ceiling-anatomy write-up — now reinforced by the 61.1% BIRD-Train defect rate.
 
 ---
 
@@ -135,3 +172,11 @@ write-up itself — now reinforced by the 61.1% BIRD-Train defect rate (A3).
 - Cerebras/Mistral free-tier survey: <https://ianlpaterson.com/blog/free-llm-api-2026/>
 - GitHub Models limits: <https://docs.github.com/en/github-models/use-github-models/prototyping-with-ai-models>
 - Gemini-SQL2 on BIRD: <https://aiweekly.co/alerts/googles-gemini-sql2-tops-bird-text-to-sql-at-8004>, <https://byteiota.com/gemini-sql2-text-to-sql-bird-benchmark/>
+- CHASE-SQL (Table 4 single-generator ablations): <https://arxiv.org/abs/2410.01943>
+- DAIL-SQL: <https://arxiv.org/abs/2308.15363>, <https://github.com/BeachWang/DAIL-SQL>
+- MCS-SQL (few-shot selection ablation): <https://arxiv.org/html/2405.07467v1>
+- E-SQL question enrichment: <https://arxiv.org/abs/2409.16751>
+- TA-SQL: <https://arxiv.org/abs/2405.15307>
+- OpenSearch-SQL: <https://arxiv.org/html/2502.14913v1>
+- C3-SQL: <https://arxiv.org/abs/2307.07306>; DIN-SQL: <https://arxiv.org/abs/2304.11015>; MAC-SQL: <https://arxiv.org/abs/2312.11242>; PET-SQL: <https://arxiv.org/abs/2403.09732>; RSL-SQL: <https://arxiv.org/abs/2411.00073>
+- Taxonomy/surveys: <https://github.com/HKUSTDial/NL2SQL_Handbook>, <https://arxiv.org/html/2406.08426v5>, <https://arxiv.org/html/2407.15186>
