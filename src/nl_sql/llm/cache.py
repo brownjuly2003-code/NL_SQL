@@ -92,7 +92,8 @@ class CachingLLMProvider:
             return GenerateResponse(**data)
 
         resp = self._inner.generate(req)
-        self._cache.set(key, resp.model_dump())
+        if resp.text.strip():
+            self._cache.set(key, resp.model_dump())
         return resp
 
     def close(self) -> None:

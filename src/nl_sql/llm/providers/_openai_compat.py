@@ -9,6 +9,7 @@ code uniform and makes test mocking trivial (one HTTP shape to mock).
 from __future__ import annotations
 
 import time
+from collections.abc import Sequence
 from typing import Any, cast
 
 from openai import APIError, OpenAI, RateLimitError
@@ -30,11 +31,18 @@ def chat_complete(
     client: OpenAI,
     model: str,
     req: GenerateRequest,
+    *,
+    fallback_clients: Sequence[OpenAI] = (),
 ) -> GenerateResponse:
     """Run a single chat-completion call against an OpenAI-compatible endpoint.
 
     Returns a normalized GenerateResponse. Wraps SDK errors into ProviderError so
     upstream code never needs to care which SDK raised what.
+
+    `fallback_clients` are alternate credentials for the *same* endpoint. Free
+    tiers meter per key, so when a key 429s the cheapest recovery is another key,
+    not a sleep. Only once every key in the ring is rate-limited do we fall back
+    to the minute-scale backoff above.
     """
     messages: list[dict[str, str]] = []
     if req.system:
@@ -52,19 +60,24 @@ def chat_complete(
         # ignores or 400s depending on model. Caller controls when to set it.
         kwargs["response_format"] = {"type": "json_object"}
 
+    ring: tuple[OpenAI, ...] = (client, *fallback_clients)
     started = time.perf_counter()
     completion = None
     for delay in RATE_LIMIT_BACKOFF_SECONDS:
-        try:
-            completion = client.chat.completions.create(**kwargs)
+        for candidate in ring:
+            try:
+                completion = candidate.chat.completions.create(**kwargs)
+                break
+            except RateLimitError:
+                continue
+            except APIError as exc:
+                raise ProviderError(f"chat.completions failed for model={model}: {exc}") from exc
+        if completion is not None:
             break
-        except RateLimitError:
-            time.sleep(delay)
-        except APIError as exc:
-            raise ProviderError(f"chat.completions failed for model={model}: {exc}") from exc
+        time.sleep(delay)
     if completion is None:
         try:
-            completion = client.chat.completions.create(**kwargs)
+            completion = ring[0].chat.completions.create(**kwargs)
         except APIError as exc:
             raise ProviderError(f"chat.completions failed for model={model}: {exc}") from exc
 

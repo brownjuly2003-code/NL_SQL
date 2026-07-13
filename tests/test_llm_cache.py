@@ -74,6 +74,43 @@ def test_caching_llm_first_call_misses_then_hits(cache_dir: Path) -> None:
     cached.close()
 
 
+class _EmptyThenAnswer:
+    """Provider double that fails empty once, then answers. Models the reasoning-
+    model truncation seen on Zen: content='' when reasoning eats max_tokens."""
+
+    name = "fake"
+    model = "fake-model"
+
+    def __init__(self) -> None:
+        self.calls = 0
+
+    def generate(self, req: GenerateRequest) -> GenerateResponse:
+        self.calls += 1
+        text = "" if self.calls == 1 else "SELECT 1;"
+        return GenerateResponse(text=text, model=self.model)
+
+
+def test_caching_llm_does_not_persist_empty_completions(cache_dir: Path) -> None:
+    """An empty completion is a failure, not an answer.
+
+    Caching one poisons the key forever: every later run replays the empty string
+    and the model looks broken. Cost of the rule is one wasted call; cost of
+    breaking it is a silently dead provider (2026-07-14: a reasoning-budget bug
+    cached 10 empty responses and the re-run reproduced them exactly).
+    """
+    inner = _EmptyThenAnswer()
+    cached = CachingLLMProvider(inner, cache_dir=cache_dir)
+    req = GenerateRequest(prompt="hello")
+
+    first = cached.generate(req)
+    second = cached.generate(req)
+
+    assert first.text == ""
+    assert second.text == "SELECT 1;", "empty response must not have been cached"
+    assert inner.calls == 2, "the empty completion must not short-circuit the retry"
+    cached.close()
+
+
 def test_caching_llm_key_distinguishes_inputs(cache_dir: Path) -> None:
     inner = _CountingLLM()
     cached = CachingLLMProvider(inner, cache_dir=cache_dir)

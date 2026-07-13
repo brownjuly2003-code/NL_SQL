@@ -5,7 +5,15 @@ from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 ProviderName = Literal[
-    "mistral", "github_models", "groq", "ollama", "openrouter", "perplexity", "gracekelly"
+    "mistral",
+    "github_models",
+    "groq",
+    "ollama",
+    "openrouter",
+    "perplexity",
+    "gracekelly",
+    "zen",
+    "grok_cli",
 ]
 
 
@@ -58,6 +66,22 @@ class Settings(BaseSettings):
     openrouter_model: str = "qwen/qwen3-coder:free"
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
 
+    # OpenCode Zen — free generator slot (see llm/providers/zen.py). Only the
+    # `*-free` catalogue is reachable: the workspace has no payment method, so
+    # paid ids answer CreditsError. Free ids as of 2026-07-14, all of which
+    # emitted valid SQL on probe: deepseek-v4-flash-free, north-mini-code-free,
+    # nemotron-3-ultra-free, mimo-v2.5-free, hy3-free, big-pickle.
+    zen_model: str = "deepseek-v4-flash-free"
+    zen_base_url: str = "https://opencode.ai/zen/v1"
+    zen_timeout_seconds: float = 180.0
+
+    # Grok Build CLI — subscription path (weekly quota, like GraceKelly), no key.
+    # `grok models` advertises grok-4.20-0309-reasoning but the backend rejects it;
+    # the tier serves grok-composer-2.5-fast. See llm/providers/grok_cli.py.
+    grok_cli_path: str = "grok"
+    grok_cli_model: str = "grok-composer-2.5-fast"
+    grok_cli_timeout_seconds: float = 600.0
+
     # Perplexity browser path via local GraceKelly (D:\GraceKelly). Free
     # because it rides the user's Perplexity Pro subscription via Playwright.
     # `claude-sonnet-4-6` here is the Perplexity menu label, not the
@@ -83,6 +107,9 @@ class Settings(BaseSettings):
     github_token: str = Field(default="", validation_alias="GITHUB_TOKEN")
     groq_api_key: str = Field(default="", validation_alias="GROQ_API_KEY")
     openrouter_api_key: str = Field(default="", validation_alias="OPENROUTER_API_KEY")
+    zen_api_key: str = Field(default="", validation_alias="OPENCODE_API_KEY")
+    """One or more OpenCode Zen keys, comma-separated. Free tiers meter per key,
+    so extra keys are extra headroom: the provider rotates through them on 429."""
 
     # Optional API auth for the FastAPI surface. When empty, /ask and /databases
     # are open — but the rate limiter still applies (keyed by client IP), so a

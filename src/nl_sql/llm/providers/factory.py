@@ -6,19 +6,21 @@ from nl_sql.config import Settings, get_settings
 from nl_sql.llm.providers.base import LLMProvider, ProviderError
 from nl_sql.llm.providers.github_models import GitHubModelsProvider
 from nl_sql.llm.providers.gracekelly import GraceKellyProvider
+from nl_sql.llm.providers.grok_cli import GrokCliProvider
 from nl_sql.llm.providers.groq import GroqProvider
 from nl_sql.llm.providers.mistral import MistralProvider
 from nl_sql.llm.providers.ollama import OllamaProvider
 from nl_sql.llm.providers.openrouter import OpenRouterProvider
 from nl_sql.llm.providers.perplexity import PerplexityProvider
+from nl_sql.llm.providers.zen import ZenProvider
 
 
 def build_provider(name: str, settings: Settings | None = None) -> LLMProvider:
     """Build an LLMProvider by short name.
 
     Recognized names: ``mistral``, ``github_models``, ``groq``, ``ollama``,
-    ``perplexity``, ``openrouter``, ``gracekelly``. Raises ProviderError for
-    unknown names or missing credentials.
+    ``perplexity``, ``openrouter``, ``gracekelly``, ``zen``, ``grok_cli``. Raises
+    ProviderError for unknown names or missing credentials.
     """
     s = settings or get_settings()
     match name:
@@ -63,6 +65,19 @@ def build_provider(name: str, settings: Settings | None = None) -> LLMProvider:
                 api_key=s.openrouter_api_key,
                 model=s.openrouter_model,
                 base_url=s.openrouter_base_url,
+            )
+        case "zen":
+            return ZenProvider(
+                api_key=s.zen_api_key,
+                model=s.zen_model,
+                base_url=s.zen_base_url,
+                timeout_seconds=s.zen_timeout_seconds,
+            )
+        case "grok_cli":
+            return GrokCliProvider(
+                cli_path=s.grok_cli_path,
+                model=s.grok_cli_model,
+                timeout_seconds=s.grok_cli_timeout_seconds,
             )
         case _:
             raise ProviderError(f"unknown provider name: {name!r}")

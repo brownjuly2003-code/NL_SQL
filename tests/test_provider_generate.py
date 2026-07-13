@@ -15,6 +15,9 @@ from nl_sql.llm.providers import GenerateRequest, ProviderError
 from nl_sql.llm.providers.github_models import GitHubModelsProvider
 from nl_sql.llm.providers.mistral import MistralProvider
 from nl_sql.llm.providers.ollama import OllamaProvider
+from nl_sql.llm.providers.zen import ZenProvider
+
+ZEN_URL = "https://opencode.ai/zen/v1/chat/completions"
 
 
 def _completion_payload(model: str, text: str) -> dict[str, object]:
@@ -147,3 +150,75 @@ def test_mistral_generate_retries_rate_limit(monkeypatch: pytest.MonkeyPatch) ->
     assert route.call_count == 4
     assert response.text == "SELECT 1;"
     assert [nap for nap in naps if nap >= 15.0] == [15.0]
+
+
+@respx.mock
+def test_zen_generate_returns_normalized_response() -> None:
+    route = respx.post(ZEN_URL).mock(
+        return_value=httpx.Response(
+            200, json=_completion_payload("deepseek-v4-flash-free", "SELECT 1;")
+        )
+    )
+    provider = ZenProvider(api_key="test-key")
+
+    response = provider.generate(GenerateRequest(prompt="say SELECT 1"))
+
+    assert route.called
+    assert response.text == "SELECT 1;"
+    assert response.model == "deepseek-v4-flash-free"
+
+
+@respx.mock
+def test_zen_floors_max_tokens_so_reasoning_cannot_eat_the_answer() -> None:
+    """Every free Zen model is a reasoning model and reasoning bills against
+    max_tokens. At the caller's 2048 the model thinks past the budget and returns
+    an empty completion (4/5 on the first n=5 smoke). The floor lives here, not in
+    GenerateRequest, because the LLM cache keys on max_tokens — raising the shared
+    default would invalidate every cached codestral response behind the product number.
+    """
+    captured: dict[str, object] = {}
+
+    def _capture(request: httpx.Request) -> httpx.Response:
+        import json as _json
+
+        captured.update(_json.loads(request.content))
+        return httpx.Response(200, json=_completion_payload("deepseek-v4-flash-free", "SELECT 1;"))
+
+    respx.post(ZEN_URL).mock(side_effect=_capture)
+    provider = ZenProvider(api_key="test-key", min_max_tokens=16384)
+
+    provider.generate(GenerateRequest(prompt="q", max_tokens=2048))
+
+    assert captured["max_tokens"] == 16384
+
+
+@respx.mock
+def test_zen_rotates_to_a_spare_key_before_sleeping(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Zen free tiers meter per key, so a 429 on one key is not a 429 on the next.
+    Rotating costs a round-trip; sleeping costs 15s+ per question across n=200."""
+    from nl_sql.llm.providers import _openai_compat
+
+    naps: list[float] = []
+    monkeypatch.setattr(_openai_compat.time, "sleep", naps.append)
+    seen: list[str] = []
+
+    def _by_key(request: httpx.Request) -> httpx.Response:
+        auth = request.headers["authorization"]
+        seen.append(auth)
+        if auth == "Bearer key-one":
+            return httpx.Response(429, json={"object": "error", "type": "rate_limited"})
+        return httpx.Response(200, json=_completion_payload("deepseek-v4-flash-free", "SELECT 1;"))
+
+    respx.post(ZEN_URL).mock(side_effect=_by_key)
+    provider = ZenProvider(api_key="key-one, key-two")
+
+    response = provider.generate(GenerateRequest(prompt="q"))
+
+    assert response.text == "SELECT 1;"
+    assert seen[-1] == "Bearer key-two"
+    assert not [nap for nap in naps if nap >= 15.0], "a spare key must be tried before backoff"
+
+
+def test_zen_requires_at_least_one_key() -> None:
+    with pytest.raises(ProviderError, match="non-empty api_key"):
+        ZenProvider(api_key="  ,  ")

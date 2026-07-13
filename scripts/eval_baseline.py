@@ -56,6 +56,8 @@ _MODEL_FIELD: dict[str, str] = {
     "openrouter": "openrouter_model",
     "perplexity": "perplexity_browser_model",
     "gracekelly": "gracekelly_model",
+    "zen": "zen_model",
+    "grok_cli": "grok_cli_model",
 }
 
 
@@ -312,6 +314,8 @@ def main(argv: list[str] | None = None) -> int:
             "perplexity",
             "openrouter",
             "gracekelly",
+            "zen",
+            "grok_cli",
         ],
         default="mistral",
         help=(
