@@ -1,0 +1,215 @@
+{
+  "configuration": "E_dense_fewshot_repair",
+  "sql_model": "claude-sonnet-5",
+  "overall": {
+    "n": 5,
+    "ea": 0.2,
+    "validity_rate": 1.0,
+    "schema_recall_at_k": 0.8,
+    "repair_success_rate": 0.0,
+    "first_pass_ea": 0.2,
+    "empty_result_rate": 0.0,
+    "latency_p50_ms": 14056.881399999838,
+    "latency_p95_ms": 20692.53696000087,
+    "tokens_p50": 39909.0,
+    "tokens_p95": 46000.8
+  },
+  "per_difficulty": {
+    "simple": {
+      "n": 2,
+      "ea": 0.5,
+      "validity_rate": 1.0,
+      "schema_recall_at_k": 1.0,
+      "repair_success_rate": 0.0,
+      "first_pass_ea": 0.5,
+      "empty_result_rate": 0.0,
+      "latency_p50_ms": 14933.663450006861,
+      "latency_p95_ms": 16010.357345014927,
+      "tokens_p50": 41082.5,
+      "tokens_p95": 42138.65
+    },
+    "moderate": {
+      "n": 3,
+      "ea": 0.0,
+      "validity_rate": 1.0,
+      "schema_recall_at_k": 0.6666666666666666,
+      "repair_success_rate": 0.0,
+      "first_pass_ea": 0.0,
+      "empty_result_rate": 0.0,
+      "latency_p50_ms": 14056.881399999838,
+      "latency_p95_ms": 21055.5444699974,
+      "tokens_p50": 35424.0,
+      "tokens_p95": 45785.7
+    },
+    "challenging": {
+      "n": 0,
+      "ea": 0.0,
+      "validity_rate": 0.0,
+      "schema_recall_at_k": 0.0,
+      "repair_success_rate": 0.0,
+      "first_pass_ea": 0.0,
+      "empty_result_rate": 0.0,
+      "latency_p50_ms": 0.0,
+      "latency_p95_ms": 0.0,
+      "tokens_p50": 0.0,
+      "tokens_p95": 0.0
+    }
+  },
+  "records": [
+    {
+      "question_id": 50,
+      "db_id": "california_schools",
+      "difficulty": "simple",
+      "dialect": "sqlite",
+      "question": "What is the postal street address for the school with the 7th highest Math average? Indicate the school's name.",
+      "gold_sql": "SELECT T2.MailStreet, T2.School FROM satscores AS T1 INNER JOIN schools AS T2 ON T1.cds = T2.CDSCode ORDER BY T1.AvgScrMath DESC LIMIT 6, 1",
+      "pred_sql": "SELECT T2.School, T2.MailStreet FROM satscores AS T1 INNER JOIN schools AS T2 ON T1.cds = T2.CDSCode WHERE T1.AvgScrMath IS NOT NULL ORDER BY T1.AvgScrMath DESC LIMIT 1 OFFSET 6",
+      "match": false,
+      "schema_recall": true,
+      "error_kind": null,
+      "error_message": "",
+      "repair_attempted": false,
+      "first_pass_match": false,
+      "latency_ms": 16129.990000015823,
+      "input_tokens": 39248,
+      "output_tokens": 661,
+      "gold_tables": [
+        "satscores",
+        "schools"
+      ],
+      "retrieved_tables": [
+        "satscores",
+        "schools",
+        "frpm"
+      ],
+      "pred_row_count": 1,
+      "gold_row_count": 1,
+      "comparison_reason": "ordered row 0 mismatch: gold=('25 Churchill Avenue', None), pred=(None, '25 Churchill Avenue')"
+    },
+    {
+      "question_id": 236,
+      "db_id": "toxicology",
+      "difficulty": "moderate",
+      "dialect": "sqlite",
+      "question": "What are the bond type and the atoms of the bond ID of TR001_6_9?",
+      "gold_sql": "SELECT T1.bond_type, T2.atom_id, T2.atom_id2 FROM bond AS T1 INNER JOIN connected AS T2 ON T1.bond_id = T2.bond_id WHERE T2.bond_id = 'TR001_6_9'",
+      "pred_sql": "",
+      "match": false,
+      "schema_recall": false,
+      "error_kind": "pipeline_exception",
+      "error_message": "claude CLI error: error_max_turns",
+      "repair_attempted": false,
+      "first_pass_match": false,
+      "latency_ms": 11821.609100006754,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "gold_tables": [
+        "bond",
+        "connected"
+      ],
+      "retrieved_tables": [],
+      "pred_row_count": 0,
+      "gold_row_count": 0,
+      "comparison_reason": "pipeline raised: ProviderError('claude CLI error: error_max_turns')"
+    },
+    {
+      "question_id": 260,
+      "db_id": "toxicology",
+      "difficulty": "moderate",
+      "dialect": "sqlite",
+      "question": "Calculate the total atoms with triple-bond molecules containing the element phosphorus or bromine.",
+      "gold_sql": "SELECT COUNT(T1.atom_id) FROM atom AS T1 INNER JOIN molecule AS T2 ON T1.molecule_id = T2.molecule_id INNER JOIN bond AS T3 ON T2.molecule_id = T3.molecule_id WHERE T3.bond_type = '#' AND T1.element IN ('p', 'br')",
+      "pred_sql": "SELECT COUNT(*) FROM atom WHERE molecule_id IN (SELECT DISTINCT molecule_id FROM bond WHERE bond_type = '#') AND molecule_id IN (SELECT DISTINCT molecule_id FROM atom WHERE element IN ('p', 'br'))",
+      "match": false,
+      "schema_recall": true,
+      "error_kind": null,
+      "error_message": "",
+      "repair_attempted": false,
+      "first_pass_match": false,
+      "latency_ms": 21833.173699997133,
+      "input_tokens": 34738,
+      "output_tokens": 686,
+      "gold_tables": [
+        "atom",
+        "molecule",
+        "bond"
+      ],
+      "retrieved_tables": [
+        "bond",
+        "atom",
+        "connected",
+        "molecule"
+      ],
+      "pred_row_count": 1,
+      "gold_row_count": 1,
+      "comparison_reason": "set mismatch (unique rows differ): |gold|=1, |pred|=1"
+    },
+    {
+      "question_id": 414,
+      "db_id": "card_games",
+      "difficulty": "simple",
+      "dialect": "sqlite",
+      "question": "What language is the set of 180 cards that belongs to the Ravnica block translated into?",
+      "gold_sql": "SELECT T2.language FROM sets AS T1 INNER JOIN set_translations AS T2 ON T1.code = T2.setCode WHERE T1.block = 'Ravnica' AND T1.baseSetSize = 180",
+      "pred_sql": "SELECT T2.language FROM sets AS T1 INNER JOIN set_translations AS T2 ON T1.code = T2.setCode WHERE T1.baseSetSize = 180 AND T1.block = 'Ravnica'",
+      "match": true,
+      "schema_recall": true,
+      "error_kind": null,
+      "error_message": "",
+      "repair_attempted": false,
+      "first_pass_match": true,
+      "latency_ms": 13737.3368999979,
+      "input_tokens": 41913,
+      "output_tokens": 343,
+      "gold_tables": [
+        "sets",
+        "set_translations"
+      ],
+      "retrieved_tables": [
+        "sets",
+        "set_translations",
+        "legalities",
+        "cards",
+        "rulings",
+        "foreign_data"
+      ],
+      "pred_row_count": 10,
+      "gold_row_count": 10,
+      "comparison_reason": ""
+    },
+    {
+      "question_id": 1029,
+      "db_id": "european_football_2",
+      "difficulty": "moderate",
+      "dialect": "sqlite",
+      "question": "What are the speed in which attacks are put together of the top 4 teams with the highest build Up Play Speed?",
+      "gold_sql": "SELECT t1.buildUpPlaySpeed FROM Team_Attributes AS t1 INNER JOIN Team AS t2 ON t1.team_api_id = t2.team_api_id ORDER BY t1.buildUpPlaySpeed ASC LIMIT 4",
+      "pred_sql": "SELECT buildUpPlaySpeed FROM Team_Attributes ORDER BY buildUpPlaySpeed DESC LIMIT 4",
+      "match": false,
+      "schema_recall": true,
+      "error_kind": null,
+      "error_message": "",
+      "repair_attempted": false,
+      "first_pass_match": false,
+      "latency_ms": 14056.881399999838,
+      "input_tokens": 46492,
+      "output_tokens": 445,
+      "gold_tables": [
+        "Team_Attributes",
+        "Team"
+      ],
+      "retrieved_tables": [
+        "Team_Attributes",
+        "Player_Attributes",
+        "Team",
+        "Player",
+        "Match",
+        "Country",
+        "League"
+      ],
+      "pred_row_count": 4,
+      "gold_row_count": 4,
+      "comparison_reason": "ordered row 0 mismatch: gold=(20,), pred=(80,)"
+    }
+  ]
+}
