@@ -17,6 +17,7 @@ from __future__ import annotations
 import argparse
 import sys
 import time
+from collections import Counter
 from pathlib import Path
 from typing import Any
 
@@ -616,6 +617,24 @@ def main(argv: list[str] | None = None) -> int:
     print(f"Tokens P50:    {run.overall.tokens_p50:.0f}")
     print(f"Tokens P95:    {run.overall.tokens_p95:.0f}")
     print(f"Wall time:     {elapsed:.1f}s")
+
+    # A question that never reached the model is not a question the model got wrong,
+    # but execution accuracy cannot tell the two apart — a pipeline_exception scores
+    # exactly like a bad query. On 2026-07-14 that silently understated three separate
+    # runs: a truncated CLI preamble, cached empty completions, and 24 dropped process
+    # spawns, each of which read as "this generator is worse". So say it out loud.
+    broken = [r for r in run.records if r.error_kind == "pipeline_exception"]
+    if broken:
+        ceiling = (run.overall.ea * len(run.records) + len(broken)) / len(run.records)
+        print()
+        print(f"🔴 {len(broken)}/{len(run.records)} questions never reached the model")
+        print("   (pipeline_exception — transport, not the answer). EA below is a FLOOR:")
+        print(f"   with those {len(broken)} fixed it could be up to {ceiling * 100:.1f}%.")
+        print("   Do NOT report this number. Fix the transport and re-run — the LLM cache")
+        print("   replays every question that succeeded, so only the broken ones cost anything.")
+        kinds = Counter((r.error_message or "?").split(":")[0][:60] for r in broken)
+        for kind, count in kinds.most_common(3):
+            print(f"     {count:>3}x {kind}")
 
     json_path = write_json_report(run, root=args.reports, name_suffix=args.report_suffix)
 
