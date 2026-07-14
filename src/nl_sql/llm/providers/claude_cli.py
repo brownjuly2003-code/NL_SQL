@@ -136,9 +136,7 @@ class ClaudeCliProvider:
             except FileNotFoundError as exc:
                 # Could be the CLI, could be the cwd. Say both rather than guess — the
                 # old message asserted the first and sent us hunting the wrong bug.
-                last_error = (
-                    f"spawn failed (cli={self._cli_path!r}, cwd={self._cwd!r}): {exc}"
-                )
+                last_error = f"spawn failed (cli={self._cli_path!r}, cwd={self._cwd!r}): {exc}"
                 proc = None
             except OSError as exc:
                 last_error = f"claude CLI failed to spawn: {exc}"

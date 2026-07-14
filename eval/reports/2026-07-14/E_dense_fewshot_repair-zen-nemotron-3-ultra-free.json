@@ -3,42 +3,42 @@
   "sql_model": "nemotron-3-ultra-free",
   "overall": {
     "n": 200,
-    "ea": 0.63,
+    "ea": 0.635,
     "validity_rate": 1.0,
     "schema_recall_at_k": 0.99,
     "repair_success_rate": 1.0,
-    "first_pass_ea": 0.625,
+    "first_pass_ea": 0.63,
     "empty_result_rate": 0.03,
-    "latency_p50_ms": 7401.673250002204,
-    "latency_p95_ms": 43480.51960499572,
-    "tokens_p50": 6587.0,
-    "tokens_p95": 13217.15
+    "latency_p50_ms": 27.32930000001943,
+    "latency_p95_ms": 23418.772884999944,
+    "tokens_p50": 6573.5,
+    "tokens_p95": 13175.199999999999
   },
   "per_difficulty": {
     "simple": {
       "n": 67,
       "ea": 0.7611940298507462,
       "validity_rate": 1.0,
-      "schema_recall_at_k": 0.9850746268656716,
+      "schema_recall_at_k": 0.9701492537313433,
       "repair_success_rate": 0.0,
       "first_pass_ea": 0.7611940298507462,
       "empty_result_rate": 0.014925373134328358,
-      "latency_p50_ms": 7868.690300005255,
-      "latency_p95_ms": 38687.64337999454,
-      "tokens_p50": 6589.0,
-      "tokens_p95": 12954.9
+      "latency_p50_ms": 25.19300000005842,
+      "latency_p95_ms": 21280.35256,
+      "tokens_p50": 6562.0,
+      "tokens_p95": 12821.6
     },
     "moderate": {
       "n": 99,
-      "ea": 0.5757575757575758,
+      "ea": 0.5858585858585859,
       "validity_rate": 1.0,
-      "schema_recall_at_k": 0.98989898989899,
+      "schema_recall_at_k": 1.0,
       "repair_success_rate": 1.0,
-      "first_pass_ea": 0.5656565656565656,
+      "first_pass_ea": 0.5757575757575758,
       "empty_result_rate": 0.04040404040404041,
-      "latency_p50_ms": 6471.796199999517,
-      "latency_p95_ms": 44156.05694999681,
-      "tokens_p50": 6814.0,
+      "latency_p50_ms": 28.70810000001711,
+      "latency_p95_ms": 33333.392239999965,
+      "tokens_p50": 6925.0,
       "tokens_p95": 13122.599999999999
     },
     "challenging": {
@@ -49,8 +49,8 @@
       "repair_success_rate": 0.0,
       "first_pass_ea": 0.5294117647058824,
       "empty_result_rate": 0.029411764705882353,
-      "latency_p50_ms": 8840.759750004509,
-      "latency_p95_ms": 43465.04051000663,
+      "latency_p50_ms": 27.6398999999401,
+      "latency_p95_ms": 3368.7754899999827,
       "tokens_p50": 6202.5,
       "tokens_p95": 13940.949999999997
     }
@@ -70,7 +70,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 330.9233000036329,
+      "latency_ms": 513.7084000000414,
       "input_tokens": 6895,
       "output_tokens": 460,
       "gold_tables": [
@@ -100,7 +100,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 47.201699984725565,
+      "latency_ms": 33.96650000001955,
       "input_tokens": 6949,
       "output_tokens": 6569,
       "gold_tables": [
@@ -130,7 +130,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 65.52679999731481,
+      "latency_ms": 44.24770000002809,
       "input_tokens": 7211,
       "output_tokens": 1201,
       "gold_tables": [
@@ -160,7 +160,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 30.78649999224581,
+      "latency_ms": 22.854599999959646,
       "input_tokens": 7106,
       "output_tokens": 1178,
       "gold_tables": [
@@ -190,7 +190,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 29.3445999850519,
+      "latency_ms": 19.25759999994625,
       "input_tokens": 7055,
       "output_tokens": 698,
       "gold_tables": [
@@ -220,7 +220,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 60.05249998997897,
+      "latency_ms": 42.51459999989038,
       "input_tokens": 6941,
       "output_tokens": 596,
       "gold_tables": [
@@ -250,7 +250,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 52.566700003808364,
+      "latency_ms": 32.40279999999984,
       "input_tokens": 6876,
       "output_tokens": 605,
       "gold_tables": [
@@ -279,7 +279,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 27.162600017618388,
+      "latency_ms": 20.66320000005817,
       "input_tokens": 6765,
       "output_tokens": 1258,
       "gold_tables": [
@@ -309,7 +309,7 @@
       "error_message": "query returned 0 rows",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 41.61380001460202,
+      "latency_ms": 26.412100000015926,
       "input_tokens": 7026,
       "output_tokens": 1244,
       "gold_tables": [
@@ -339,7 +339,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 27.680300001520663,
+      "latency_ms": 32.528599999977814,
       "input_tokens": 4903,
       "output_tokens": 3037,
       "gold_tables": [
@@ -373,7 +373,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 24.962600000435486,
+      "latency_ms": 23.62920000007307,
       "input_tokens": 4962,
       "output_tokens": 648,
       "gold_tables": [
@@ -407,7 +407,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 26.55760000925511,
+      "latency_ms": 21.53329999998732,
       "input_tokens": 4997,
       "output_tokens": 748,
       "gold_tables": [
@@ -441,7 +441,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 23.064599983626977,
+      "latency_ms": 21.574600000008104,
       "input_tokens": 4931,
       "output_tokens": 2637,
       "gold_tables": [
@@ -475,7 +475,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 24.052900000242516,
+      "latency_ms": 19.94409999997515,
       "input_tokens": 5033,
       "output_tokens": 830,
       "gold_tables": [
@@ -509,7 +509,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 18.70099999359809,
+      "latency_ms": 14.489800000092146,
       "input_tokens": 5036,
       "output_tokens": 831,
       "gold_tables": [
@@ -542,7 +542,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 35.936900007072836,
+      "latency_ms": 29.384899999968184,
       "input_tokens": 5331,
       "output_tokens": 1029,
       "gold_tables": [
@@ -577,7 +577,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 26.028499996755272,
+      "latency_ms": 20.46980000000076,
       "input_tokens": 5343,
       "output_tokens": 871,
       "gold_tables": [
@@ -612,7 +612,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 23.3013000106439,
+      "latency_ms": 15.607100000011087,
       "input_tokens": 4925,
       "output_tokens": 471,
       "gold_tables": [
@@ -646,7 +646,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 612.9611000069417,
+      "latency_ms": 1393.4153999999808,
       "input_tokens": 5179,
       "output_tokens": 1383,
       "gold_tables": [
@@ -682,7 +682,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 33.16680001444183,
+      "latency_ms": 25.047700000072837,
       "input_tokens": 5063,
       "output_tokens": 1272,
       "gold_tables": [
@@ -716,7 +716,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 37.177099991822615,
+      "latency_ms": 23.610500000017964,
       "input_tokens": 5123,
       "output_tokens": 1079,
       "gold_tables": [
@@ -752,7 +752,7 @@
       "error_message": "query returned 0 rows",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 284.9249000137206,
+      "latency_ms": 194.5828000000347,
       "input_tokens": 5196,
       "output_tokens": 4816,
       "gold_tables": [
@@ -787,7 +787,7 @@
       "error_message": "query returned 0 rows",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 34.71370000625029,
+      "latency_ms": 24.53179999997701,
       "input_tokens": 4957,
       "output_tokens": 924,
       "gold_tables": [
@@ -823,7 +823,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 23.067700007231906,
+      "latency_ms": 15.724299999988034,
       "input_tokens": 4964,
       "output_tokens": 462,
       "gold_tables": [
@@ -857,7 +857,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 27.94580001500435,
+      "latency_ms": 22.744200000033743,
       "input_tokens": 4970,
       "output_tokens": 901,
       "gold_tables": [
@@ -892,7 +892,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 94.48920001159422,
+      "latency_ms": 127.68940000000839,
       "input_tokens": 3164,
       "output_tokens": 838,
       "gold_tables": [
@@ -924,7 +924,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 27.23030000925064,
+      "latency_ms": 20.795799999973497,
       "input_tokens": 3026,
       "output_tokens": 427,
       "gold_tables": [
@@ -955,7 +955,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 29.459700017469004,
+      "latency_ms": 26.029399999970337,
       "input_tokens": 3203,
       "output_tokens": 501,
       "gold_tables": [
@@ -987,7 +987,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 33.14220000174828,
+      "latency_ms": 11.732800000004318,
       "input_tokens": 3135,
       "output_tokens": 1154,
       "gold_tables": [
@@ -1017,7 +1017,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 21.51600000797771,
+      "latency_ms": 15.464899999983572,
       "input_tokens": 3132,
       "output_tokens": 841,
       "gold_tables": [
@@ -1048,7 +1048,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 28.52970000822097,
+      "latency_ms": 20.302499999957035,
       "input_tokens": 3172,
       "output_tokens": 478,
       "gold_tables": [
@@ -1079,7 +1079,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 26.915800001006573,
+      "latency_ms": 18.305299999951785,
       "input_tokens": 3060,
       "output_tokens": 471,
       "gold_tables": [
@@ -1110,7 +1110,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 18334.82229997753,
+      "latency_ms": 18.671199999971577,
       "input_tokens": 3038,
       "output_tokens": 1255,
       "gold_tables": [
@@ -1140,7 +1140,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 6760.201600001892,
+      "latency_ms": 29.542400000082125,
       "input_tokens": 3023,
       "output_tokens": 947,
       "gold_tables": [
@@ -1172,7 +1172,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 7109.299200004898,
+      "latency_ms": 17.166599999995924,
       "input_tokens": 3123,
       "output_tokens": 586,
       "gold_tables": [
@@ -1204,7 +1204,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 7329.380800016224,
+      "latency_ms": 19.341199999985292,
       "input_tokens": 3216,
       "output_tokens": 1150,
       "gold_tables": [
@@ -1235,7 +1235,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 51962.116499984404,
+      "latency_ms": 17.27010000001883,
       "input_tokens": 3231,
       "output_tokens": 2561,
       "gold_tables": [
@@ -1266,7 +1266,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 9444.66919999104,
+      "latency_ms": 19.50299999998606,
       "input_tokens": 3357,
       "output_tokens": 638,
       "gold_tables": [
@@ -1297,7 +1297,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 11568.927199987229,
+      "latency_ms": 24.79059999996025,
       "input_tokens": 3230,
       "output_tokens": 717,
       "gold_tables": [
@@ -1328,7 +1328,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 654.2837000160944,
+      "latency_ms": 1999.3565999999419,
       "input_tokens": 9306,
       "output_tokens": 494,
       "gold_tables": [
@@ -1361,7 +1361,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 533.4113999851979,
+      "latency_ms": 684.089599999993,
       "input_tokens": 9050,
       "output_tokens": 565,
       "gold_tables": [
@@ -1394,7 +1394,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 539.0962000237778,
+      "latency_ms": 1952.6196000000482,
       "input_tokens": 9013,
       "output_tokens": 1256,
       "gold_tables": [
@@ -1427,7 +1427,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 239.266199991107,
+      "latency_ms": 165.01820000007683,
       "input_tokens": 8828,
       "output_tokens": 232,
       "gold_tables": [
@@ -1459,7 +1459,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 251.48730000364594,
+      "latency_ms": 159.74999999991724,
       "input_tokens": 8989,
       "output_tokens": 407,
       "gold_tables": [
@@ -1491,7 +1491,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 1506.8634000199381,
+      "latency_ms": 1475.0188000000435,
       "input_tokens": 9018,
       "output_tokens": 345,
       "gold_tables": [
@@ -1524,7 +1524,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 264.40030001685955,
+      "latency_ms": 157.95070000001488,
       "input_tokens": 8868,
       "output_tokens": 499,
       "gold_tables": [
@@ -1556,7 +1556,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 10008.7790999969,
+      "latency_ms": 692.0321999999715,
       "input_tokens": 9011,
       "output_tokens": 494,
       "gold_tables": [
@@ -1589,7 +1589,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 825.505200016778,
+      "latency_ms": 475.4666000000043,
       "input_tokens": 8994,
       "output_tokens": 1803,
       "gold_tables": [
@@ -1622,7 +1622,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 350.9384999924805,
+      "latency_ms": 216.86970000007477,
       "input_tokens": 8893,
       "output_tokens": 221,
       "gold_tables": [
@@ -1655,7 +1655,7 @@
       "error_message": "query returned 0 rows",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 697.4074000027031,
+      "latency_ms": 444.9074000000337,
       "input_tokens": 8971,
       "output_tokens": 528,
       "gold_tables": [
@@ -1688,7 +1688,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 40.86569999344647,
+      "latency_ms": 51.27429999993183,
       "input_tokens": 8923,
       "output_tokens": 530,
       "gold_tables": [
@@ -1721,7 +1721,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 43.10780001105741,
+      "latency_ms": 43.001199999935125,
       "input_tokens": 8996,
       "output_tokens": 583,
       "gold_tables": [
@@ -1754,7 +1754,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 272.5567999877967,
+      "latency_ms": 158.79319999999097,
       "input_tokens": 9021,
       "output_tokens": 732,
       "gold_tables": [
@@ -1786,7 +1786,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 239.56739998538978,
+      "latency_ms": 147.75789999998779,
       "input_tokens": 8951,
       "output_tokens": 749,
       "gold_tables": [
@@ -1819,7 +1819,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 54.03729999670759,
+      "latency_ms": 44.43479999997635,
       "input_tokens": 8938,
       "output_tokens": 337,
       "gold_tables": [
@@ -1852,7 +1852,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 928.6581000196747,
+      "latency_ms": 575.5837000000383,
       "input_tokens": 9119,
       "output_tokens": 858,
       "gold_tables": [
@@ -1886,7 +1886,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 293.4654999990016,
+      "latency_ms": 195.45460000006187,
       "input_tokens": 9178,
       "output_tokens": 682,
       "gold_tables": [
@@ -1919,7 +1919,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 213194.07519997912,
+      "latency_ms": 152322.21419999996,
       "input_tokens": 9129,
       "output_tokens": 861,
       "gold_tables": [
@@ -1952,7 +1952,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 54.31430001044646,
+      "latency_ms": 104.49080000000777,
       "input_tokens": 6085,
       "output_tokens": 504,
       "gold_tables": [
@@ -1984,7 +1984,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 349.84199999598786,
+      "latency_ms": 407.27079999999205,
       "input_tokens": 6875,
       "output_tokens": 797,
       "gold_tables": [
@@ -2019,7 +2019,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 157.5345000019297,
+      "latency_ms": 541.2420999999767,
       "input_tokens": 7069,
       "output_tokens": 726,
       "gold_tables": [
@@ -2054,7 +2054,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 310.5727999936789,
+      "latency_ms": 228.6963999999898,
       "input_tokens": 6783,
       "output_tokens": 923,
       "gold_tables": [
@@ -2089,7 +2089,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 1030.3630999987945,
+      "latency_ms": 1810.503400000016,
       "input_tokens": 6804,
       "output_tokens": 913,
       "gold_tables": [
@@ -2124,7 +2124,7 @@
       "error_message": "query returned 0 rows",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 10426.405200007139,
+      "latency_ms": 847.5650000000314,
       "input_tokens": 6784,
       "output_tokens": 678,
       "gold_tables": [
@@ -2160,7 +2160,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 11337.4376000138,
+      "latency_ms": 633.3862999999837,
       "input_tokens": 6837,
       "output_tokens": 1127,
       "gold_tables": [
@@ -2196,7 +2196,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 4686.879100016085,
+      "latency_ms": 25.19300000005842,
       "input_tokens": 6101,
       "output_tokens": 445,
       "gold_tables": [
@@ -2229,7 +2229,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 17220.811100007268,
+      "latency_ms": 105.3773999999521,
       "input_tokens": 6155,
       "output_tokens": 430,
       "gold_tables": [
@@ -2262,7 +2262,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 8259.995300002629,
+      "latency_ms": 363.120600000002,
       "input_tokens": 6778,
       "output_tokens": 471,
       "gold_tables": [
@@ -2297,7 +2297,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 9637.768699991284,
+      "latency_ms": 295.16579999994974,
       "input_tokens": 7058,
       "output_tokens": 853,
       "gold_tables": [
@@ -2333,7 +2333,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 21612.745599995833,
+      "latency_ms": 383.5195999999996,
       "input_tokens": 6888,
       "output_tokens": 465,
       "gold_tables": [
@@ -2368,7 +2368,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 10292.289599979995,
+      "latency_ms": 106.58679999994547,
       "input_tokens": 6875,
       "output_tokens": 1046,
       "gold_tables": [
@@ -2403,7 +2403,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 7242.425300006289,
+      "latency_ms": 28.70810000001711,
       "input_tokens": 3987,
       "output_tokens": 473,
       "gold_tables": [
@@ -2442,7 +2442,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 39541.647400008515,
+      "latency_ms": 159.37369999994644,
       "input_tokens": 4034,
       "output_tokens": 371,
       "gold_tables": [
@@ -2481,7 +2481,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 8947.830999997677,
+      "latency_ms": 18.71830000004593,
       "input_tokens": 3955,
       "output_tokens": 850,
       "gold_tables": [
@@ -2519,7 +2519,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 14052.992799988715,
+      "latency_ms": 16.181700000061028,
       "input_tokens": 3848,
       "output_tokens": 758,
       "gold_tables": [
@@ -2556,7 +2556,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 32673.80800002138,
+      "latency_ms": 135.10200000007444,
       "input_tokens": 3887,
       "output_tokens": 974,
       "gold_tables": [
@@ -2594,7 +2594,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 15282.741799979704,
+      "latency_ms": 18.77090000004955,
       "input_tokens": 4115,
       "output_tokens": 1191,
       "gold_tables": [
@@ -2631,7 +2631,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 7548.60650000046,
+      "latency_ms": 12.327300000038122,
       "input_tokens": 3818,
       "output_tokens": 231,
       "gold_tables": [
@@ -2667,7 +2667,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 9350.197399995523,
+      "latency_ms": 12.247799999954623,
       "input_tokens": 3874,
       "output_tokens": 469,
       "gold_tables": [
@@ -2704,7 +2704,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 10100.265000015497,
+      "latency_ms": 13.431199999899945,
       "input_tokens": 3929,
       "output_tokens": 744,
       "gold_tables": [
@@ -2743,7 +2743,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 7459.0164000110235,
+      "latency_ms": 12.589699999921322,
       "input_tokens": 4068,
       "output_tokens": 717,
       "gold_tables": [
@@ -2780,7 +2780,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 20123.619699996198,
+      "latency_ms": 13.41119999995044,
       "input_tokens": 3888,
       "output_tokens": 413,
       "gold_tables": [
@@ -2817,7 +2817,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 50751.342000003206,
+      "latency_ms": 11.784899999952358,
       "input_tokens": 3884,
       "output_tokens": 430,
       "gold_tables": [
@@ -2853,7 +2853,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 4952.723900001729,
+      "latency_ms": 14.75679999998647,
       "input_tokens": 3928,
       "output_tokens": 702,
       "gold_tables": [
@@ -2890,7 +2890,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 5090.129999996861,
+      "latency_ms": 14.756900000065798,
       "input_tokens": 3863,
       "output_tokens": 276,
       "gold_tables": [
@@ -2927,7 +2927,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 7344.330099993385,
+      "latency_ms": 13.592500000072505,
       "input_tokens": 3981,
       "output_tokens": 687,
       "gold_tables": [
@@ -2957,23 +2957,34 @@
       "dialect": "sqlite",
       "question": "Calculate the average height for all superhero.",
       "gold_sql": "SELECT CAST(SUM(height_cm) AS REAL) / COUNT(id) FROM superhero",
-      "pred_sql": "",
-      "match": false,
-      "schema_recall": false,
-      "error_kind": "pipeline_exception",
-      "error_message": "'NoneType' object is not subscriptable",
+      "pred_sql": "SELECT CAST(SUM(height_cm) AS REAL) / COUNT(*) AS average_height_cm FROM superhero",
+      "match": true,
+      "schema_recall": true,
+      "error_kind": null,
+      "error_message": "",
       "repair_attempted": false,
-      "first_pass_match": false,
-      "latency_ms": 1158.5945000115316,
-      "input_tokens": 0,
-      "output_tokens": 0,
+      "first_pass_match": true,
+      "latency_ms": 16869.206100000043,
+      "input_tokens": 3767,
+      "output_tokens": 544,
       "gold_tables": [
         "superhero"
       ],
-      "retrieved_tables": [],
-      "pred_row_count": 0,
-      "gold_row_count": 0,
-      "comparison_reason": "pipeline raised: TypeError(\"'NoneType' object is not subscriptable\")"
+      "retrieved_tables": [
+        "superhero",
+        "hero_attribute",
+        "hero_power",
+        "superpower",
+        "publisher",
+        "alignment",
+        "colour",
+        "gender",
+        "race",
+        "attribute"
+      ],
+      "pred_row_count": 1,
+      "gold_row_count": 1,
+      "comparison_reason": ""
     },
     {
       "question_id": 794,
@@ -2989,7 +3000,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 37294.40019998583,
+      "latency_ms": 15.691099999912694,
       "input_tokens": 3941,
       "output_tokens": 600,
       "gold_tables": [
@@ -3027,7 +3038,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 11524.569900007918,
+      "latency_ms": 10.79149999998208,
       "input_tokens": 3920,
       "output_tokens": 1188,
       "gold_tables": [
@@ -3064,7 +3075,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 6241.041200002655,
+      "latency_ms": 15.401300000007723,
       "input_tokens": 4005,
       "output_tokens": 563,
       "gold_tables": [
@@ -3101,7 +3112,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 3940.1368999970146,
+      "latency_ms": 12.049899999965419,
       "input_tokens": 3789,
       "output_tokens": 444,
       "gold_tables": [
@@ -3137,7 +3148,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 16394.758400012506,
+      "latency_ms": 11.282100000016726,
       "input_tokens": 4174,
       "output_tokens": 961,
       "gold_tables": [
@@ -3174,7 +3185,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 3670.90470000403,
+      "latency_ms": 12.523800000053598,
       "input_tokens": 3894,
       "output_tokens": 405,
       "gold_tables": [
@@ -3206,33 +3217,33 @@
       "dialect": "sqlite",
       "question": "What is the surname of the driver with the best lap time in race number 19 in the second qualifying period?",
       "gold_sql": "SELECT T2.surname FROM qualifying AS T1 INNER JOIN drivers AS T2 ON T2.driverId = T1.driverId WHERE T1.raceId = 19 ORDER BY T1.q2 ASC LIMIT 1",
-      "pred_sql": "SELECT d.surname FROM drivers d JOIN qualifying q ON d.driverId = q.driverId WHERE q.raceId = 19 AND q.q2 IS NOT NULL AND q.q2 <> '' ORDER BY q.q2 ASC LIMIT 1",
+      "pred_sql": "SELECT d.surname FROM drivers d JOIN qualifying q ON d.driverId = q.driverId WHERE q.raceId = 19 AND q.q2 IS NOT NULL AND q.q2 != '' ORDER BY q.q2 ASC LIMIT 1",
       "match": false,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 5666.823200008366,
+      "latency_ms": 32737.78770000001,
       "input_tokens": 7077,
-      "output_tokens": 489,
+      "output_tokens": 628,
       "gold_tables": [
         "qualifying",
         "drivers"
       ],
       "retrieved_tables": [
-        "qualifying",
         "lapTimes",
         "races",
         "drivers",
         "pitStops",
-        "constructors",
+        "results",
         "circuits",
         "constructorResults",
         "constructorStandings",
         "driverStandings",
-        "results",
-        "seasons"
+        "qualifying",
+        "seasons",
+        "constructors"
       ],
       "pred_row_count": 1,
       "gold_row_count": 1,
@@ -3245,33 +3256,33 @@
       "dialect": "sqlite",
       "question": "What's Bruno Senna's Q1 result in the qualifying race No. 354?",
       "gold_sql": "SELECT T1.q1 FROM qualifying AS T1 INNER JOIN drivers AS T2 ON T2.driverId = T1.driverId WHERE T1.raceId = 354 AND T2.forename = 'Bruno' AND T2.surname = 'Senna'",
-      "pred_sql": "SELECT q1 FROM qualifying JOIN drivers ON qualifying.driverId = drivers.driverId WHERE qualifying.raceId = 354 AND drivers.forename = 'Bruno' AND drivers.surname = 'Senna'",
+      "pred_sql": "SELECT q.q1 FROM qualifying q JOIN drivers d ON q.driverId = d.driverId WHERE q.raceId = 354 AND d.forename = 'Bruno' AND d.surname = 'Senna'",
       "match": true,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 10209.04449999216,
-      "input_tokens": 7151,
-      "output_tokens": 402,
+      "latency_ms": 6665.725199999997,
+      "input_tokens": 7154,
+      "output_tokens": 497,
       "gold_tables": [
         "qualifying",
         "drivers"
       ],
       "retrieved_tables": [
-        "qualifying",
         "races",
         "results",
         "drivers",
         "constructorResults",
-        "constructors",
+        "driverStandings",
         "circuits",
         "constructorStandings",
-        "driverStandings",
         "lapTimes",
         "pitStops",
-        "seasons"
+        "qualifying",
+        "seasons",
+        "constructors"
       ],
       "pred_row_count": 1,
       "gold_row_count": 1,
@@ -3284,37 +3295,37 @@
       "dialect": "sqlite",
       "question": "What is his number of the driver who finished 0:01:54 in the Q3 of qualifying race No.903?",
       "gold_sql": "SELECT T2.number FROM qualifying AS T1 INNER JOIN drivers AS T2 ON T2.driverId = T1.driverId WHERE T1.raceId = 903 AND T1.q3 LIKE '1:54%'",
-      "pred_sql": "SELECT `number` FROM `qualifying` WHERE `raceId` = 903 AND `q3` LIKE '1:54%'",
+      "pred_sql": "SELECT d.`number` FROM `qualifying` AS q INNER JOIN `drivers` AS d ON q.`driverId` = d.`driverId` WHERE q.`raceId` = 903 AND q.`q3` LIKE '1:54%' LIMIT 1",
       "match": false,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 6387.764299986884,
-      "input_tokens": 7169,
-      "output_tokens": 633,
+      "latency_ms": 32465.219100000013,
+      "input_tokens": 7193,
+      "output_tokens": 2695,
       "gold_tables": [
         "qualifying",
         "drivers"
       ],
       "retrieved_tables": [
-        "qualifying",
         "races",
         "drivers",
         "lapTimes",
         "driverStandings",
-        "constructors",
+        "results",
         "circuits",
         "constructorResults",
         "constructorStandings",
         "pitStops",
-        "results",
-        "seasons"
+        "qualifying",
+        "seasons",
+        "constructors"
       ],
-      "pred_row_count": 2,
+      "pred_row_count": 1,
       "gold_row_count": 2,
-      "comparison_reason": "set mismatch (unique rows differ): |gold|=2, |pred|=2"
+      "comparison_reason": "set mismatch (unique rows differ): |gold|=2, |pred|=1"
     },
     {
       "question_id": 862,
@@ -3323,16 +3334,16 @@
       "dialect": "sqlite",
       "question": "For the Bahrain Grand Prix in 2007, how many drivers not finished the game?",
       "gold_sql": "SELECT COUNT(T3.driverId) FROM races AS T1 INNER JOIN results AS T2 ON T2.raceId = T1.raceId INNER JOIN drivers AS T3 ON T3.driverId = T2.driverId WHERE T1.year = 2007 AND T1.name = 'Bahrain Grand Prix' AND T2.time IS NULL",
-      "pred_sql": "SELECT COUNT(*) FROM results JOIN races ON results.raceId = races.raceId WHERE races.name = 'Bahrain Grand Prix' AND races.year = 2007 AND results.time IS NULL",
+      "pred_sql": "SELECT COUNT(*) FROM results WHERE raceId = (SELECT raceId FROM races WHERE name = 'Bahrain Grand Prix' AND year = 2007) AND time IS NULL",
       "match": true,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 5280.41549999034,
-      "input_tokens": 7124,
-      "output_tokens": 628,
+      "latency_ms": 23170.84390000002,
+      "input_tokens": 7120,
+      "output_tokens": 481,
       "gold_tables": [
         "races",
         "results",
@@ -3341,14 +3352,14 @@
       "retrieved_tables": [
         "races",
         "drivers",
-        "qualifying",
         "driverStandings",
         "results",
+        "pitStops",
         "circuits",
         "constructorResults",
         "constructorStandings",
         "lapTimes",
-        "pitStops",
+        "qualifying",
         "seasons",
         "constructors"
       ],
@@ -3370,7 +3381,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 6177.505700004986,
+      "latency_ms": 17.014399999993657,
       "input_tokens": 7301,
       "output_tokens": 578,
       "gold_tables": [
@@ -3402,24 +3413,36 @@
       "dialect": "sqlite",
       "question": "Who was the player that got the lap time of 0:01:27 in the race No. 161? Show his introduction website.",
       "gold_sql": "SELECT DISTINCT T2.forename, T2.surname, T2.url FROM lapTimes AS T1 INNER JOIN drivers AS T2 ON T2.driverId = T1.driverId WHERE T1.raceId = 161 AND T1.time LIKE '1:27%'",
-      "pred_sql": "",
+      "pred_sql": "SELECT d.url FROM lapTimes lt JOIN drivers d ON lt.driverId = d.driverId WHERE lt.raceId = 161 AND lt.time LIKE '1:27%'",
       "match": false,
-      "schema_recall": false,
-      "error_kind": "pipeline_exception",
-      "error_message": "'NoneType' object is not subscriptable",
+      "schema_recall": true,
+      "error_kind": null,
+      "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 1089.0768000099342,
-      "input_tokens": 0,
-      "output_tokens": 0,
+      "latency_ms": 12464.575300000091,
+      "input_tokens": 7058,
+      "output_tokens": 1112,
       "gold_tables": [
         "lapTimes",
         "drivers"
       ],
-      "retrieved_tables": [],
-      "pred_row_count": 0,
-      "gold_row_count": 0,
-      "comparison_reason": "pipeline raised: TypeError(\"'NoneType' object is not subscriptable\")"
+      "retrieved_tables": [
+        "lapTimes",
+        "drivers",
+        "pitStops",
+        "races",
+        "driverStandings",
+        "qualifying",
+        "results",
+        "circuits",
+        "constructorResults",
+        "constructorStandings",
+        "seasons"
+      ],
+      "pred_row_count": 82,
+      "gold_row_count": 9,
+      "comparison_reason": "set mismatch (unique rows differ): |gold|=9, |pred|=9"
     },
     {
       "question_id": 875,
@@ -3428,37 +3451,24 @@
       "dialect": "sqlite",
       "question": "Show me the season page of year when the race No. 901 took place.",
       "gold_sql": "SELECT T2.url FROM races AS T1 INNER JOIN seasons AS T2 ON T2.year = T1.year WHERE T1.raceId = 901",
-      "pred_sql": "SELECT seasons.url FROM races JOIN seasons ON races.year = seasons.year WHERE races.raceId = 901",
-      "match": true,
-      "schema_recall": true,
-      "error_kind": null,
-      "error_message": "",
+      "pred_sql": "",
+      "match": false,
+      "schema_recall": false,
+      "error_kind": "pipeline_exception",
+      "error_message": "'NoneType' object is not subscriptable",
       "repair_attempted": false,
-      "first_pass_match": true,
-      "latency_ms": 5892.315100005362,
-      "input_tokens": 7012,
-      "output_tokens": 287,
+      "first_pass_match": false,
+      "latency_ms": 771.2812999999414,
+      "input_tokens": 0,
+      "output_tokens": 0,
       "gold_tables": [
         "races",
         "seasons"
       ],
-      "retrieved_tables": [
-        "races",
-        "seasons",
-        "pitStops",
-        "qualifying",
-        "lapTimes",
-        "circuits",
-        "constructorResults",
-        "constructorStandings",
-        "driverStandings",
-        "results",
-        "drivers",
-        "constructors"
-      ],
-      "pred_row_count": 1,
-      "gold_row_count": 1,
-      "comparison_reason": ""
+      "retrieved_tables": [],
+      "pred_row_count": 0,
+      "gold_row_count": 0,
+      "comparison_reason": "pipeline raised: TypeError(\"'NoneType' object is not subscriptable\")"
     },
     {
       "question_id": 877,
@@ -3474,9 +3484,9 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 68785.79809999792,
+      "latency_ms": 5269.661599999949,
       "input_tokens": 7073,
-      "output_tokens": 463,
+      "output_tokens": 564,
       "gold_tables": [
         "drivers",
         "results"
@@ -3486,9 +3496,9 @@
         "races",
         "driverStandings",
         "results",
-        "qualifying",
         "lapTimes",
         "pitStops",
+        "qualifying",
         "circuits",
         "constructorResults",
         "constructorStandings",
@@ -3513,9 +3523,9 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 4082.5541999947745,
-      "input_tokens": 7055,
-      "output_tokens": 390,
+      "latency_ms": 32462.439700000003,
+      "input_tokens": 6823,
+      "output_tokens": 419,
       "gold_tables": [
         "drivers",
         "results"
@@ -3524,11 +3534,10 @@
         "drivers",
         "lapTimes",
         "pitStops",
-        "qualifying",
         "races",
         "driverStandings",
+        "qualifying",
         "results",
-        "constructors",
         "circuits",
         "constructorResults",
         "constructorStandings",
@@ -3552,7 +3561,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 7640.995100024156,
+      "latency_ms": 25.261200000045392,
       "input_tokens": 7197,
       "output_tokens": 738,
       "gold_tables": [
@@ -3591,7 +3600,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 8609.493800002383,
+      "latency_ms": 354.5718999999963,
       "input_tokens": 7146,
       "output_tokens": 445,
       "gold_tables": [
@@ -3624,16 +3633,16 @@
       "dialect": "sqlite",
       "question": "Calculate the percentage whereby Hamilton was not at the 1st track of the the f1 circuit since 2010.",
       "gold_sql": "SELECT CAST(COUNT(CASE WHEN T2.position <> 1 THEN T2.position END) AS REAL) * 100 / COUNT(T2.driverStandingsId) FROM races AS T1 INNER JOIN driverStandings AS T2 ON T2.raceId = T1.raceId INNER JOIN drivers AS T3 ON T3.driverId = T2.driverId WHERE T3.surname = 'Hamilton' AND T1.year >= 2010",
-      "pred_sql": "SELECT CAST(SUM(CASE WHEN res.position > 1 THEN 1 ELSE 0 END) AS REAL) * 100 / COUNT(*) AS percentage FROM results res JOIN races r ON res.raceId = r.raceId JOIN drivers d ON res.driverId = d.driverId WHERE d.surname = 'Hamilton' AND r.year >= 2010",
+      "pred_sql": "SELECT CAST(SUM(CASE WHEN r.position > 1 THEN 1 ELSE 0 END) AS REAL) * 100 / COUNT(*) AS percentage FROM results r JOIN races ra ON r.raceId = ra.raceId JOIN drivers d ON r.driverId = d.driverId WHERE d.surname = 'Hamilton' AND ra.year >= 2010",
       "match": false,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 6920.814899989637,
+      "latency_ms": 7390.173000000004,
       "input_tokens": 7203,
-      "output_tokens": 930,
+      "output_tokens": 928,
       "gold_tables": [
         "races",
         "driverStandings",
@@ -3644,12 +3653,12 @@
         "circuits",
         "drivers",
         "results",
-        "qualifying",
+        "driverStandings",
         "constructorResults",
         "constructorStandings",
-        "driverStandings",
         "lapTimes",
         "pitStops",
+        "qualifying",
         "seasons",
         "constructors"
       ],
@@ -3664,16 +3673,16 @@
       "dialect": "sqlite",
       "question": "Name the driver with the most winning. Mention his nationality and what is his maximum point scores.",
       "gold_sql": "SELECT T1.forename, T1.surname, T1.nationality, MAX(T2.points) FROM drivers AS T1 INNER JOIN driverStandings AS T2 ON T2.driverId = T1.driverId WHERE T2.wins >= 1 GROUP BY T1.forename, T1.surname, T1.nationality ORDER BY COUNT(T2.wins) DESC LIMIT 1",
-      "pred_sql": "WITH win_counts AS (\n  SELECT driverId, COUNT(*) AS win_count\n  FROM driverStandings\n  WHERE wins = 1\n  GROUP BY driverId\n),\n top_driver AS (\n  SELECT driverId\n  FROM win_counts\n  ORDER BY win_count DESC\n  LIMIT 1\n)\nSELECT d.forename, d.surname, d.nationality,\n       (SELECT MAX(points) FROM driverStandings WHERE driverId = td.driverId) AS max_points\nFROM drivers d\nJOIN top_driver td ON d.driverId = td.driverId",
-      "match": false,
+      "pred_sql": "WITH driver_stats AS (\n  SELECT\n    ds.driverId,\n    COUNT(ds.wins) AS win_count,\n    MAX(ds.points) AS max_points\n  FROM driverStandings ds\n  GROUP BY ds.driverId\n),\ntop_driver AS (\n  SELECT driverId, max_points\n  FROM driver_stats\n  ORDER BY win_count DESC\n  LIMIT 1\n)\nSELECT\n  d.forename,\n  d.surname,\n  d.nationality,\n  td.max_points\nFROM top_driver td\nJOIN drivers d ON d.driverId = td.driverId",
+      "match": true,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
       "repair_attempted": false,
-      "first_pass_match": false,
-      "latency_ms": 43301.399799995124,
-      "input_tokens": 7267,
-      "output_tokens": 1154,
+      "first_pass_match": true,
+      "latency_ms": 48278.51299999998,
+      "input_tokens": 7268,
+      "output_tokens": 1332,
       "gold_tables": [
         "drivers",
         "driverStandings"
@@ -3681,20 +3690,20 @@
       "retrieved_tables": [
         "drivers",
         "driverStandings",
-        "qualifying",
         "races",
         "results",
+        "circuits",
         "lapTimes",
         "pitStops",
-        "constructors",
-        "circuits",
+        "qualifying",
         "constructorResults",
         "constructorStandings",
-        "seasons"
+        "seasons",
+        "constructors"
       ],
       "pred_row_count": 1,
       "gold_row_count": 1,
-      "comparison_reason": "ordered row 0 mismatch: gold=('Michael', 'Schumacher', 'German', 148.0), pred=('David', 'Coulthard', 'British', 73.0)"
+      "comparison_reason": ""
     },
     {
       "question_id": 898,
@@ -3710,7 +3719,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 36342.391099984525,
+      "latency_ms": 17.60849999993752,
       "input_tokens": 7206,
       "output_tokens": 3288,
       "gold_tables": [
@@ -3741,38 +3750,25 @@
       "dialect": "sqlite",
       "question": "Which race was Alex Yoong in when he was in track number less than 20?",
       "gold_sql": "SELECT T1.name FROM races AS T1 INNER JOIN driverStandings AS T2 ON T2.raceId = T1.raceId INNER JOIN drivers AS T3 ON T3.driverId = T2.driverId WHERE T3.forename = 'Alex' AND T3.surname = 'Yoong' AND T2.position < 20",
-      "pred_sql": "WITH alex AS (SELECT driverId FROM drivers WHERE forename = 'Alex' AND surname = 'Yoong') SELECT DISTINCT races.name FROM races JOIN results ON races.raceId = results.raceId JOIN alex ON results.driverId = alex.driverId WHERE results.positionOrder < 20",
+      "pred_sql": "",
       "match": false,
-      "schema_recall": true,
-      "error_kind": null,
-      "error_message": "",
+      "schema_recall": false,
+      "error_kind": "pipeline_exception",
+      "error_message": "'NoneType' object is not subscriptable",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 55613.108999998076,
-      "input_tokens": 7154,
-      "output_tokens": 1449,
+      "latency_ms": 900.9889999999814,
+      "input_tokens": 0,
+      "output_tokens": 0,
       "gold_tables": [
         "races",
         "driverStandings",
         "drivers"
       ],
-      "retrieved_tables": [
-        "races",
-        "drivers",
-        "driverStandings",
-        "lapTimes",
-        "qualifying",
-        "circuits",
-        "constructorResults",
-        "constructorStandings",
-        "pitStops",
-        "results",
-        "seasons",
-        "constructors"
-      ],
-      "pred_row_count": 9,
-      "gold_row_count": 15,
-      "comparison_reason": "set mismatch (unique rows differ): |gold|=15, |pred|=9"
+      "retrieved_tables": [],
+      "pred_row_count": 0,
+      "gold_row_count": 0,
+      "comparison_reason": "pipeline raised: TypeError(\"'NoneType' object is not subscriptable\")"
     },
     {
       "question_id": 904,
@@ -3788,7 +3784,7 @@
       "error_message": "",
       "repair_attempted": true,
       "first_pass_match": false,
-      "latency_ms": 93992.86910000956,
+      "latency_ms": 60127.91340000001,
       "input_tokens": 11913,
       "output_tokens": 1304,
       "gold_tables": [
@@ -3827,9 +3823,9 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 12904.038299981039,
+      "latency_ms": 41171.96510000008,
       "input_tokens": 7256,
-      "output_tokens": 750,
+      "output_tokens": 561,
       "gold_tables": [
         "circuits",
         "races"
@@ -3838,13 +3834,13 @@
         "races",
         "circuits",
         "results",
-        "qualifying",
         "drivers",
+        "lapTimes",
         "constructorResults",
         "constructorStandings",
         "driverStandings",
-        "lapTimes",
         "pitStops",
+        "qualifying",
         "seasons",
         "constructors"
       ],
@@ -3866,7 +3862,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 28029.75959997275,
+      "latency_ms": 21.56009999998787,
       "input_tokens": 6844,
       "output_tokens": 368,
       "gold_tables": [
@@ -3903,9 +3899,9 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 3544.380599982105,
-      "input_tokens": 6958,
-      "output_tokens": 311,
+      "latency_ms": 3903.489000000036,
+      "input_tokens": 6726,
+      "output_tokens": 469,
       "gold_tables": [
         "drivers"
       ],
@@ -3914,14 +3910,13 @@
         "driverStandings",
         "races",
         "circuits",
-        "qualifying",
-        "lapTimes",
         "pitStops",
+        "lapTimes",
+        "qualifying",
         "results",
         "constructorResults",
         "constructorStandings",
-        "seasons",
-        "constructors"
+        "seasons"
       ],
       "pred_row_count": 1,
       "gold_row_count": 1,
@@ -3934,16 +3929,16 @@
       "dialect": "sqlite",
       "question": "In which Formula_1 race did Lewis Hamilton rank the highest?",
       "gold_sql": "SELECT name FROM races WHERE raceId IN ( SELECT raceId FROM results WHERE rank = 1 AND driverId = ( SELECT driverId FROM drivers WHERE forename = 'Lewis' AND surname = 'Hamilton' ) )",
-      "pred_sql": "WITH lewis_results AS (\n  SELECT res.raceId, res.rank\n  FROM results AS res\n  JOIN drivers AS d ON res.driverId = d.driverId\n  WHERE d.forename = 'Lewis' AND d.surname = 'Hamilton' AND res.rank IS NOT NULL\n)\nSELECT races.name\nFROM lewis_results\nJOIN races ON lewis_results.raceId = races.raceId\nORDER BY lewis_results.rank ASC\nLIMIT 1",
+      "pred_sql": "WITH lewis AS (SELECT driverId FROM drivers WHERE forename = 'Lewis' AND surname = 'Hamilton'), lewis_results AS (SELECT r.raceId, r.rank FROM results r JOIN lewis l ON r.driverId = l.driverId WHERE r.rank IS NOT NULL) SELECT races.name FROM races JOIN (SELECT raceId, rank FROM lewis_results ORDER BY rank ASC LIMIT 1) lr ON races.raceId = lr.raceId",
       "match": false,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 8085.703699995065,
-      "input_tokens": 7214,
-      "output_tokens": 865,
+      "latency_ms": 13365.771300000006,
+      "input_tokens": 7208,
+      "output_tokens": 948,
       "gold_tables": [
         "races",
         "results",
@@ -3953,14 +3948,14 @@
         "races",
         "driverStandings",
         "drivers",
-        "qualifying",
         "seasons",
+        "results",
         "circuits",
         "constructorResults",
         "constructorStandings",
         "lapTimes",
         "pitStops",
-        "results",
+        "qualifying",
         "constructors"
       ],
       "pred_row_count": 1,
@@ -3981,7 +3976,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 19712.269100011326,
+      "latency_ms": 24.017699999831166,
       "input_tokens": 6743,
       "output_tokens": 1688,
       "gold_tables": [
@@ -4018,7 +4013,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 4810.186799993971,
+      "latency_ms": 32.667499999888605,
       "input_tokens": 7013,
       "output_tokens": 442,
       "gold_tables": [
@@ -4050,16 +4045,16 @@
       "dialect": "sqlite",
       "question": "What is the fastest lap number of the champion in 2009?",
       "gold_sql": "SELECT T1.fastestLap FROM results AS T1 INNER JOIN races AS T2 on T1.raceId = T2.raceId WHERE T2.year = 2009 AND T1.time LIKE '_:%:__.___'",
-      "pred_sql": "WITH champion AS (\n  SELECT driverId\n  FROM driverStandings\n  WHERE raceId = (SELECT MAX(raceId) FROM races WHERE year = 2009)\n    AND position = 1\n),\nchamp_results AS (\n  SELECT r.fastestLap,\n         (CAST(substr(r.fastestLapTime, 1, instr(r.fastestLapTime, ':')-1) AS INTEGER) * 60000 +\n          CAST(substr(r.fastestLapTime, instr(r.fastestLapTime, ':')+1, instr(r.fastestLapTime, '.') - instr(r.fastestLapTime, ':') -1) AS INTEGER) * 1000 +\n          CAST(substr(r.fastestLapTime, instr(r.fastestLapTime, '.')+1) AS INTEGER)) AS total_ms\n  FROM results r\n  JOIN races ra ON r.raceId = ra.raceId\n  JOIN champion c ON r.driverId = c.driverId\n  WHERE ra.year = 2009\n    AND r.fastestLap IS NOT NULL\n    AND r.fastestLapTime IS NOT NULL\n)\nSELECT fastestLap\nFROM champ_results\nORDER BY total_ms ASC\nLIMIT 1",
+      "pred_sql": "WITH last_race AS (\n  SELECT `raceId` FROM `races` WHERE `year` = 2009 ORDER BY `date` DESC LIMIT 1\n),\nchampion AS (\n  SELECT `driverId` FROM `driverStandings` WHERE `raceId` = (SELECT `raceId` FROM last_race) AND `position` = 1 LIMIT 1\n)\nSELECT `lap` FROM `lapTimes`\nJOIN `races` ON `lapTimes`.`raceId` = `races`.`raceId`\nWHERE `races`.`year` = 2009\n  AND `lapTimes`.`driverId` = (SELECT `driverId` FROM champion)\nORDER BY `lapTimes`.`milliseconds` ASC\nLIMIT 1",
       "match": false,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 52248.43560002046,
-      "input_tokens": 7438,
-      "output_tokens": 7496,
+      "latency_ms": 56023.49499999991,
+      "input_tokens": 7310,
+      "output_tokens": 2075,
       "gold_tables": [
         "results",
         "races"
@@ -4068,14 +4063,14 @@
         "lapTimes",
         "races",
         "pitStops",
-        "qualifying",
         "results",
+        "seasons",
         "drivers",
         "circuits",
         "constructorResults",
         "constructorStandings",
         "driverStandings",
-        "seasons",
+        "qualifying",
         "constructors"
       ],
       "pred_row_count": 1,
@@ -4096,7 +4091,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 8983.14689999097,
+      "latency_ms": 15.446300000121482,
       "input_tokens": 7109,
       "output_tokens": 561,
       "gold_tables": [
@@ -4127,30 +4122,29 @@
       "dialect": "sqlite",
       "question": "On what year did the youngest driver had his first qualifying race? Also state the name, date and time of the race.",
       "gold_sql": "SELECT T3.year, T3.name, T3.date, T3.time FROM qualifying AS T1 INNER JOIN drivers AS T2 on T1.driverId = T2.driverId INNER JOIN races AS T3 on T1.raceId = T3.raceId WHERE T1.driverId = ( SELECT driverId FROM drivers ORDER BY dob DESC LIMIT 1 ) ORDER BY T3.date ASC LIMIT 1",
-      "pred_sql": "WITH youngest_driver AS (\n  SELECT d.driverId\n  FROM qualifying q\n  JOIN drivers d ON q.driverId = d.driverId\n  WHERE d.dob IS NOT NULL\n  GROUP BY d.driverId, d.dob\n  ORDER BY d.dob DESC\n  LIMIT 1\n),\nfirst_race AS (\n  SELECT r.year, r.name, r.date, r.time\n  FROM qualifying q\n  JOIN races r ON q.raceId = r.raceId\n  WHERE q.driverId = (SELECT driverId FROM youngest_driver)\n  ORDER BY r.date ASC\n  LIMIT 1\n)\nSELECT year, name, date, time FROM first_race",
+      "pred_sql": "SELECT r.year, r.name, r.date, r.time FROM races r JOIN qualifying q ON r.raceId = q.raceId WHERE q.driverId = (SELECT d.driverId FROM drivers d JOIN qualifying q2 ON d.driverId = q2.driverId WHERE d.dob IS NOT NULL ORDER BY d.dob DESC LIMIT 1) ORDER BY date(REPLACE(r.date, '/', '-')) ASC LIMIT 1",
       "match": true,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 11593.889099982334,
-      "input_tokens": 7295,
-      "output_tokens": 1260,
+      "latency_ms": 11146.040999999968,
+      "input_tokens": 7009,
+      "output_tokens": 1032,
       "gold_tables": [
         "qualifying",
         "drivers",
         "races"
       ],
       "retrieved_tables": [
-        "qualifying",
         "drivers",
         "races",
         "seasons",
         "driverStandings",
-        "constructors",
-        "lapTimes",
         "pitStops",
+        "lapTimes",
+        "qualifying",
         "results",
         "circuits",
         "constructorResults",
@@ -4174,7 +4168,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 24830.813299980946,
+      "latency_ms": 32.10740000008627,
       "input_tokens": 7283,
       "output_tokens": 767,
       "gold_tables": [
@@ -4205,16 +4199,16 @@
       "dialect": "sqlite",
       "question": "Who is the champion of the Canadian Grand Prix in 2008? Indicate his finish time.",
       "gold_sql": "SELECT T1.time FROM results AS T1 INNER JOIN races AS T2 ON T1.raceId = T2.raceId WHERE T2.name = 'Canadian Grand Prix' AND T2.year = 2008 AND T1.time LIKE '_:%:__.___'",
-      "pred_sql": "WITH race AS (SELECT raceId FROM races WHERE year = 2008 AND name = 'Canadian Grand Prix') SELECT d.forename, d.surname, res.time AS finish_time FROM results res JOIN race r ON res.raceId = r.raceId JOIN drivers d ON res.driverId = d.driverId WHERE res.positionOrder = 1",
+      "pred_sql": "WITH race AS (SELECT raceId FROM races WHERE name = 'Canadian Grand Prix' AND year = 2008), winner AS (SELECT r.driverId, r.time FROM results r JOIN race ra ON r.raceId = ra.raceId WHERE r.positionOrder = 1) SELECT d.forename, d.surname, w.time AS finish_time FROM winner w JOIN drivers d ON w.driverId = d.driverId",
       "match": false,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 14445.706499973312,
-      "input_tokens": 7124,
-      "output_tokens": 2065,
+      "latency_ms": 94968.02500000013,
+      "input_tokens": 7139,
+      "output_tokens": 1714,
       "gold_tables": [
         "results",
         "races"
@@ -4223,12 +4217,12 @@
         "races",
         "lapTimes",
         "pitStops",
-        "qualifying",
         "results",
+        "driverStandings",
         "circuits",
         "constructorResults",
         "constructorStandings",
-        "driverStandings",
+        "qualifying",
         "seasons",
         "drivers",
         "constructors"
@@ -4244,16 +4238,16 @@
       "dialect": "sqlite",
       "question": "What is the constructor reference name of the champion in the 2009 Singapore Grand Prix? Please give its website.",
       "gold_sql": "SELECT T3.constructorRef, T3.url FROM results AS T1 INNER JOIN races AS T2 on T1.raceId = T2.raceId INNER JOIN constructors AS T3 on T1.constructorId = T3.constructorId WHERE T2.name = 'Singapore Grand Prix' AND T2.year = 2009 AND T1.time LIKE '_:%:__.___'",
-      "pred_sql": "WITH race AS (\n  SELECT raceId FROM races WHERE year = 2009 AND name = 'Singapore Grand Prix'\n),\nwinner AS (\n  SELECT constructorId\n  FROM results\n  WHERE raceId = (SELECT raceId FROM race)\n    AND time = (SELECT MAX(time) FROM results WHERE raceId = (SELECT raceId FROM race))\n)\nSELECT c.constructorRef, c.url\nFROM constructors c\nJOIN winner w ON c.constructorId = w.constructorId",
+      "pred_sql": "WITH target_race AS (\n  SELECT raceId FROM races WHERE year = 2009 AND name = 'Singapore Grand Prix'\n),\nchampion_result AS (\n  SELECT constructorId FROM results\n  WHERE raceId = (SELECT raceId FROM target_race)\n    AND time IS NOT NULL\n  ORDER BY time DESC\n  LIMIT 1\n)\nSELECT c.constructorRef, c.url\nFROM constructors c\nJOIN champion_result cr ON c.constructorId = cr.constructorId",
       "match": true,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 111766.95190000464,
-      "input_tokens": 7210,
-      "output_tokens": 2028,
+      "latency_ms": 28129.42360000011,
+      "input_tokens": 7211,
+      "output_tokens": 1741,
       "gold_tables": [
         "results",
         "races",
@@ -4264,14 +4258,14 @@
         "constructorStandings",
         "constructorResults",
         "races",
+        "drivers",
         "qualifying",
         "results",
         "circuits",
         "driverStandings",
         "lapTimes",
         "pitStops",
-        "seasons",
-        "drivers"
+        "seasons"
       ],
       "pred_row_count": 1,
       "gold_row_count": 1,
@@ -4291,7 +4285,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 10018.207399989478,
+      "latency_ms": 1203.4075999999914,
       "input_tokens": 12715,
       "output_tokens": 975,
       "gold_tables": [
@@ -4326,7 +4320,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 13313.896100007696,
+      "latency_ms": 22.73760000002767,
       "input_tokens": 12433,
       "output_tokens": 1037,
       "gold_tables": [
@@ -4360,7 +4354,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 5987.233499996364,
+      "latency_ms": 149.34739999989688,
       "input_tokens": 12515,
       "output_tokens": 759,
       "gold_tables": [
@@ -4394,7 +4388,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 4260.025999974459,
+      "latency_ms": 27.243400000088513,
       "input_tokens": 12386,
       "output_tokens": 459,
       "gold_tables": [
@@ -4426,7 +4420,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 23408.204200008186,
+      "latency_ms": 28.348699999924065,
       "input_tokens": 12821,
       "output_tokens": 1963,
       "gold_tables": [
@@ -4459,7 +4453,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 24866.646699985722,
+      "latency_ms": 467.52249999985906,
       "input_tokens": 12631,
       "output_tokens": 1776,
       "gold_tables": [
@@ -4492,7 +4486,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 8491.721099999268,
+      "latency_ms": 232.27620000011484,
       "input_tokens": 12372,
       "output_tokens": 630,
       "gold_tables": [
@@ -4526,7 +4520,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 8624.85170000582,
+      "latency_ms": 148.99100000002363,
       "input_tokens": 12838,
       "output_tokens": 726,
       "gold_tables": [
@@ -4560,7 +4554,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 6541.989199991804,
+      "latency_ms": 135.84119999995892,
       "input_tokens": 12518,
       "output_tokens": 599,
       "gold_tables": [
@@ -4594,7 +4588,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 8171.384899993427,
+      "latency_ms": 27.446900000086316,
       "input_tokens": 12206,
       "output_tokens": 561,
       "gold_tables": [
@@ -4626,7 +4620,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 4667.100499995286,
+      "latency_ms": 188.82179999991422,
       "input_tokens": 12478,
       "output_tokens": 424,
       "gold_tables": [
@@ -4660,7 +4654,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 17168.627900013234,
+      "latency_ms": 389.7033000000647,
       "input_tokens": 12668,
       "output_tokens": 719,
       "gold_tables": [
@@ -4694,7 +4688,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 7536.914700001944,
+      "latency_ms": 185.99749999998494,
       "input_tokens": 12434,
       "output_tokens": 739,
       "gold_tables": [
@@ -4728,7 +4722,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 5336.151100025745,
+      "latency_ms": 18.2244999998602,
       "input_tokens": 12481,
       "output_tokens": 548,
       "gold_tables": [
@@ -4761,7 +4755,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 4388.766299991403,
+      "latency_ms": 32.040700000152356,
       "input_tokens": 12290,
       "output_tokens": 388,
       "gold_tables": [
@@ -4794,7 +4788,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 15891.787700005807,
+      "latency_ms": 325.2813999999944,
       "input_tokens": 12181,
       "output_tokens": 500,
       "gold_tables": [
@@ -4827,7 +4821,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 26648.998099990422,
+      "latency_ms": 17.081899999993766,
       "input_tokens": 12582,
       "output_tokens": 355,
       "gold_tables": [
@@ -4861,7 +4855,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 9514.110300020548,
+      "latency_ms": 19.31290000015906,
       "input_tokens": 12255,
       "output_tokens": 862,
       "gold_tables": [
@@ -4893,7 +4887,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 5459.031899983529,
+      "latency_ms": 25.80509999984315,
       "input_tokens": 12430,
       "output_tokens": 564,
       "gold_tables": [
@@ -4926,7 +4920,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 8621.243300003698,
+      "latency_ms": 155.66880000005767,
       "input_tokens": 12474,
       "output_tokens": 746,
       "gold_tables": [
@@ -4960,7 +4954,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 5908.561300020665,
+      "latency_ms": 233.07939999995142,
       "input_tokens": 12384,
       "output_tokens": 611,
       "gold_tables": [
@@ -4994,7 +4988,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 4140.9581000043545,
+      "latency_ms": 253.3802000000378,
       "input_tokens": 12196,
       "output_tokens": 345,
       "gold_tables": [
@@ -5027,7 +5021,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 8294.423699990148,
+      "latency_ms": 24.83910000000833,
       "input_tokens": 5380,
       "output_tokens": 763,
       "gold_tables": [
@@ -5056,7 +5050,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 22654.522600001656,
+      "latency_ms": 15.80910000006952,
       "input_tokens": 5382,
       "output_tokens": 782,
       "gold_tables": [
@@ -5086,7 +5080,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 46883.79590000841,
+      "latency_ms": 11.692799999991621,
       "input_tokens": 5239,
       "output_tokens": 1913,
       "gold_tables": [
@@ -5116,7 +5110,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 8568.319699988933,
+      "latency_ms": 22.07900000007612,
       "input_tokens": 5574,
       "output_tokens": 1029,
       "gold_tables": [
@@ -5146,7 +5140,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 9056.667800003197,
+      "latency_ms": 26.931099999956132,
       "input_tokens": 5900,
       "output_tokens": 1092,
       "gold_tables": [
@@ -5176,7 +5170,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 5589.899399987189,
+      "latency_ms": 16.369799999893075,
       "input_tokens": 5097,
       "output_tokens": 590,
       "gold_tables": [
@@ -5205,7 +5199,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 20780.15140001662,
+      "latency_ms": 17.031099999940125,
       "input_tokens": 5424,
       "output_tokens": 1237,
       "gold_tables": [
@@ -5235,7 +5229,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 8265.295899997,
+      "latency_ms": 26.309600000104183,
       "input_tokens": 5434,
       "output_tokens": 617,
       "gold_tables": [
@@ -5265,7 +5259,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 5189.694400003646,
+      "latency_ms": 42.82039999998233,
       "input_tokens": 5359,
       "output_tokens": 454,
       "gold_tables": [
@@ -5295,7 +5289,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 12313.06190000032,
+      "latency_ms": 28.541799999857176,
       "input_tokens": 5520,
       "output_tokens": 1215,
       "gold_tables": [
@@ -5325,7 +5319,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 31458.65980000235,
+      "latency_ms": 62.53870000000461,
       "input_tokens": 5597,
       "output_tokens": 659,
       "gold_tables": [
@@ -5355,7 +5349,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 5878.624900011346,
+      "latency_ms": 27.415199999950346,
       "input_tokens": 5527,
       "output_tokens": 745,
       "gold_tables": [
@@ -5385,7 +5379,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 30623.38999999338,
+      "latency_ms": 33.266799999864816,
       "input_tokens": 5430,
       "output_tokens": 724,
       "gold_tables": [
@@ -5415,7 +5409,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 8665.821200003847,
+      "latency_ms": 26.74420000016653,
       "input_tokens": 5182,
       "output_tokens": 492,
       "gold_tables": [
@@ -5446,7 +5440,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 9807.714200025657,
+      "latency_ms": 17.41689999994378,
       "input_tokens": 5265,
       "output_tokens": 1235,
       "gold_tables": [
@@ -5477,7 +5471,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 21669.523100019433,
+      "latency_ms": 38.228399999979956,
       "input_tokens": 5418,
       "output_tokens": 667,
       "gold_tables": [
@@ -5507,7 +5501,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 20120.84779998986,
+      "latency_ms": 30.465999999933047,
       "input_tokens": 5343,
       "output_tokens": 1582,
       "gold_tables": [
@@ -5537,7 +5531,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 15003.02480001119,
+      "latency_ms": 23.485800000116797,
       "input_tokens": 5402,
       "output_tokens": 1254,
       "gold_tables": [
@@ -5567,7 +5561,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 12128.320299991174,
+      "latency_ms": 23.11650000001464,
       "input_tokens": 5414,
       "output_tokens": 879,
       "gold_tables": [
@@ -5597,7 +5591,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 6382.041600008961,
+      "latency_ms": 22.285599999804617,
       "input_tokens": 5385,
       "output_tokens": 804,
       "gold_tables": [
@@ -5627,7 +5621,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 7298.479599994607,
+      "latency_ms": 23.075500000004467,
       "input_tokens": 5416,
       "output_tokens": 787,
       "gold_tables": [
@@ -5658,7 +5652,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 13955.487500003073,
+      "latency_ms": 19.646699999839257,
       "input_tokens": 5222,
       "output_tokens": 397,
       "gold_tables": [
@@ -5693,7 +5687,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 7741.768999985652,
+      "latency_ms": 22.513300000127856,
       "input_tokens": 5486,
       "output_tokens": 719,
       "gold_tables": [
@@ -5728,7 +5722,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 7868.690300005255,
+      "latency_ms": 15.748300000041127,
       "input_tokens": 5294,
       "output_tokens": 422,
       "gold_tables": [
@@ -5762,7 +5756,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 3191.1932000075467,
+      "latency_ms": 13.366799999857903,
       "input_tokens": 5249,
       "output_tokens": 297,
       "gold_tables": [
@@ -5797,7 +5791,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 4527.020100009395,
+      "latency_ms": 14.949799999840252,
       "input_tokens": 5150,
       "output_tokens": 472,
       "gold_tables": [
@@ -5832,7 +5826,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 5311.831600003643,
+      "latency_ms": 17.203599999902508,
       "input_tokens": 5278,
       "output_tokens": 642,
       "gold_tables": [
@@ -5867,7 +5861,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 25876.737100013997,
+      "latency_ms": 11.05930000016997,
       "input_tokens": 4696,
       "output_tokens": 593,
       "gold_tables": [
@@ -5899,7 +5893,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 11838.846600003308,
+      "latency_ms": 14.07340000014301,
       "input_tokens": 4928,
       "output_tokens": 420,
       "gold_tables": [
@@ -5932,7 +5926,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 29127.84499998088,
+      "latency_ms": 12.49710000001869,
       "input_tokens": 5307,
       "output_tokens": 2779,
       "gold_tables": [
@@ -5969,7 +5963,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 13242.727400007425,
+      "latency_ms": 14.6389999999883,
       "input_tokens": 4831,
       "output_tokens": 787,
       "gold_tables": [
@@ -6003,7 +5997,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 14980.600300012156,
+      "latency_ms": 19.224200000053315,
       "input_tokens": 5308,
       "output_tokens": 1506,
       "gold_tables": [
@@ -6039,7 +6033,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 8197.566899994854,
+      "latency_ms": 15.232200000127705,
       "input_tokens": 5288,
       "output_tokens": 705,
       "gold_tables": [
@@ -6074,7 +6068,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 26588.208700006362,
+      "latency_ms": 13.782799999944473,
       "input_tokens": 5321,
       "output_tokens": 1193,
       "gold_tables": [
@@ -6110,7 +6104,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 8456.468499993207,
+      "latency_ms": 15.536299999894254,
       "input_tokens": 5215,
       "output_tokens": 418,
       "gold_tables": [
@@ -6144,7 +6138,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 6959.024399984628,
+      "latency_ms": 17.006499999979496,
       "input_tokens": 5254,
       "output_tokens": 543,
       "gold_tables": [
@@ -6179,7 +6173,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 10220.06349998992,
+      "latency_ms": 16.59079999990354,
       "input_tokens": 5267,
       "output_tokens": 414,
       "gold_tables": [
@@ -6214,7 +6208,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 4560.650000028545,
+      "latency_ms": 16.555400000015652,
       "input_tokens": 5145,
       "output_tokens": 379,
       "gold_tables": [
@@ -6249,7 +6243,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 6453.277600026922,
+      "latency_ms": 25.89510000007067,
       "input_tokens": 5338,
       "output_tokens": 778,
       "gold_tables": [
@@ -6286,7 +6280,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 8142.437600006815,
+      "latency_ms": 619.5924000001014,
       "input_tokens": 3575,
       "output_tokens": 858,
       "gold_tables": [
@@ -6318,7 +6312,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 7179.812599992147,
+      "latency_ms": 439.68070000005355,
       "input_tokens": 3680,
       "output_tokens": 599,
       "gold_tables": [
@@ -6350,7 +6344,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 8411.342099978356,
+      "latency_ms": 283.5675999999694,
       "input_tokens": 3657,
       "output_tokens": 783,
       "gold_tables": [
@@ -6382,7 +6376,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 6471.796199999517,
+      "latency_ms": 614.5935999998073,
       "input_tokens": 3429,
       "output_tokens": 814,
       "gold_tables": [
@@ -6414,7 +6408,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 6156.030499987537,
+      "latency_ms": 481.58649999982117,
       "input_tokens": 3653,
       "output_tokens": 629,
       "gold_tables": [
@@ -6446,7 +6440,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 10715.583200013498,
+      "latency_ms": 20.826199999874007,
       "input_tokens": 3658,
       "output_tokens": 925,
       "gold_tables": [
@@ -6477,7 +6471,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 8663.753600005293,
+      "latency_ms": 19.816400000081558,
       "input_tokens": 3532,
       "output_tokens": 615,
       "gold_tables": [
@@ -6508,7 +6502,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 14615.755999984685,
+      "latency_ms": 44.81579999992391,
       "input_tokens": 3607,
       "output_tokens": 798,
       "gold_tables": [
@@ -6539,7 +6533,7 @@
       "error_message": "query returned 0 rows",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 39692.75149999885,
+      "latency_ms": 17.485099999930753,
       "input_tokens": 3537,
       "output_tokens": 591,
       "gold_tables": [
@@ -6572,7 +6566,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 23036.213499988662,
+      "latency_ms": 13.031400000045323,
       "input_tokens": 3752,
       "output_tokens": 686,
       "gold_tables": [
@@ -6605,7 +6599,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 6253.581400000257,
+      "latency_ms": 15.325299999858544,
       "input_tokens": 3508,
       "output_tokens": 611,
       "gold_tables": [
@@ -6638,7 +6632,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 27030.666400009068,
+      "latency_ms": 10.662899999942965,
       "input_tokens": 3556,
       "output_tokens": 1358,
       "gold_tables": [
@@ -6670,7 +6664,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 51847.97130001243,
+      "latency_ms": 9.845099999893137,
       "input_tokens": 3720,
       "output_tokens": 740,
       "gold_tables": [
@@ -6702,7 +6696,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 9056.341699993936,
+      "latency_ms": 15.86049999991701,
       "input_tokens": 3427,
       "output_tokens": 1171,
       "gold_tables": [
@@ -6734,7 +6728,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 15318.089200009126,
+      "latency_ms": 79.66299999998228,
       "input_tokens": 3834,
       "output_tokens": 1066,
       "gold_tables": [
@@ -6767,7 +6761,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 11428.393400012283,
+      "latency_ms": 20.479699999896184,
       "input_tokens": 3438,
       "output_tokens": 821,
       "gold_tables": [
@@ -6798,7 +6792,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 15488.032699999167,
+      "latency_ms": 66.54170000001614,
       "input_tokens": 3493,
       "output_tokens": 2215,
       "gold_tables": [
@@ -6831,7 +6825,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 13229.22809998272,
+      "latency_ms": 70.47330000000329,
       "input_tokens": 3609,
       "output_tokens": 1428,
       "gold_tables": [
