@@ -86,6 +86,8 @@ class Settings(BaseSettings):
     """Must be > 1. Grok spends its first turn announcing what it is about to do;
     `--max-turns 1` returns that preamble instead of the SQL (47.0% / 31% invalid
     on the first n=200 run). See llm/providers/grok_cli.py."""
+    grok_cli_effort: str | None = None
+    """`--reasoning-effort`. None leaves the CLI on its own default."""
 
     # Claude Code CLI — subscription path (plan limits, no key). `--system-prompt`
     # replaces the harness prompt, so the model answers as a completion, not an
@@ -96,6 +98,10 @@ class Settings(BaseSettings):
     claude_cli_max_turns: int = 4
     """Must be > 1: a denied tool call eats a turn and the CLI then answers
     `error_max_turns` instead of the SQL."""
+    claude_cli_effort: str | None = None
+    """`--effort` (low|medium|high|xhigh|max). None leaves the CLI on its own
+    default. The spawned process does NOT inherit the effort of the session that
+    launched it, so this is the only way to run a max-effort ablation."""
 
     # Perplexity browser path via local GraceKelly (D:\GraceKelly). Free
     # because it rides the user's Perplexity Pro subscription via Playwright.

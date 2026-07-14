@@ -16,6 +16,7 @@ from nl_sql.llm.providers.base import (
     EmbedResponse,
     GenerateRequest,
     GenerateResponse,
+    LLMProvider,
 )
 
 
@@ -199,3 +200,48 @@ def test_caching_embedder_persists_across_instances(cache_dir: Path) -> None:
     cached2.embed(EmbedRequest(texts=["persist"]))
     assert inner2.batches == []
     cached2.close()
+
+
+class _EffortLLM(_CountingLLM):
+    """A provider that carries a reasoning-effort dial, like the two agent CLIs."""
+
+    def __init__(self, effort: str | None) -> None:
+        super().__init__()
+        self.effort = effort
+
+
+def _generate_once(inner: LLMProvider, cache_dir: Path) -> None:
+    """One cached call, cache closed afterwards — an unclosed diskcache leaves a live
+    sqlite handle and Windows raises it as an unraisable ResourceWarning in teardown."""
+    cached = CachingLLMProvider(inner, cache_dir=cache_dir)
+    cached.generate(GenerateRequest(prompt="write SQL"))
+    cached.close()
+
+
+def test_caching_llm_key_separates_efforts(cache_dir: Path) -> None:
+    """Same model at max effort is a different generator than at its default. If the
+    two shared a key, an effort ablation would replay the earlier run's answers and
+    'reproduce' exactly the number it was meant to test."""
+    default = _EffortLLM(effort=None)
+    _generate_once(default, cache_dir)
+    assert len(default.calls) == 1
+
+    maxed = _EffortLLM(effort="max")
+    _generate_once(maxed, cache_dir)
+    assert len(maxed.calls) == 1, "max effort must not be served the default's cached answer"
+
+    again = _EffortLLM(effort="max")
+    _generate_once(again, cache_dir)
+    assert again.calls == [], "a second max-effort call should hit the cache"
+
+
+def test_caching_llm_key_unchanged_for_providers_without_effort(cache_dir: Path) -> None:
+    """Effort joins the key only when set, so every entry cached before efforts
+    existed (all of codestral, all of Sonnet) keeps its key instead of being orphaned."""
+    plain = _CountingLLM()  # no `effort` attribute at all
+    _generate_once(plain, cache_dir)
+
+    explicit_none = _EffortLLM(effort=None)  # has the attribute, set to None
+    _generate_once(explicit_none, cache_dir)
+
+    assert explicit_none.calls == [], "effort=None must land on the same key as no effort"

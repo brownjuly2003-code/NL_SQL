@@ -62,12 +62,28 @@ _MODEL_FIELD: dict[str, str] = {
     "claude_cli": "claude_cli_model",
 }
 
+# Only the two agent-CLI providers expose a reasoning-effort dial.
+_EFFORT_FIELD: dict[str, str] = {
+    "grok_cli": "grok_cli_effort",
+    "claude_cli": "claude_cli_effort",
+}
+
 
 def _build_provider_with_model(
-    name: str, settings: Settings, model_override: str | None
+    name: str,
+    settings: Settings,
+    model_override: str | None,
+    effort_override: str | None = None,
 ) -> LLMProvider:
     if model_override:
         settings = settings.model_copy(update={_MODEL_FIELD[name]: model_override})
+    if effort_override:
+        if name not in _EFFORT_FIELD:
+            raise SystemExit(
+                f"--sql-effort is not supported by provider {name!r} "
+                f"(only: {', '.join(sorted(_EFFORT_FIELD))})"
+            )
+        settings = settings.model_copy(update={_EFFORT_FIELD[name]: effort_override})
     return build_provider(name, settings=settings)
 
 
@@ -337,6 +353,17 @@ def main(argv: list[str] | None = None) -> int:
         ),
     )
     parser.add_argument(
+        "--sql-effort",
+        default=None,
+        choices=["low", "medium", "high", "xhigh", "max"],
+        help=(
+            "reasoning effort for the generation model. Only grok_cli and "
+            "claude_cli support it; the spawned CLI does not inherit the effort "
+            "of the calling session, so an effort ablation needs this flag. "
+            "Cached separately from the same model's default-effort answers."
+        ),
+    )
+    parser.add_argument(
         "--explain-provider",
         default=None,
         help=(
@@ -424,8 +451,14 @@ def main(argv: list[str] | None = None) -> int:
         print("[error] MISTRAL_API_KEY not set in .env", file=sys.stderr)
         return 2
 
-    raw_sql_provider = _build_provider_with_model(args.provider, settings, args.sql_model)
-    print(f"[info] provider: {args.provider} (model={raw_sql_provider.model})")
+    raw_sql_provider = _build_provider_with_model(
+        args.provider, settings, args.sql_model, args.sql_effort
+    )
+    _effort = getattr(raw_sql_provider, "effort", None)
+    print(
+        f"[info] provider: {args.provider} (model={raw_sql_provider.model}"
+        f"{f', effort={_effort}' if _effort else ''})"
+    )
 
     def _wrap_cache(provider: LLMProvider) -> LLMProvider:
         if args.no_cache:

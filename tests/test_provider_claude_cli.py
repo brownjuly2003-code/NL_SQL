@@ -138,3 +138,18 @@ def test_claude_cli_gives_up_after_repeated_spawn_failures(
 
     with pytest.raises(ProviderError, match="no usable output"):
         ClaudeCliProvider().generate(GenerateRequest(prompt="q"))
+
+
+def test_claude_cli_passes_effort_only_when_set(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The spawned CLI does not inherit the effort of the session that launched it,
+    so a max-effort ablation happens only if `--effort` is on the command line. Without
+    this the run would quietly measure the default and get reported as max."""
+    calls = _stub_run(monkeypatch, _ENVELOPE)
+
+    ClaudeCliProvider().generate(GenerateRequest(prompt="q"))
+    assert "--effort" not in calls[0]["argv"]
+
+    ClaudeCliProvider(model="claude-opus-4-8", effort="max").generate(GenerateRequest(prompt="q"))
+    argv = calls[1]["argv"]
+    assert argv[argv.index("--effort") + 1] == "max"
+    assert argv[argv.index("--model") + 1] == "claude-opus-4-8"

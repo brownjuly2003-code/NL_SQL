@@ -58,8 +58,12 @@ class ClaudeCliProvider:
         model: str = "claude-sonnet-5",
         timeout_seconds: float = 600.0,
         max_turns: int = 4,
+        effort: str | None = None,
     ) -> None:
         self.model = model
+        # Read by the cache wrapper: two runs of the same model at different
+        # efforts are different experiments and must not share a cache entry.
+        self.effort = effort
         self._cli_path = cli_path
         self._timeout = timeout_seconds
         self._max_turns = max_turns
@@ -77,6 +81,10 @@ class ClaudeCliProvider:
             "--disallowedTools",
             _DISALLOWED_TOOLS,
         ]
+        if self.effort:
+            # The spawned CLI does not inherit the caller's session effort, so an
+            # effort ablation only happens if it is passed explicitly here.
+            argv += ["--effort", self.effort]
         if req.system:
             # Replace, not append: this is what strips the agent persona.
             argv += ["--system-prompt", req.system]

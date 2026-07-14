@@ -61,8 +61,12 @@ class GrokCliProvider:
         model: str = "grok-composer-2.5-fast",
         timeout_seconds: float = 600.0,
         max_turns: int = 4,
+        effort: str | None = None,
     ) -> None:
         self.model = model
+        # Read by the cache wrapper: same model at a different effort is a
+        # different experiment and must not replay the other one's answers.
+        self.effort = effort
         self._cli_path = cli_path
         self._timeout = timeout_seconds
         self._max_turns = max_turns
@@ -72,6 +76,11 @@ class GrokCliProvider:
             self._cli_path,
             "--prompt-file",
             str(prompt_file),
+            # Until 2026-07-14 this was missing, so `model` only ever labelled the
+            # report while the CLI silently served its own default. Asking for a
+            # model and not passing it is how you "measure" one and run another.
+            "--model",
+            self.model,
             "--output-format",
             "json",
             "--verbatim",
@@ -86,6 +95,8 @@ class GrokCliProvider:
             "--permission-mode",
             "dontAsk",
         ]
+        if self.effort:
+            argv += ["--reasoning-effort", self.effort]
         if req.system:
             argv += ["--system-prompt-override", req.system]
         return argv

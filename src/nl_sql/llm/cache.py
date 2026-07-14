@@ -74,17 +74,24 @@ class CachingLLMProvider:
         self._cache = _open_cache(Path(cache_dir) / "gen", size_limit_gb=size_limit_gb)
 
     def generate(self, req: GenerateRequest) -> GenerateResponse:
-        key = _hash_key(
-            [
-                "gen.v1",
-                self._inner.name,
-                self._inner.model,
-                req.system or "",
-                req.prompt,
-                req.temperature,
-                req.max_tokens,
-            ]
-        )
+        parts: list[Any] = [
+            "gen.v1",
+            self._inner.name,
+            self._inner.model,
+            req.system or "",
+            req.prompt,
+            req.temperature,
+            req.max_tokens,
+        ]
+        # Reasoning effort is part of the experiment, not of the request: the same
+        # model at max effort is a different generator than at its default, and the
+        # two must not share an entry (an effort ablation would replay itself and
+        # "reproduce" the number it was supposed to test). Appended only when set,
+        # so every entry cached before efforts existed keeps its key.
+        effort = getattr(self._inner, "effort", None)
+        if effort:
+            parts.append(f"effort={effort}")
+        key = _hash_key(parts)
         hit = self._cache.get(key)
         if hit is not None:
             data = dict(hit)

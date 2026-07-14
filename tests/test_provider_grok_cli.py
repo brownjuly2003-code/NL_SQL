@@ -115,3 +115,25 @@ def test_grok_cli_reports_non_json_output(monkeypatch: pytest.MonkeyPatch) -> No
 
     with pytest.raises(ProviderError, match="no JSON"):
         provider.generate(GenerateRequest(prompt="q"))
+
+
+def test_grok_cli_passes_the_requested_model(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Until 2026-07-14 `model` only laid a label on the report: it was never put on
+    the command line, so the CLI served its own default no matter what was asked for.
+    Requesting one model and running another is how a bakeoff lies about itself."""
+    calls = _stub_run(monkeypatch, _ENVELOPE)
+
+    GrokCliProvider(model="grok-build").generate(GenerateRequest(prompt="write SQL"))
+
+    argv = calls[0]
+    assert argv[argv.index("--model") + 1] == "grok-build"
+
+
+def test_grok_cli_passes_effort_only_when_set(monkeypatch: pytest.MonkeyPatch) -> None:
+    calls = _stub_run(monkeypatch, _ENVELOPE)
+
+    GrokCliProvider().generate(GenerateRequest(prompt="q"))
+    assert "--reasoning-effort" not in calls[0]
+
+    GrokCliProvider(effort="max").generate(GenerateRequest(prompt="q"))
+    assert calls[1][calls[1].index("--reasoning-effort") + 1] == "max"

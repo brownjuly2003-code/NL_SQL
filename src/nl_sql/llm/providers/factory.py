@@ -80,6 +80,7 @@ def build_provider(name: str, settings: Settings | None = None) -> LLMProvider:
                 model=s.grok_cli_model,
                 timeout_seconds=s.grok_cli_timeout_seconds,
                 max_turns=s.grok_cli_max_turns,
+                effort=s.grok_cli_effort,
             )
         case "claude_cli":
             return ClaudeCliProvider(
@@ -87,6 +88,7 @@ def build_provider(name: str, settings: Settings | None = None) -> LLMProvider:
                 model=s.claude_cli_model,
                 timeout_seconds=s.claude_cli_timeout_seconds,
                 max_turns=s.claude_cli_max_turns,
+                effort=s.claude_cli_effort,
             )
         case _:
             raise ProviderError(f"unknown provider name: {name!r}")
