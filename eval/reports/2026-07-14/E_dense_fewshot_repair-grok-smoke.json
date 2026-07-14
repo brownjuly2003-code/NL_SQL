@@ -1,0 +1,155 @@
+{
+  "configuration": "E_dense_fewshot_repair",
+  "sql_model": "grok-composer-2.5-fast",
+  "overall": {
+    "n": 3,
+    "ea": 0.3333333333333333,
+    "validity_rate": 1.0,
+    "schema_recall_at_k": 1.0,
+    "repair_success_rate": 0.0,
+    "first_pass_ea": 0.3333333333333333,
+    "empty_result_rate": 0.0,
+    "latency_p50_ms": 11980.983400018886,
+    "latency_p95_ms": 23786.17216000857,
+    "tokens_p50": 13268.0,
+    "tokens_p95": 18188.300000000003
+  },
+  "per_difficulty": {
+    "simple": {
+      "n": 1,
+      "ea": 0.0,
+      "validity_rate": 1.0,
+      "schema_recall_at_k": 1.0,
+      "repair_success_rate": 0.0,
+      "first_pass_ea": 0.0,
+      "empty_result_rate": 0.0,
+      "latency_p50_ms": 25097.859800007427,
+      "latency_p95_ms": 25097.859800007427,
+      "tokens_p50": 13268.0,
+      "tokens_p95": 13268.0
+    },
+    "moderate": {
+      "n": 2,
+      "ea": 0.5,
+      "validity_rate": 1.0,
+      "schema_recall_at_k": 1.0,
+      "repair_success_rate": 0.0,
+      "first_pass_ea": 0.5,
+      "empty_result_rate": 0.0,
+      "latency_p50_ms": 10773.283350019483,
+      "latency_p95_ms": 11860.213395018945,
+      "tokens_p50": 14400.5,
+      "tokens_p95": 18301.55
+    },
+    "challenging": {
+      "n": 0,
+      "ea": 0.0,
+      "validity_rate": 0.0,
+      "schema_recall_at_k": 0.0,
+      "repair_success_rate": 0.0,
+      "first_pass_ea": 0.0,
+      "empty_result_rate": 0.0,
+      "latency_p50_ms": 0.0,
+      "latency_p95_ms": 0.0,
+      "tokens_p50": 0.0,
+      "tokens_p95": 0.0
+    }
+  },
+  "records": [
+    {
+      "question_id": 50,
+      "db_id": "california_schools",
+      "difficulty": "simple",
+      "dialect": "sqlite",
+      "question": "What is the postal street address for the school with the 7th highest Math average? Indicate the school's name.",
+      "gold_sql": "SELECT T2.MailStreet, T2.School FROM satscores AS T1 INNER JOIN schools AS T2 ON T1.cds = T2.CDSCode ORDER BY T1.AvgScrMath DESC LIMIT 6, 1",
+      "pred_sql": "SELECT T2.School, T2.MailStreet FROM satscores AS T1 INNER JOIN schools AS T2 ON T1.cds = T2.CDSCode WHERE T1.AvgScrMath IS NOT NULL AND T1.rtype = 'S' ORDER BY T1.AvgScrMath DESC LIMIT 1 OFFSET 6",
+      "match": false,
+      "schema_recall": true,
+      "error_kind": null,
+      "error_message": "",
+      "repair_attempted": false,
+      "first_pass_match": false,
+      "latency_ms": 25097.859800007427,
+      "input_tokens": 12479,
+      "output_tokens": 789,
+      "gold_tables": [
+        "satscores",
+        "schools"
+      ],
+      "retrieved_tables": [
+        "satscores",
+        "schools",
+        "frpm"
+      ],
+      "pred_row_count": 1,
+      "gold_row_count": 1,
+      "comparison_reason": "ordered row 0 mismatch: gold=('25 Churchill Avenue', None), pred=('Oxford Academy', '5172 Orange Avenue')"
+    },
+    {
+      "question_id": 236,
+      "db_id": "toxicology",
+      "difficulty": "moderate",
+      "dialect": "sqlite",
+      "question": "What are the bond type and the atoms of the bond ID of TR001_6_9?",
+      "gold_sql": "SELECT T1.bond_type, T2.atom_id, T2.atom_id2 FROM bond AS T1 INNER JOIN connected AS T2 ON T1.bond_id = T2.bond_id WHERE T2.bond_id = 'TR001_6_9'",
+      "pred_sql": "SELECT bond.bond_type, connected.atom_id, connected.atom_id2 FROM bond JOIN connected ON bond.bond_id = connected.bond_id WHERE bond.bond_id = 'TR001_6_9'",
+      "match": true,
+      "schema_recall": true,
+      "error_kind": null,
+      "error_message": "",
+      "repair_attempted": false,
+      "first_pass_match": true,
+      "latency_ms": 9565.58330002008,
+      "input_tokens": 9358,
+      "output_tokens": 708,
+      "gold_tables": [
+        "bond",
+        "connected"
+      ],
+      "retrieved_tables": [
+        "bond",
+        "connected",
+        "atom",
+        "molecule"
+      ],
+      "pred_row_count": 2,
+      "gold_row_count": 2,
+      "comparison_reason": ""
+    },
+    {
+      "question_id": 1029,
+      "db_id": "european_football_2",
+      "difficulty": "moderate",
+      "dialect": "sqlite",
+      "question": "What are the speed in which attacks are put together of the top 4 teams with the highest build Up Play Speed?",
+      "gold_sql": "SELECT t1.buildUpPlaySpeed FROM Team_Attributes AS t1 INNER JOIN Team AS t2 ON t1.team_api_id = t2.team_api_id ORDER BY t1.buildUpPlaySpeed ASC LIMIT 4",
+      "pred_sql": "SELECT MAX(buildUpPlaySpeed) FROM Team_Attributes GROUP BY team_api_id ORDER BY MAX(buildUpPlaySpeed) DESC LIMIT 4",
+      "match": false,
+      "schema_recall": true,
+      "error_kind": null,
+      "error_message": "",
+      "repair_attempted": false,
+      "first_pass_match": false,
+      "latency_ms": 11980.983400018886,
+      "input_tokens": 17620,
+      "output_tokens": 1115,
+      "gold_tables": [
+        "Team_Attributes",
+        "Team"
+      ],
+      "retrieved_tables": [
+        "Team_Attributes",
+        "Player_Attributes",
+        "Team",
+        "Player",
+        "Match",
+        "Country",
+        "League"
+      ],
+      "pred_row_count": 4,
+      "gold_row_count": 4,
+      "comparison_reason": "ordered row 0 mismatch: gold=(20,), pred=(80,)"
+    }
+  ]
+}
