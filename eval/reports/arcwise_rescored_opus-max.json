@@ -2,7 +2,7 @@
   "source_report": "eval\\reports\\2026-07-14\\E_dense_fewshot_repair-opus-max.json",
   "summary": {
     "original": {
-      "matched": 158,
+      "matched": 159,
       "total": 200
     },
     "sql_only": {
@@ -25,7 +25,7 @@
         "total": 99
       },
       "challenging": {
-        "matched": 22,
+        "matched": 23,
         "total": 34
       }
     },
@@ -346,6 +346,16 @@
         "qid": 898,
         "variant": "full",
         "difficulty": "simple"
+      },
+      {
+        "qid": 1094,
+        "variant": "sql_only",
+        "difficulty": "challenging"
+      },
+      {
+        "qid": 1094,
+        "variant": "full",
+        "difficulty": "challenging"
       },
       {
         "qid": 1133,
@@ -2447,7 +2457,7 @@
       "question_id": 1039,
       "db_id": "european_football_2",
       "difficulty": "simple",
-      "pred_sql": "SELECT CAST(SUM(T2.long_shots) AS REAL) / COUNT(T2.player_fifa_api_id) FROM Player AS T1 INNER JOIN Player_Attributes AS T2 ON T1.player_api_id = T2.player_api_id WHERE T1.player_name = 'Ahmed Samir Farag'",
+      "pred_sql": "SELECT CAST(SUM(T2.long_shots) AS REAL) / COUNT(T2.player_fifa_api_id) FROM Player AS T1 INNER JOIN Player_Attributes AS T2 ON T1.player_fifa_api_id = T2.player_fifa_api_id WHERE T1.player_name = 'Ahmed Samir Farag'",
       "original_match": true,
       "original_reason": "",
       "original_gold_rows": 1,
@@ -2509,7 +2519,7 @@
       "question_id": 1088,
       "db_id": "european_football_2",
       "difficulty": "moderate",
-      "pred_sql": "SELECT DISTINCT T1.player_name FROM Player AS T1 INNER JOIN Player_Attributes AS T2 ON T1.player_api_id = T2.player_api_id WHERE T2.volleys > 70 AND T2.dribbling > 70",
+      "pred_sql": "SELECT DISTINCT T2.player_name FROM Player_Attributes AS T1 INNER JOIN Player AS T2 ON T1.player_api_id = T2.player_api_id WHERE T1.volleys > 70 AND T1.dribbling > 70",
       "original_match": true,
       "original_reason": "",
       "original_gold_rows": 1105,
@@ -2524,15 +2534,15 @@
       "question_id": 1094,
       "db_id": "european_football_2",
       "difficulty": "challenging",
-      "pred_sql": "SELECT CAST((T1.overall_rating - T2.overall_rating) AS REAL) * 100 / T2.overall_rating FROM (SELECT DISTINCT pa.overall_rating FROM Player_Attributes AS pa INNER JOIN Player AS p ON pa.player_api_id = p.player_api_id WHERE p.player_name = 'Ariel Borysiuk') AS T1, (SELECT DISTINCT pa.overall_rating FROM Player_Attributes AS pa INNER JOIN Player AS p ON pa.player_api_id = p.player_api_id WHERE p.player_name = 'Paulin Puel') AS T2",
-      "original_match": false,
-      "original_reason": "set mismatch (unique rows differ): |gold|=1, |pred|=33",
+      "pred_sql": "SELECT CAST(SUM(CASE WHEN T1.player_name = 'Ariel Borysiuk' THEN T2.overall_rating ELSE 0 END) - SUM(CASE WHEN T1.player_name = 'Paulin Puel' THEN T2.overall_rating ELSE 0 END) AS REAL) * 100 / SUM(CASE WHEN T1.player_name = 'Paulin Puel' THEN T2.overall_rating ELSE 0 END) FROM Player AS T1 INNER JOIN Player_Attributes AS T2 ON T1.player_api_id = T2.player_api_id",
+      "original_match": true,
+      "original_reason": "",
       "original_gold_rows": 1,
       "sql_only_match": false,
-      "sql_only_reason": "ordered row count mismatch: gold=1, pred=35",
+      "sql_only_reason": "ordered row 0 mismatch: gold=(15.254237288135593,), pred=(133.7260677466863,)",
       "sql_only_gold_rows": 1,
       "full_match": false,
-      "full_reason": "ordered row count mismatch: gold=1, pred=35",
+      "full_reason": "ordered row 0 mismatch: gold=(15.254237288135593,), pred=(133.7260677466863,)",
       "full_gold_rows": 1,
       "sql_only_gold_changed": true,
       "full_gold_changed": true
@@ -2541,7 +2551,7 @@
       "question_id": 1103,
       "db_id": "european_football_2",
       "difficulty": "moderate",
-      "pred_sql": "SELECT T2.overall_rating FROM Player AS T1 INNER JOIN Player_Attributes AS T2 ON T1.player_api_id = T2.player_api_id WHERE T1.player_name = 'Aaron Mooy' AND T2.date LIKE '2016-02-04%'",
+      "pred_sql": "SELECT t2.overall_rating FROM Player AS t1 INNER JOIN Player_Attributes AS t2 ON t1.player_api_id = t2.player_api_id WHERE t1.player_name = 'Aaron Mooy' AND t2.date LIKE '2016-02-04%'",
       "original_match": true,
       "original_reason": "",
       "original_gold_rows": 1,

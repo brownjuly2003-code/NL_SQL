@@ -3,56 +3,56 @@
   "sql_model": "grok-build",
   "overall": {
     "n": 200,
-    "ea": 0.555,
-    "validity_rate": 0.905,
-    "schema_recall_at_k": 0.995,
-    "repair_success_rate": 0.30612244897959184,
-    "first_pass_ea": 0.48,
-    "empty_result_rate": 0.02,
-    "latency_p50_ms": 57259.67069999933,
-    "latency_p95_ms": 150461.18061499984,
-    "tokens_p50": 16973.5,
-    "tokens_p95": 37045.049999999996
+    "ea": 0.625,
+    "validity_rate": 1.0,
+    "schema_recall_at_k": 1.0,
+    "repair_success_rate": 0.5,
+    "first_pass_ea": 0.62,
+    "empty_result_rate": 0.025,
+    "latency_p50_ms": 28.381000000081258,
+    "latency_p95_ms": 863.957555000706,
+    "tokens_p50": 15186.5,
+    "tokens_p95": 26462.75
   },
   "per_difficulty": {
     "simple": {
       "n": 67,
-      "ea": 0.7164179104477612,
-      "validity_rate": 0.9253731343283582,
+      "ea": 0.7611940298507462,
+      "validity_rate": 1.0,
       "schema_recall_at_k": 1.0,
-      "repair_success_rate": 0.47058823529411764,
-      "first_pass_ea": 0.5970149253731343,
+      "repair_success_rate": 0.5,
+      "first_pass_ea": 0.746268656716418,
       "empty_result_rate": 0.0,
-      "latency_p50_ms": 39476.4823000005,
-      "latency_p95_ms": 128143.19835000043,
-      "tokens_p50": 16163.0,
-      "tokens_p95": 35874.499999999985
+      "latency_p50_ms": 25.572899998223875,
+      "latency_p95_ms": 385.419769998407,
+      "tokens_p50": 14640.0,
+      "tokens_p95": 24908.799999999996
     },
     "moderate": {
       "n": 99,
-      "ea": 0.48484848484848486,
-      "validity_rate": 0.9090909090909091,
-      "schema_recall_at_k": 0.98989898989899,
-      "repair_success_rate": 0.25,
-      "first_pass_ea": 0.42424242424242425,
+      "ea": 0.5656565656565656,
+      "validity_rate": 1.0,
+      "schema_recall_at_k": 1.0,
+      "repair_success_rate": 0.0,
+      "first_pass_ea": 0.5656565656565656,
       "empty_result_rate": 0.04040404040404041,
-      "latency_p50_ms": 60465.11880000071,
-      "latency_p95_ms": 151090.82363,
-      "tokens_p50": 16825.0,
-      "tokens_p95": 36630.799999999996
+      "latency_p50_ms": 29.647399998793844,
+      "latency_p95_ms": 1632.6255500014665,
+      "tokens_p50": 15041.0,
+      "tokens_p95": 26491.6
     },
     "challenging": {
       "n": 34,
-      "ea": 0.4411764705882353,
-      "validity_rate": 0.8529411764705882,
+      "ea": 0.5294117647058824,
+      "validity_rate": 1.0,
       "schema_recall_at_k": 1.0,
-      "repair_success_rate": 0.125,
-      "first_pass_ea": 0.4117647058823529,
-      "empty_result_rate": 0.0,
-      "latency_p50_ms": 62055.43060000036,
-      "latency_p95_ms": 171948.2606199986,
-      "tokens_p50": 17754.5,
-      "tokens_p95": 43580.69999999998
+      "repair_success_rate": 0.0,
+      "first_pass_ea": 0.5294117647058824,
+      "empty_result_rate": 0.029411764705882353,
+      "latency_p50_ms": 28.381000000081258,
+      "latency_p95_ms": 493.2057899986828,
+      "tokens_p50": 16975.5,
+      "tokens_p95": 27164.35
     }
   },
   "records": [
@@ -70,7 +70,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 33099.08030000042,
+      "latency_ms": 192.87750000148662,
       "input_tokens": 18480,
       "output_tokens": 3071,
       "gold_tables": [
@@ -100,7 +100,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 149831.53760000004,
+      "latency_ms": 18.19009999962873,
       "input_tokens": 17605,
       "output_tokens": 19843,
       "gold_tables": [
@@ -130,7 +130,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 67577.64360000056,
+      "latency_ms": 36.7573999974411,
       "input_tokens": 19199,
       "output_tokens": 7921,
       "gold_tables": [
@@ -160,7 +160,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 73886.30029999968,
+      "latency_ms": 18.381400001089787,
       "input_tokens": 18334,
       "output_tokens": 7990,
       "gold_tables": [
@@ -190,7 +190,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 228355.91949999979,
+      "latency_ms": 15.677100000175415,
       "input_tokens": 711,
       "output_tokens": 5093,
       "gold_tables": [
@@ -220,7 +220,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 77564.12950000049,
+      "latency_ms": 26.364299999841023,
       "input_tokens": 10749,
       "output_tokens": 7721,
       "gold_tables": [
@@ -250,7 +250,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 86224.07930000008,
+      "latency_ms": 31.331700000009732,
       "input_tokens": 10139,
       "output_tokens": 8623,
       "gold_tables": [
@@ -279,7 +279,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 53637.88410000052,
+      "latency_ms": 21.66650000071968,
       "input_tokens": 22018,
       "output_tokens": 5631,
       "gold_tables": [
@@ -309,7 +309,7 @@
       "error_message": "query returned 0 rows",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 93889.6177000006,
+      "latency_ms": 23.136700001487043,
       "input_tokens": 18443,
       "output_tokens": 12980,
       "gold_tables": [
@@ -332,16 +332,16 @@
       "dialect": "sqlite",
       "question": "List out the no. of districts that have female average salary is more than 6000 but less than 10000?",
       "gold_sql": "SELECT COUNT(DISTINCT T2.district_id)  FROM client AS T1 INNER JOIN district AS T2 ON T1.district_id = T2.district_id WHERE T1.gender = 'F' AND T2.A11 BETWEEN 6000 AND 10000",
-      "pred_sql": "",
-      "match": false,
+      "pred_sql": "SELECT COUNT(DISTINCT d.district_id) FROM district AS d INNER JOIN client AS c ON c.district_id = d.district_id WHERE d.A11 > 6000 AND d.A11 < 10000 AND c.gender = 'F'",
+      "match": true,
       "schema_recall": true,
-      "error_kind": "invalid_sql",
-      "error_message": "generate_sql produced no SQL",
-      "repair_attempted": true,
-      "first_pass_match": false,
-      "latency_ms": 83894.64929999941,
-      "input_tokens": 30963,
-      "output_tokens": 8047,
+      "error_kind": null,
+      "error_message": "",
+      "repair_attempted": false,
+      "first_pass_match": true,
+      "latency_ms": 19.069800000579562,
+      "input_tokens": 8570,
+      "output_tokens": 6900,
       "gold_tables": [
         "client",
         "district"
@@ -355,9 +355,9 @@
         "disp",
         "loan"
       ],
-      "pred_row_count": 0,
+      "pred_row_count": 1,
       "gold_row_count": 1,
-      "comparison_reason": "pred failed: invalid_sql"
+      "comparison_reason": ""
     },
     {
       "question_id": 98,
@@ -373,7 +373,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 53967.45470000042,
+      "latency_ms": 18.78670000223792,
       "input_tokens": 15678,
       "output_tokens": 6759,
       "gold_tables": [
@@ -400,16 +400,16 @@
       "dialect": "sqlite",
       "question": "Among the accounts who have loan validity more than 12 months, list out the accounts that have the highest approved amount and have account opening date in 1993.",
       "gold_sql": "SELECT T1.account_id FROM loan AS T1 INNER JOIN account AS T2 ON T1.account_id = T2.account_id WHERE STRFTIME('%Y', T2.date) = '1993' AND T1.duration > 12 ORDER BY T1.amount DESC LIMIT 1",
-      "pred_sql": "SELECT a.account_id, l.amount AS approved_amount, a.date AS account_opening_date\nFROM loan l\nJOIN account a ON l.account_id = a.account_id\nWHERE l.duration > 12\n  AND strftime('%Y', a.date) = '1993'\n  AND l.amount = (\n    SELECT MAX(l2.amount)\n    FROM loan l2\n    JOIN account a2 ON l2.account_id = a2.account_id\n    WHERE l2.duration > 12\n      AND strftime('%Y', a2.date) = '1993'\n  )\nORDER BY a.account_id",
-      "match": false,
+      "pred_sql": "SELECT a.account_id FROM account AS a INNER JOIN loan AS l ON a.account_id = l.account_id WHERE l.duration > 12 AND STRFTIME('%Y', a.date) = '1993' AND l.amount = (SELECT MAX(l2.amount) FROM account AS a2 INNER JOIN loan AS l2 ON a2.account_id = l2.account_id WHERE l2.duration > 12 AND STRFTIME('%Y', a2.date) = '1993')",
+      "match": true,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
-      "repair_attempted": true,
-      "first_pass_match": false,
-      "latency_ms": 162424.39790000027,
-      "input_tokens": 7422,
-      "output_tokens": 15415,
+      "repair_attempted": false,
+      "first_pass_match": true,
+      "latency_ms": 17.30699999825447,
+      "input_tokens": 9552,
+      "output_tokens": 4006,
       "gold_tables": [
         "loan",
         "account"
@@ -425,7 +425,7 @@
       ],
       "pred_row_count": 1,
       "gold_row_count": 1,
-      "comparison_reason": "ordered row 0 mismatch: gold=(10451,), pred=(10451, 482940, '1993-08-29')"
+      "comparison_reason": ""
     },
     {
       "question_id": 112,
@@ -441,7 +441,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 69933.72989999989,
+      "latency_ms": 24.294100003317,
       "input_tokens": 9161,
       "output_tokens": 7002,
       "gold_tables": [
@@ -475,7 +475,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 99812.54820000048,
+      "latency_ms": 16.001399999368005,
       "input_tokens": 9210,
       "output_tokens": 13496,
       "gold_tables": [
@@ -509,7 +509,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 39402.63200000027,
+      "latency_ms": 15.850900002988055,
       "input_tokens": 9137,
       "output_tokens": 5026,
       "gold_tables": [
@@ -542,7 +542,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 66614.92180000004,
+      "latency_ms": 21.357300000090618,
       "input_tokens": 17165,
       "output_tokens": 7609,
       "gold_tables": [
@@ -577,7 +577,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 86609.2391000002,
+      "latency_ms": 16.14530000006198,
       "input_tokens": 8954,
       "output_tokens": 8647,
       "gold_tables": [
@@ -612,7 +612,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 67803.96099999962,
+      "latency_ms": 17.230299999937415,
       "input_tokens": 9072,
       "output_tokens": 5681,
       "gold_tables": [
@@ -639,16 +639,16 @@
       "dialect": "sqlite",
       "question": "List all the withdrawals in cash transactions that the client with the id 3356 makes.",
       "gold_sql": "SELECT T4.trans_id FROM client AS T1 INNER JOIN disp AS T2 ON T1.client_id = T2.client_id INNER JOIN account AS T3 ON T2.account_id = T3.account_id INNER JOIN trans AS T4 ON T3.account_id = T4.account_id WHERE T1.client_id = 3356 AND T4.operation = 'VYBER'",
-      "pred_sql": "SELECT t.trans_id, t.account_id, t.date, t.type, t.operation, t.amount, t.balance\nFROM trans t\nJOIN account a ON t.account_id = a.account_id\nJOIN disp d ON a.account_id = d.account_id\nJOIN client c ON d.client_id = c.client_id\nWHERE c.client_id = 3356\nAND t.operation = 'VYBER'\nORDER BY t.date, t.trans_id",
+      "pred_sql": "SELECT t.date, t.amount, t.balance FROM trans AS t INNER JOIN disp AS d ON t.account_id = d.account_id WHERE d.client_id = 3356 AND t.operation = 'VYBER'",
       "match": false,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
-      "repair_attempted": true,
+      "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 103262.87839999987,
-      "input_tokens": 16380,
-      "output_tokens": 10165,
+      "latency_ms": 391.6828999972495,
+      "input_tokens": 9175,
+      "output_tokens": 6055,
       "gold_tables": [
         "client",
         "disp",
@@ -682,7 +682,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 53832.778199999666,
+      "latency_ms": 19.954699997470016,
       "input_tokens": 8705,
       "output_tokens": 6124,
       "gold_tables": [
@@ -716,7 +716,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 82836.58219999961,
+      "latency_ms": 32.57780000058119,
       "input_tokens": 10152,
       "output_tokens": 7998,
       "gold_tables": [
@@ -745,16 +745,16 @@
       "dialect": "sqlite",
       "question": "How often does account number 3 request an account statement to be released? What was the aim of debiting 3539 in total?",
       "gold_sql": "SELECT T1.frequency, T2.k_symbol FROM account AS T1 INNER JOIN (SELECT account_id, k_symbol, SUM(amount) AS total_amount FROM `order` GROUP BY account_id, k_symbol) AS T2 ON T1.account_id = T2.account_id WHERE T1.account_id = 3 AND T2.total_amount = 3539",
-      "pred_sql": "",
+      "pred_sql": "SELECT (SELECT COUNT(*) FROM trans WHERE account_id = 3 AND k_symbol = 'SLUZBY'), k_symbol FROM trans WHERE account_id = 3 AND type = 'VYDAJ' GROUP BY k_symbol HAVING SUM(amount) = 3539",
       "match": false,
       "schema_recall": true,
-      "error_kind": "invalid_sql",
-      "error_message": "generate_sql produced no SQL",
-      "repair_attempted": true,
+      "error_kind": "empty_result",
+      "error_message": "query returned 0 rows",
+      "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 162840.53499999936,
-      "input_tokens": 23020,
-      "output_tokens": 17494,
+      "latency_ms": 121.00270000155433,
+      "input_tokens": 22589,
+      "output_tokens": 14460,
       "gold_tables": [
         "account",
         "order"
@@ -771,7 +771,7 @@
       ],
       "pred_row_count": 0,
       "gold_row_count": 1,
-      "comparison_reason": "pred failed: invalid_sql"
+      "comparison_reason": "set mismatch (unique rows differ): |gold|=1, |pred|=0"
     },
     {
       "question_id": 189,
@@ -787,7 +787,7 @@
       "error_message": "query returned 0 rows",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 88538.76070000025,
+      "latency_ms": 26.711599999543978,
       "input_tokens": 8768,
       "output_tokens": 9670,
       "gold_tables": [
@@ -823,7 +823,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 20280.946400000175,
+      "latency_ms": 21.327200000087032,
       "input_tokens": 8907,
       "output_tokens": 2205,
       "gold_tables": [
@@ -850,16 +850,16 @@
       "dialect": "sqlite",
       "question": "Provide the IDs and age of the client with high level credit card, which is eligible for loans.",
       "gold_sql": "SELECT T1.client_id, STRFTIME('%Y', CURRENT_TIMESTAMP) - STRFTIME('%Y', T3.birth_date) FROM disp AS T1 INNER JOIN card AS T2 ON T2.disp_id = T1.disp_id INNER JOIN client AS T3 ON T1.client_id = T3.client_id WHERE T2.type = 'gold' AND T1.type = 'OWNER'",
-      "pred_sql": "",
+      "pred_sql": "SELECT DISTINCT c.client_id, (strftime('%Y', 'now') - strftime('%Y', c.birth_date)) - (strftime('%m-%d', 'now') < strftime('%m-%d', c.birth_date)) AS age FROM client AS c JOIN disp AS d ON c.client_id = d.client_id JOIN card AS ca ON d.disp_id = ca.disp_id WHERE ca.type = 'gold' AND d.type = 'OWNER'",
       "match": false,
       "schema_recall": true,
-      "error_kind": "invalid_sql",
-      "error_message": "generate_sql produced no SQL",
-      "repair_attempted": true,
+      "error_kind": null,
+      "error_message": "",
+      "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 106069.9827999997,
-      "input_tokens": 25505,
-      "output_tokens": 11520,
+      "latency_ms": 18.69520000036573,
+      "input_tokens": 8612,
+      "output_tokens": 5942,
       "gold_tables": [
         "disp",
         "card",
@@ -874,9 +874,9 @@
         "account",
         "district"
       ],
-      "pred_row_count": 0,
+      "pred_row_count": 88,
       "gold_row_count": 88,
-      "comparison_reason": "pred failed: invalid_sql"
+      "comparison_reason": "set mismatch (unique rows differ): |gold|=88, |pred|=88"
     },
     {
       "question_id": 207,
@@ -892,7 +892,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 49092.05040000052,
+      "latency_ms": 67.6671000001079,
       "input_tokens": 7182,
       "output_tokens": 4653,
       "gold_tables": [
@@ -924,7 +924,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 14737.218199999916,
+      "latency_ms": 20.31139999962761,
       "input_tokens": 6933,
       "output_tokens": 1379,
       "gold_tables": [
@@ -955,7 +955,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 47367.438300000686,
+      "latency_ms": 28.485599999839906,
       "input_tokens": 7469,
       "output_tokens": 4628,
       "gold_tables": [
@@ -987,7 +987,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 24790.414099999907,
+      "latency_ms": 25.572899998223875,
       "input_tokens": 7366,
       "output_tokens": 2726,
       "gold_tables": [
@@ -1010,16 +1010,16 @@
       "dialect": "sqlite",
       "question": "What are the elements of the toxicology and label of molecule TR060?",
       "gold_sql": "SELECT DISTINCT T1.element, T2.label FROM atom AS T1 INNER JOIN molecule AS T2 ON T1.molecule_id = T2.molecule_id WHERE T2.molecule_id = 'TR060'",
-      "pred_sql": "",
-      "match": false,
+      "pred_sql": "SELECT DISTINCT atom.element, molecule.label FROM atom INNER JOIN molecule ON atom.molecule_id = molecule.molecule_id WHERE molecule.molecule_id = 'TR060'",
+      "match": true,
       "schema_recall": true,
-      "error_kind": "invalid_sql",
-      "error_message": "generate_sql produced no SQL",
-      "repair_attempted": true,
-      "first_pass_match": false,
-      "latency_ms": 102623.25000000055,
-      "input_tokens": 12223,
-      "output_tokens": 10652,
+      "error_kind": null,
+      "error_message": "",
+      "repair_attempted": false,
+      "first_pass_match": true,
+      "latency_ms": 18.113100002665306,
+      "input_tokens": 10038,
+      "output_tokens": 5575,
       "gold_tables": [
         "atom",
         "molecule"
@@ -1030,9 +1030,9 @@
         "bond",
         "connected"
       ],
-      "pred_row_count": 0,
+      "pred_row_count": 5,
       "gold_row_count": 5,
-      "comparison_reason": "pred failed: invalid_sql"
+      "comparison_reason": ""
     },
     {
       "question_id": 232,
@@ -1048,7 +1048,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 45610.14880000039,
+      "latency_ms": 26.903999998467043,
       "input_tokens": 7079,
       "output_tokens": 3825,
       "gold_tables": [
@@ -1077,11 +1077,11 @@
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
-      "repair_attempted": true,
-      "first_pass_match": false,
-      "latency_ms": 64933.77630000032,
-      "input_tokens": 15144,
-      "output_tokens": 6897,
+      "repair_attempted": false,
+      "first_pass_match": true,
+      "latency_ms": 48096.06419999909,
+      "input_tokens": 7494,
+      "output_tokens": 3813,
       "gold_tables": [
         "bond",
         "connected"
@@ -1108,11 +1108,11 @@
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
-      "repair_attempted": true,
-      "first_pass_match": false,
-      "latency_ms": 126779.20670000004,
-      "input_tokens": 13474,
-      "output_tokens": 16091,
+      "repair_attempted": false,
+      "first_pass_match": true,
+      "latency_ms": 14.473700000962708,
+      "input_tokens": 7207,
+      "output_tokens": 3133,
       "gold_tables": [
         "connected"
       ],
@@ -1140,7 +1140,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 62022.55100000002,
+      "latency_ms": 22.640200000751065,
       "input_tokens": 7747,
       "output_tokens": 7194,
       "gold_tables": [
@@ -1172,7 +1172,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 27189.02269999944,
+      "latency_ms": 13.572899999417132,
       "input_tokens": 7005,
       "output_tokens": 3745,
       "gold_tables": [
@@ -1197,16 +1197,16 @@
       "dialect": "sqlite",
       "question": "What are the elements for bond id TR001_10_11?",
       "gold_sql": "SELECT T2.element FROM connected AS T1 INNER JOIN atom AS T2 ON T1.atom_id = T2.atom_id WHERE T1.bond_id = 'TR001_10_11'",
-      "pred_sql": "SELECT a1.element AS element1, a2.element AS element2 FROM bond JOIN connected ON connected.bond_id = bond.bond_id JOIN atom a1 ON a1.atom_id = connected.atom_id JOIN atom a2 ON a2.atom_id = connected.atom_id2 WHERE bond.bond_id = 'TR001_10_11' ORDER BY connected.atom_id LIMIT 1",
-      "match": false,
+      "pred_sql": "SELECT atom.element FROM bond JOIN connected ON connected.bond_id = bond.bond_id JOIN atom ON atom.atom_id = connected.atom_id WHERE bond.bond_id = 'TR001_10_11'",
+      "match": true,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
-      "repair_attempted": true,
-      "first_pass_match": false,
-      "latency_ms": 98945.14270000036,
-      "input_tokens": 12284,
-      "output_tokens": 11502,
+      "repair_attempted": false,
+      "first_pass_match": true,
+      "latency_ms": 12.758300003042677,
+      "input_tokens": 7682,
+      "output_tokens": 5158,
       "gold_tables": [
         "connected",
         "atom"
@@ -1217,9 +1217,9 @@
         "atom",
         "molecule"
       ],
-      "pred_row_count": 1,
+      "pred_row_count": 2,
       "gold_row_count": 2,
-      "comparison_reason": "set mismatch (unique rows differ): |gold|=2, |pred|=1"
+      "comparison_reason": ""
     },
     {
       "question_id": 273,
@@ -1235,7 +1235,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 58696.10740000007,
+      "latency_ms": 12.87149999916437,
       "input_tokens": 7219,
       "output_tokens": 6835,
       "gold_tables": [
@@ -1266,7 +1266,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 36027.995100000226,
+      "latency_ms": 11.119499999040272,
       "input_tokens": 7238,
       "output_tokens": 4234,
       "gold_tables": [
@@ -1290,16 +1290,16 @@
       "dialect": "sqlite",
       "question": "Which non-carcinogenic molecules consisted more than 5 atoms?",
       "gold_sql": "SELECT T.molecule_id FROM ( SELECT T1.molecule_id, COUNT(T2.atom_id) FROM molecule AS T1 INNER JOIN atom AS T2 ON T1.molecule_id = T2.molecule_id WHERE T1.label = '-' GROUP BY T1.molecule_id HAVING COUNT(T2.atom_id) > 5 ) t",
-      "pred_sql": "SELECT m.molecule_id FROM molecule m JOIN atom a ON a.molecule_id = m.molecule_id WHERE m.label = '-' GROUP BY m.molecule_id HAVING COUNT(*) > 5",
+      "pred_sql": "SELECT T1.molecule_id FROM molecule AS T1 INNER JOIN atom AS T2 ON T1.molecule_id = T2.molecule_id WHERE T1.label = '-' GROUP BY T1.molecule_id HAVING COUNT(T2.molecule_id) > 5",
       "match": true,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
-      "repair_attempted": true,
-      "first_pass_match": false,
-      "latency_ms": 76077.15609999924,
-      "input_tokens": 12071,
-      "output_tokens": 8704,
+      "repair_attempted": false,
+      "first_pass_match": true,
+      "latency_ms": 29.647399998793844,
+      "input_tokens": 551,
+      "output_tokens": 7322,
       "gold_tables": [
         "molecule",
         "atom"
@@ -1321,16 +1321,16 @@
       "dialect": "sqlite",
       "question": "Find all cards illustrated by Stephen Daniel and describe the text of the ruling of these cards. State if these cards have missing or degraded properties and values.",
       "gold_sql": "SELECT T1.id, T2.text, T1.hasContentWarning FROM cards AS T1 INNER JOIN rulings AS T2 ON T1.uuid = T2.uuid WHERE T1.artist = 'Stephen Daniele'",
-      "pred_sql": "",
-      "match": false,
+      "pred_sql": "SELECT cards.id, rulings.text, cards.hasContentWarning FROM cards INNER JOIN rulings ON cards.uuid = rulings.uuid WHERE cards.artist = 'Stephen Daniele'",
+      "match": true,
       "schema_recall": true,
-      "error_kind": "invalid_sql",
-      "error_message": "generate_sql produced no SQL",
-      "repair_attempted": true,
-      "first_pass_match": false,
-      "latency_ms": 93684.79449999996,
-      "input_tokens": 27876,
-      "output_tokens": 9550,
+      "error_kind": null,
+      "error_message": "",
+      "repair_attempted": false,
+      "first_pass_match": true,
+      "latency_ms": 30578.010899997025,
+      "input_tokens": 12657,
+      "output_tokens": 2486,
       "gold_tables": [
         "cards",
         "rulings"
@@ -1343,9 +1343,9 @@
         "foreign_data",
         "set_translations"
       ],
-      "pred_row_count": 0,
+      "pred_row_count": 23,
       "gold_row_count": 23,
-      "comparison_reason": "pred failed: invalid_sql"
+      "comparison_reason": ""
     },
     {
       "question_id": 349,
@@ -1361,7 +1361,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 47762.92590000048,
+      "latency_ms": 858.4832000015012,
       "input_tokens": 12024,
       "output_tokens": 6541,
       "gold_tables": [
@@ -1394,7 +1394,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 63582.80560000003,
+      "latency_ms": 681.9044000003487,
       "input_tokens": 12214,
       "output_tokens": 7743,
       "gold_tables": [
@@ -1427,7 +1427,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 11818.251599999712,
+      "latency_ms": 256.526400000439,
       "input_tokens": 11821,
       "output_tokens": 462,
       "gold_tables": [
@@ -1459,7 +1459,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 36760.799799999404,
+      "latency_ms": 264.2164999997476,
       "input_tokens": 20213,
       "output_tokens": 3121,
       "gold_tables": [
@@ -1484,16 +1484,16 @@
       "dialect": "sqlite",
       "question": "What is the rule of playing card \"Benalish Knight\"?",
       "gold_sql": "SELECT T2.format FROM cards AS T1 INNER JOIN legalities AS T2 ON T1.uuid = T2.uuid WHERE T1.name = 'Benalish Knight'",
-      "pred_sql": "SELECT DISTINCT c.name, l.format, l.status FROM cards c JOIN legalities l ON l.uuid = c.uuid WHERE c.name = 'Benalish Knight' ORDER BY l.format",
+      "pred_sql": "SELECT DISTINCT legalities.format, legalities.status FROM cards INNER JOIN legalities ON cards.uuid = legalities.uuid WHERE cards.name = 'Benalish Knight' ORDER BY legalities.format",
       "match": false,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
-      "repair_attempted": true,
+      "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 128727.7662000006,
-      "input_tokens": 23149,
-      "output_tokens": 10678,
+      "latency_ms": 1402.5617000006605,
+      "input_tokens": 12344,
+      "output_tokens": 5099,
       "gold_tables": [
         "cards",
         "legalities"
@@ -1524,7 +1524,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 37252.90910000058,
+      "latency_ms": 267.3979999999574,
       "input_tokens": 12668,
       "output_tokens": 3908,
       "gold_tables": [
@@ -1556,7 +1556,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 78472.67460000058,
+      "latency_ms": 1158.5803000016313,
       "input_tokens": 8214,
       "output_tokens": 3179,
       "gold_tables": [
@@ -1582,16 +1582,16 @@
       "dialect": "sqlite",
       "question": "Lists all types of cards in German.",
       "gold_sql": "SELECT T1.subtypes, T1.supertypes FROM cards AS T1 INNER JOIN foreign_data AS T2 ON T1.uuid = T2.uuid WHERE T2.language = 'German' AND T1.subtypes IS NOT NULL AND T1.supertypes IS NOT NULL",
-      "pred_sql": "SELECT DISTINCT c.supertypes, c.subtypes\nFROM cards c\nJOIN foreign_data fd ON c.uuid = fd.uuid\nWHERE fd.language = 'German'\n  AND c.subtypes IS NOT NULL\n  AND c.supertypes IS NOT NULL",
-      "match": false,
+      "pred_sql": "SELECT DISTINCT cards.subtypes, cards.supertypes FROM cards INNER JOIN foreign_data ON cards.uuid = foreign_data.uuid WHERE foreign_data.language = 'German' AND cards.subtypes IS NOT NULL AND cards.supertypes IS NOT NULL",
+      "match": true,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
-      "repair_attempted": true,
-      "first_pass_match": false,
-      "latency_ms": 92445.07749999958,
-      "input_tokens": 22346,
-      "output_tokens": 10718,
+      "repair_attempted": false,
+      "first_pass_match": true,
+      "latency_ms": 897.0034000012674,
+      "input_tokens": 13476,
+      "output_tokens": 4793,
       "gold_tables": [
         "cards",
         "foreign_data"
@@ -1606,7 +1606,7 @@
       ],
       "pred_row_count": 408,
       "gold_row_count": 1693,
-      "comparison_reason": "set mismatch (unique rows differ): |gold|=408, |pred|=408"
+      "comparison_reason": ""
     },
     {
       "question_id": 408,
@@ -1622,7 +1622,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 24440.051499999754,
+      "latency_ms": 364.82489999980316,
       "input_tokens": 12019,
       "output_tokens": 2422,
       "gold_tables": [
@@ -1655,7 +1655,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 59420.32719999952,
+      "latency_ms": 773.9298999986204,
       "input_tokens": 12638,
       "output_tokens": 7084,
       "gold_tables": [
@@ -1688,7 +1688,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 69155.36880000036,
+      "latency_ms": 52.678299998660805,
       "input_tokens": 13641,
       "output_tokens": 6411,
       "gold_tables": [
@@ -1721,7 +1721,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 42208.14859999882,
+      "latency_ms": 52.40369999955874,
       "input_tokens": 12309,
       "output_tokens": 4413,
       "gold_tables": [
@@ -1754,7 +1754,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 26088.010099998428,
+      "latency_ms": 273.82000000216067,
       "input_tokens": 12198,
       "output_tokens": 1970,
       "gold_tables": [
@@ -1779,16 +1779,16 @@
       "dialect": "sqlite",
       "question": "Among the cards in the set \"Hauptset Zehnte Edition\", how many of them are designed by Adam Rex?",
       "gold_sql": "SELECT COUNT(T1.id) FROM cards AS T1 INNER JOIN set_translations AS T2 ON T2.setCode = T1.setCode WHERE T2.translation = 'Hauptset Zehnte Edition' AND T1.artist = 'Adam Rex'",
-      "pred_sql": "SELECT COUNT(*) FROM cards WHERE setCode IN (SELECT setCode FROM set_translations WHERE translation = 'Hauptset Zehnte Edition') AND artist = 'Adam Rex'",
+      "pred_sql": "SELECT COUNT(*) FROM cards INNER JOIN set_translations ON cards.setCode = set_translations.setCode WHERE set_translations.translation = 'Hauptset Zehnte Edition' AND cards.artist = 'Adam Rex'",
       "match": true,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
-      "repair_attempted": true,
-      "first_pass_match": false,
-      "latency_ms": 80808.29969999832,
-      "input_tokens": 31346,
-      "output_tokens": 7023,
+      "repair_attempted": false,
+      "first_pass_match": true,
+      "latency_ms": 246.4959999997518,
+      "input_tokens": 783,
+      "output_tokens": 1659,
       "gold_tables": [
         "cards",
         "set_translations"
@@ -1819,7 +1819,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 55448.06419999986,
+      "latency_ms": 56.47350000072038,
       "input_tokens": 12428,
       "output_tokens": 4611,
       "gold_tables": [
@@ -1852,7 +1852,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 85245.73580000106,
+      "latency_ms": 17220.716400002857,
       "input_tokens": 12558,
       "output_tokens": 6857,
       "gold_tables": [
@@ -1886,7 +1886,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 75850.42390000126,
+      "latency_ms": 289.5110999997996,
       "input_tokens": 12671,
       "output_tokens": 4154,
       "gold_tables": [
@@ -1919,7 +1919,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 307863.7661000012,
+      "latency_ms": 279894.1393999994,
       "input_tokens": 12097,
       "output_tokens": 7204,
       "gold_tables": [
@@ -1952,7 +1952,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 26277.478500000143,
+      "latency_ms": 74.9379000008048,
       "input_tokens": 9356,
       "output_tokens": 1619,
       "gold_tables": [
@@ -1977,16 +1977,16 @@
       "dialect": "sqlite",
       "question": "Among the posts with a score of over 5, what is the percentage of them being owned by an elder user?",
       "gold_sql": "SELECT CAST(SUM(IIF(T2.Age > 65, 1, 0)) AS REAL) * 100 / COUNT(T1.Id) FROM posts AS T1 INNER JOIN users AS T2 ON T1.OwnerUserId = T2.Id WHERE T1.Score > 5",
-      "pred_sql": "SELECT 100.0 * COUNT(CASE WHEN u.Age > 65 THEN 1 END) / COUNT(*) FROM posts p LEFT JOIN users u ON p.OwnerUserId = u.Id WHERE p.Score > 5",
+      "pred_sql": "SELECT CAST(SUM(CASE WHEN u.Age > 65 THEN 1 ELSE 0 END) AS REAL) * 100 / COUNT(p.Id) FROM posts AS p LEFT JOIN users AS u ON p.OwnerUserId = u.Id WHERE p.Score > 5",
       "match": false,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
-      "repair_attempted": true,
+      "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 126139.34429999972,
-      "input_tokens": 18325,
-      "output_tokens": 13366,
+      "latency_ms": 482.13639999812585,
+      "input_tokens": 19395,
+      "output_tokens": 7066,
       "gold_tables": [
         "posts",
         "users"
@@ -2019,7 +2019,7 @@
       "error_message": "query returned 0 rows",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 25500.67439999839,
+      "latency_ms": 211.97879999817815,
       "input_tokens": 10703,
       "output_tokens": 2917,
       "gold_tables": [
@@ -2054,7 +2054,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 67357.42240000036,
+      "latency_ms": 443.3702999995148,
       "input_tokens": 10168,
       "output_tokens": 4726,
       "gold_tables": [
@@ -2082,16 +2082,16 @@
       "dialect": "sqlite",
       "question": "Write all the comments left by users who edited the post titled 'Why square the difference instead of taking the absolute value in standard deviation?'",
       "gold_sql": "SELECT T2.Comment FROM posts AS T1 INNER JOIN postHistory AS T2 ON T1.Id = T2.PostId WHERE T1.Title = 'Why square the difference instead of taking the absolute value in standard deviation?'",
-      "pred_sql": "",
+      "pred_sql": "SELECT \"postHistory\".\"Comment\" FROM \"postHistory\" INNER JOIN \"posts\" ON \"postHistory\".\"PostId\" = \"posts\".\"Id\" WHERE \"posts\".\"Title\" = 'Why square the difference instead of taking the absolute value in standard deviation?' AND \"postHistory\".\"Comment\" IS NOT NULL AND \"postHistory\".\"Comment\" != ''",
       "match": false,
       "schema_recall": true,
-      "error_kind": "invalid_sql",
-      "error_message": "generate_sql produced no SQL",
-      "repair_attempted": true,
+      "error_kind": null,
+      "error_message": "",
+      "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 287380.5338000002,
-      "input_tokens": 14383,
-      "output_tokens": 22204,
+      "latency_ms": 1627.6671000014176,
+      "input_tokens": 18281,
+      "output_tokens": 8486,
       "gold_tables": [
         "posts",
         "postHistory"
@@ -2106,9 +2106,9 @@
         "tags",
         "badges"
       ],
-      "pred_row_count": 0,
+      "pred_row_count": 5,
       "gold_row_count": 8,
-      "comparison_reason": "pred failed: invalid_sql"
+      "comparison_reason": "set mismatch (unique rows differ): |gold|=4, |pred|=3"
     },
     {
       "question_id": 595,
@@ -2124,7 +2124,7 @@
       "error_message": "query returned 0 rows",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 64450.770499999635,
+      "latency_ms": 1677.2516000019095,
       "input_tokens": 10566,
       "output_tokens": 7099,
       "gold_tables": [
@@ -2160,7 +2160,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 78217.48230000048,
+      "latency_ms": 1070.5889000018942,
       "input_tokens": 10134,
       "output_tokens": 7675,
       "gold_tables": [
@@ -2189,16 +2189,16 @@
       "dialect": "sqlite",
       "question": "When did 'chl' cast its first vote in a post?",
       "gold_sql": "SELECT T2.CreationDate FROM users AS T1 INNER JOIN votes AS T2 ON T1.Id = T2.UserId WHERE T1.DisplayName = 'chl' ORDER BY T2.CreationDate LIMIT 1",
-      "pred_sql": "SELECT MIN(v.CreationDate) FROM votes v JOIN users u ON v.UserId = u.Id WHERE u.DisplayName = 'chl'",
+      "pred_sql": "SELECT MIN(`votes`.`CreationDate`) FROM `votes` INNER JOIN `users` ON `votes`.`UserId` = `users`.`Id` WHERE `users`.`DisplayName` = 'chl'",
       "match": true,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
-      "repair_attempted": true,
-      "first_pass_match": false,
-      "latency_ms": 62517.718299999615,
-      "input_tokens": 17047,
-      "output_tokens": 4255,
+      "repair_attempted": false,
+      "first_pass_match": true,
+      "latency_ms": 36.18149999965681,
+      "input_tokens": 15018,
+      "output_tokens": 5187,
       "gold_tables": [
         "users",
         "votes"
@@ -2229,7 +2229,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 49695.07200000044,
+      "latency_ms": 80.61240000097314,
       "input_tokens": 11485,
       "output_tokens": 3778,
       "gold_tables": [
@@ -2262,7 +2262,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 68855.74489999999,
+      "latency_ms": 408.6217000003671,
       "input_tokens": 10485,
       "output_tokens": 5265,
       "gold_tables": [
@@ -2297,7 +2297,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 72891.86270000027,
+      "latency_ms": 862.2183000006771,
       "input_tokens": 10416,
       "output_tokens": 6831,
       "gold_tables": [
@@ -2333,7 +2333,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 113289.5797000001,
+      "latency_ms": 778.8235000007262,
       "input_tokens": 867,
       "output_tokens": 5669,
       "gold_tables": [
@@ -2361,16 +2361,16 @@
       "dialect": "sqlite",
       "question": "Among the comments with scores between 5 to 10, what is the percentage of the users with 0 up votes?",
       "gold_sql": "SELECT CAST(SUM(IIF(T1.UpVotes = 0, 1, 0)) AS REAL) * 100/ COUNT(T1.Id) AS per FROM users AS T1 INNER JOIN comments AS T2 ON T1.Id = T2.UserId WHERE T2.Score BETWEEN 5 AND 10",
-      "pred_sql": "",
-      "match": false,
+      "pred_sql": "SELECT CAST(SUM(CASE WHEN `users`.`UpVotes` = 0 THEN 1 ELSE 0 END) AS REAL) * 100 / COUNT(`comments`.`UserId`) FROM `comments` JOIN `users` ON `comments`.`UserId` = `users`.`Id` WHERE `comments`.`Score` BETWEEN 5 AND 10",
+      "match": true,
       "schema_recall": true,
-      "error_kind": "invalid_sql",
-      "error_message": "generate_sql produced no SQL",
-      "repair_attempted": true,
-      "first_pass_match": false,
-      "latency_ms": 88838.14919999895,
-      "input_tokens": 23472,
-      "output_tokens": 11210,
+      "error_kind": null,
+      "error_message": "",
+      "repair_attempted": false,
+      "first_pass_match": true,
+      "latency_ms": 200.8226999969338,
+      "input_tokens": 10357,
+      "output_tokens": 5586,
       "gold_tables": [
         "users",
         "comments"
@@ -2385,9 +2385,9 @@
         "postLinks",
         "tags"
       ],
-      "pred_row_count": 0,
+      "pred_row_count": 1,
       "gold_row_count": 1,
-      "comparison_reason": "pred failed: invalid_sql"
+      "comparison_reason": ""
     },
     {
       "question_id": 723,
@@ -2403,7 +2403,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 29589.499399999113,
+      "latency_ms": 29.470599998603575,
       "input_tokens": 7869,
       "output_tokens": 3134,
       "gold_tables": [
@@ -2442,7 +2442,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 24698.58320000094,
+      "latency_ms": 208.80190000025323,
       "input_tokens": 7924,
       "output_tokens": 1348,
       "gold_tables": [
@@ -2481,7 +2481,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 32574.59000000017,
+      "latency_ms": 30.23340000072494,
       "input_tokens": 8222,
       "output_tokens": 3823,
       "gold_tables": [
@@ -2519,7 +2519,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 44727.16749999927,
+      "latency_ms": 21.51130000129342,
       "input_tokens": 7840,
       "output_tokens": 2683,
       "gold_tables": [
@@ -2549,16 +2549,16 @@
       "dialect": "sqlite",
       "question": "Which superheroes have a durability attribute value of less than 50?",
       "gold_sql": "SELECT superhero_name FROM superhero AS T1 WHERE EXISTS (SELECT 1 FROM hero_attribute AS T2 INNER JOIN attribute AS T3 ON T2.attribute_id = T3.id WHERE T3.attribute_name = 'Durability' AND T2.attribute_value < 50 AND T1.id = T2.hero_id)",
-      "pred_sql": "",
-      "match": false,
+      "pred_sql": "SELECT superhero.superhero_name FROM superhero JOIN hero_attribute ON hero_attribute.hero_id = superhero.id JOIN attribute ON attribute.id = hero_attribute.attribute_id WHERE attribute.attribute_name = 'Durability' AND hero_attribute.attribute_value < 50",
+      "match": true,
       "schema_recall": true,
-      "error_kind": "invalid_sql",
-      "error_message": "generate_sql produced no SQL",
-      "repair_attempted": true,
-      "first_pass_match": false,
-      "latency_ms": 61754.87129999965,
-      "input_tokens": 17121,
-      "output_tokens": 6131,
+      "error_kind": null,
+      "error_message": "",
+      "repair_attempted": false,
+      "first_pass_match": true,
+      "latency_ms": 183.61540000114474,
+      "input_tokens": 7841,
+      "output_tokens": 2545,
       "gold_tables": [
         "superhero",
         "hero_attribute",
@@ -2576,9 +2576,9 @@
         "publisher",
         "race"
       ],
-      "pred_row_count": 0,
+      "pred_row_count": 371,
       "gold_row_count": 371,
-      "comparison_reason": "pred failed: invalid_sql"
+      "comparison_reason": ""
     },
     {
       "question_id": 743,
@@ -2594,7 +2594,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 56996.6246999993,
+      "latency_ms": 27.53620000294177,
       "input_tokens": 8417,
       "output_tokens": 6187,
       "gold_tables": [
@@ -2631,7 +2631,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 10002.242700000352,
+      "latency_ms": 20.78619999883813,
       "input_tokens": 7706,
       "output_tokens": 586,
       "gold_tables": [
@@ -2667,7 +2667,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 22415.219600001365,
+      "latency_ms": 25.251499999285443,
       "input_tokens": 8232,
       "output_tokens": 1770,
       "gold_tables": [
@@ -2697,16 +2697,16 @@
       "dialect": "sqlite",
       "question": "List down at least five superpowers of male superheroes.",
       "gold_sql": "SELECT T3.power_name FROM superhero AS T1 INNER JOIN hero_power AS T2 ON T1.id = T2.hero_id INNER JOIN superpower AS T3 ON T3.id = T2.power_id INNER JOIN gender AS T4 ON T4.id = T1.gender_id WHERE T4.gender = 'Male' LIMIT 5",
-      "pred_sql": "",
+      "pred_sql": "SELECT DISTINCT superpower.power_name FROM superhero INNER JOIN gender ON superhero.gender_id = gender.id INNER JOIN hero_power ON superhero.id = hero_power.hero_id INNER JOIN superpower ON hero_power.power_id = superpower.id WHERE gender.gender = 'Male'",
       "match": false,
       "schema_recall": true,
-      "error_kind": "invalid_sql",
-      "error_message": "generate_sql produced no SQL",
-      "repair_attempted": true,
+      "error_kind": null,
+      "error_message": "",
+      "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 75270.27669999916,
-      "input_tokens": 15458,
-      "output_tokens": 7765,
+      "latency_ms": 29.073699999571545,
+      "input_tokens": 18094,
+      "output_tokens": 3323,
       "gold_tables": [
         "superhero",
         "hero_power",
@@ -2725,9 +2725,9 @@
         "race",
         "attribute"
       ],
-      "pred_row_count": 0,
+      "pred_row_count": 162,
       "gold_row_count": 5,
-      "comparison_reason": "pred failed: invalid_sql"
+      "comparison_reason": "set mismatch (unique rows differ): |gold|=5, |pred|=162"
     },
     {
       "question_id": 753,
@@ -2743,7 +2743,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 22231.98020000018,
+      "latency_ms": 22.771199997805525,
       "input_tokens": 7920,
       "output_tokens": 2695,
       "gold_tables": [
@@ -2780,7 +2780,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 21952.662700001383,
+      "latency_ms": 24.657699999806937,
       "input_tokens": 8195,
       "output_tokens": 2308,
       "gold_tables": [
@@ -2817,7 +2817,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 30831.79940000082,
+      "latency_ms": 26.06980000200565,
       "input_tokens": 8453,
       "output_tokens": 3402,
       "gold_tables": [
@@ -2846,16 +2846,16 @@
       "dialect": "sqlite",
       "question": "What is the percentage of blue female superheroes among all female superheroes?",
       "gold_sql": "SELECT CAST(COUNT(CASE WHEN T3.colour = 'Blue' THEN T1.id ELSE NULL END) AS REAL) * 100 / COUNT(T1.id) FROM superhero AS T1 INNER JOIN gender AS T2 ON T1.gender_id = T2.id INNER JOIN colour AS T3 ON T1.skin_colour_id = T3.id WHERE T2.gender = 'Female'",
-      "pred_sql": "SELECT (SUM(CASE WHEN c.colour = 'Blue' THEN 1 ELSE 0 END) * 100.0 / COUNT(*)) FROM superhero s JOIN gender g ON s.gender_id = g.id LEFT JOIN colour c ON s.skin_colour_id = c.id WHERE g.gender = 'Female'",
+      "pred_sql": "SELECT CAST(SUM(IIF(c.colour = 'Blue', 1, 0)) AS REAL) * 100 / COUNT(*) FROM superhero AS s JOIN gender AS g ON s.gender_id = g.id JOIN colour AS c ON s.skin_colour_id = c.id WHERE g.gender = 'Female'",
       "match": true,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
-      "repair_attempted": true,
-      "first_pass_match": false,
-      "latency_ms": 115777.86370000103,
-      "input_tokens": 15375,
-      "output_tokens": 11141,
+      "repair_attempted": false,
+      "first_pass_match": true,
+      "latency_ms": 25.030100001458777,
+      "input_tokens": 17115,
+      "output_tokens": 2317,
       "gold_tables": [
         "superhero",
         "gender",
@@ -2890,7 +2890,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 16182.19390000013,
+      "latency_ms": 20.116599996981677,
       "input_tokens": 7749,
       "output_tokens": 1685,
       "gold_tables": [
@@ -2927,7 +2927,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 16657.25620000012,
+      "latency_ms": 19.084100000327453,
       "input_tokens": 7843,
       "output_tokens": 1637,
       "gold_tables": [
@@ -2964,7 +2964,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 24788.197599998966,
+      "latency_ms": 18.682300000364194,
       "input_tokens": 7943,
       "output_tokens": 2924,
       "gold_tables": [
@@ -3000,7 +3000,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 50495.52210000002,
+      "latency_ms": 25.163400001474656,
       "input_tokens": 8103,
       "output_tokens": 5131,
       "gold_tables": [
@@ -3031,16 +3031,16 @@
       "dialect": "sqlite",
       "question": "What is the publisher for Hawkman, Karate Kid and Speedy?",
       "gold_sql": "SELECT T2.publisher_name FROM superhero AS T1 INNER JOIN publisher AS T2 ON T1.publisher_id = T2.id WHERE T1.superhero_name IN ('Hawkman', 'Karate Kid', 'Speedy')",
-      "pred_sql": "SELECT s.superhero_name, p.publisher_name FROM superhero s JOIN publisher p ON s.publisher_id = p.id WHERE s.superhero_name IN ('Hawkman', 'Karate Kid', 'Speedy')",
+      "pred_sql": "SELECT s.superhero_name, p.publisher_name FROM superhero AS s INNER JOIN publisher AS p ON s.publisher_id = p.id WHERE s.superhero_name IN ('Hawkman', 'Karate Kid', 'Speedy')",
       "match": false,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
-      "repair_attempted": true,
+      "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 117094.90590000132,
-      "input_tokens": 14171,
-      "output_tokens": 11181,
+      "latency_ms": 20.64770000288263,
+      "input_tokens": 7929,
+      "output_tokens": 3303,
       "gold_tables": [
         "superhero",
         "publisher"
@@ -3068,16 +3068,16 @@
       "dialect": "sqlite",
       "question": "Calculate the percentage of superheroes with blue eyes.",
       "gold_sql": "SELECT CAST(COUNT(CASE WHEN T2.colour = 'Blue' THEN 1 ELSE NULL END) AS REAL) * 100 / COUNT(T1.id) FROM superhero AS T1 INNER JOIN colour AS T2 ON T1.eye_colour_id = T2.id",
-      "pred_sql": "",
-      "match": false,
+      "pred_sql": "SELECT CAST(SUM(CASE WHEN c.colour = 'Blue' THEN 1 END) AS REAL) * 100 / COUNT(s.superhero_name) FROM superhero AS s LEFT JOIN colour AS c ON s.eye_colour_id = c.id",
+      "match": true,
       "schema_recall": true,
-      "error_kind": "invalid_sql",
-      "error_message": "generate_sql produced no SQL",
-      "repair_attempted": true,
-      "first_pass_match": false,
-      "latency_ms": 97530.59140000005,
-      "input_tokens": 15292,
-      "output_tokens": 9208,
+      "error_kind": null,
+      "error_message": "",
+      "repair_attempted": false,
+      "first_pass_match": true,
+      "latency_ms": 22.385899999790126,
+      "input_tokens": 9167,
+      "output_tokens": 6720,
       "gold_tables": [
         "superhero",
         "colour"
@@ -3094,9 +3094,9 @@
         "race",
         "attribute"
       ],
-      "pred_row_count": 0,
+      "pred_row_count": 1,
       "gold_row_count": 1,
-      "comparison_reason": "pred failed: invalid_sql"
+      "comparison_reason": ""
     },
     {
       "question_id": 806,
@@ -3112,7 +3112,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 24294.679000000542,
+      "latency_ms": 19.314199998916592,
       "input_tokens": 7898,
       "output_tokens": 2259,
       "gold_tables": [
@@ -3148,7 +3148,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 28200.253400000292,
+      "latency_ms": 20.163299999694573,
       "input_tokens": 8467,
       "output_tokens": 3627,
       "gold_tables": [
@@ -3185,7 +3185,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 27759.099400000196,
+      "latency_ms": 24.05709999948158,
       "input_tokens": 7755,
       "output_tokens": 3266,
       "gold_tables": [
@@ -3217,16 +3217,16 @@
       "dialect": "sqlite",
       "question": "What is the surname of the driver with the best lap time in race number 19 in the second qualifying period?",
       "gold_sql": "SELECT T2.surname FROM qualifying AS T1 INNER JOIN drivers AS T2 ON T2.driverId = T1.driverId WHERE T1.raceId = 19 ORDER BY T1.q2 ASC LIMIT 1",
-      "pred_sql": "SELECT drivers.surname FROM qualifying JOIN drivers ON qualifying.driverId = drivers.driverId WHERE qualifying.raceId = 19 AND qualifying.q2 = (SELECT MIN(q2) FROM qualifying WHERE raceId = 19 AND q2 IS NOT NULL AND q2 != '') LIMIT 1",
+      "pred_sql": "SELECT d.surname FROM qualifying AS q JOIN drivers AS d ON q.driverId = d.driverId WHERE q.raceId = 19 AND q.q2 = (SELECT MIN(q2) FROM qualifying WHERE raceId = 19 AND q2 IS NOT NULL AND q2 != '')",
       "match": false,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
-      "repair_attempted": true,
+      "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 107479.60480000074,
-      "input_tokens": 20710,
-      "output_tokens": 12388,
+      "latency_ms": 26.707199998782016,
+      "input_tokens": 14717,
+      "output_tokens": 4464,
       "gold_tables": [
         "qualifying",
         "drivers"
@@ -3263,7 +3263,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 36616.410599999654,
+      "latency_ms": 21.715699997002957,
       "input_tokens": 11896,
       "output_tokens": 2744,
       "gold_tables": [
@@ -3302,7 +3302,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 47538.69399999894,
+      "latency_ms": 21.500599999853875,
       "input_tokens": 12216,
       "output_tokens": 4951,
       "gold_tables": [
@@ -3341,7 +3341,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 34608.90189999918,
+      "latency_ms": 30.576400000427384,
       "input_tokens": 11396,
       "output_tokens": 3236,
       "gold_tables": [
@@ -3381,7 +3381,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 40997.82460000097,
+      "latency_ms": 30.45850000125938,
       "input_tokens": 11226,
       "output_tokens": 3384,
       "gold_tables": [
@@ -3413,16 +3413,16 @@
       "dialect": "sqlite",
       "question": "Who was the player that got the lap time of 0:01:27 in the race No. 161? Show his introduction website.",
       "gold_sql": "SELECT DISTINCT T2.forename, T2.surname, T2.url FROM lapTimes AS T1 INNER JOIN drivers AS T2 ON T2.driverId = T1.driverId WHERE T1.raceId = 161 AND T1.time LIKE '1:27%'",
-      "pred_sql": "",
+      "pred_sql": "SELECT drivers.url FROM lapTimes INNER JOIN drivers ON lapTimes.driverId = drivers.driverId WHERE lapTimes.raceId = 161 AND lapTimes.time LIKE '1:27%'",
       "match": false,
       "schema_recall": true,
-      "error_kind": "invalid_sql",
-      "error_message": "generate_sql produced no SQL",
-      "repair_attempted": true,
+      "error_kind": null,
+      "error_message": "",
+      "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 91495.1017000003,
-      "input_tokens": 23973,
-      "output_tokens": 8591,
+      "latency_ms": 23.815699998522177,
+      "input_tokens": 11402,
+      "output_tokens": 4387,
       "gold_tables": [
         "lapTimes",
         "drivers"
@@ -3441,9 +3441,9 @@
         "seasons",
         "constructors"
       ],
-      "pred_row_count": 0,
+      "pred_row_count": 82,
       "gold_row_count": 9,
-      "comparison_reason": "pred failed: invalid_sql"
+      "comparison_reason": "set mismatch (unique rows differ): |gold|=9, |pred|=9"
     },
     {
       "question_id": 875,
@@ -3452,16 +3452,16 @@
       "dialect": "sqlite",
       "question": "Show me the season page of year when the race No. 901 took place.",
       "gold_sql": "SELECT T2.url FROM races AS T1 INNER JOIN seasons AS T2 ON T2.year = T1.year WHERE T1.raceId = 901",
-      "pred_sql": "SELECT seasons.url FROM races JOIN seasons ON races.year = seasons.year WHERE races.raceId = 901",
+      "pred_sql": "SELECT `seasons`.`url` FROM `races` INNER JOIN `seasons` ON `races`.`year` = `seasons`.`year` WHERE `races`.`raceId` = 901",
       "match": true,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
-      "repair_attempted": true,
-      "first_pass_match": false,
-      "latency_ms": 50877.85260000055,
-      "input_tokens": 19946,
-      "output_tokens": 4415,
+      "repair_attempted": false,
+      "first_pass_match": true,
+      "latency_ms": 22.94859999892651,
+      "input_tokens": 10656,
+      "output_tokens": 3306,
       "gold_tables": [
         "races",
         "seasons"
@@ -3498,7 +3498,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 22392.126599999756,
+      "latency_ms": 28.567500001372537,
       "input_tokens": 10610,
       "output_tokens": 2165,
       "gold_tables": [
@@ -3537,7 +3537,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 93470.64769999997,
+      "latency_ms": 38.58039999977336,
       "input_tokens": 801,
       "output_tokens": 8499,
       "gold_tables": [
@@ -3576,7 +3576,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 51246.28809999922,
+      "latency_ms": 33.00909999961732,
       "input_tokens": 661,
       "output_tokens": 3586,
       "gold_tables": [
@@ -3615,7 +3615,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 60465.11880000071,
+      "latency_ms": 200.74519999980112,
       "input_tokens": 11615,
       "output_tokens": 5594,
       "gold_tables": [
@@ -3655,7 +3655,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 58913.388199998735,
+      "latency_ms": 40.86010000173701,
       "input_tokens": 11156,
       "output_tokens": 5027,
       "gold_tables": [
@@ -3688,16 +3688,16 @@
       "dialect": "sqlite",
       "question": "Name the driver with the most winning. Mention his nationality and what is his maximum point scores.",
       "gold_sql": "SELECT T1.forename, T1.surname, T1.nationality, MAX(T2.points) FROM drivers AS T1 INNER JOIN driverStandings AS T2 ON T2.driverId = T1.driverId WHERE T2.wins >= 1 GROUP BY T1.forename, T1.surname, T1.nationality ORDER BY COUNT(T2.wins) DESC LIMIT 1",
-      "pred_sql": "SELECT\n  d.forename || ' ' || d.surname AS driver,\n  d.nationality,\n  (SELECT MAX(points) FROM driverStandings WHERE driverId = d.driverId) AS max_point_scores\nFROM drivers d\nWHERE d.driverId = (\n  SELECT driverId\n  FROM driverStandings\n  GROUP BY driverId\n  ORDER BY MAX(wins) DESC\n  LIMIT 1\n)",
+      "pred_sql": "SELECT d.forename, d.surname, d.nationality, MAX(ds.points) FROM `drivers` AS d INNER JOIN `driverStandings` AS ds ON d.driverId = ds.driverId GROUP BY d.driverId, d.forename, d.surname, d.nationality ORDER BY MAX(ds.wins) DESC LIMIT 1",
       "match": false,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
-      "repair_attempted": true,
+      "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 104829.92449999983,
-      "input_tokens": 19557,
-      "output_tokens": 14398,
+      "latency_ms": 78.53959999920335,
+      "input_tokens": 10911,
+      "output_tokens": 11551,
       "gold_tables": [
         "drivers",
         "driverStandings"
@@ -3718,7 +3718,7 @@
       ],
       "pred_row_count": 1,
       "gold_row_count": 1,
-      "comparison_reason": "ordered row 0 mismatch: gold=('Michael', 'Schumacher', 'German', 148.0), pred=('Michael Schumacher', 'German', 148.0)"
+      "comparison_reason": "ordered row 0 mismatch: gold=('Michael', 'Schumacher', 'German', 148.0), pred=('Sebastian', 'Vettel', 'German', 397.0)"
     },
     {
       "question_id": 898,
@@ -3734,7 +3734,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 62829.13009999902,
+      "latency_ms": 25.067499998840503,
       "input_tokens": 11009,
       "output_tokens": 7262,
       "gold_tables": [
@@ -3772,7 +3772,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 64753.53130000076,
+      "latency_ms": 36.16839999813237,
       "input_tokens": 10890,
       "output_tokens": 9101,
       "gold_tables": [
@@ -3812,7 +3812,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 49778.28170000066,
+      "latency_ms": 161.35320000103093,
       "input_tokens": 10612,
       "output_tokens": 4488,
       "gold_tables": [
@@ -3851,7 +3851,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 36035.89380000085,
+      "latency_ms": 27.297799999359995,
       "input_tokens": 11040,
       "output_tokens": 4192,
       "gold_tables": [
@@ -3890,7 +3890,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 12185.184400001162,
+      "latency_ms": 21.287399998982437,
       "input_tokens": 11094,
       "output_tokens": 729,
       "gold_tables": [
@@ -3927,7 +3927,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 23181.92149999959,
+      "latency_ms": 23.110499998438172,
       "input_tokens": 10711,
       "output_tokens": 1815,
       "gold_tables": [
@@ -3965,7 +3965,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 70768.85359999869,
+      "latency_ms": 31.848799997533206,
       "input_tokens": 10897,
       "output_tokens": 7673,
       "gold_tables": [
@@ -4005,7 +4005,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 35677.138600000035,
+      "latency_ms": 22.022500001185108,
       "input_tokens": 11215,
       "output_tokens": 3834,
       "gold_tables": [
@@ -4035,16 +4035,16 @@
       "dialect": "sqlite",
       "question": "Please list the constructor names with 0 points at race 291.",
       "gold_sql": "SELECT T2.name FROM constructorStandings AS T1 INNER JOIN constructors AS T2 on T1.constructorId = T2.constructorId WHERE T1.points = 0 AND T1.raceId = 291",
-      "pred_sql": "",
+      "pred_sql": "SELECT constructors.name FROM constructors JOIN constructorResults ON constructors.constructorId = constructorResults.constructorId WHERE constructorResults.raceId = 291 AND constructorResults.points = 0",
       "match": false,
       "schema_recall": true,
-      "error_kind": "invalid_sql",
-      "error_message": "generate_sql produced no SQL",
-      "repair_attempted": true,
+      "error_kind": null,
+      "error_message": "",
+      "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 66492.34950000027,
-      "input_tokens": 19924,
-      "output_tokens": 6032,
+      "latency_ms": 25.27879999979632,
+      "input_tokens": 10896,
+      "output_tokens": 3172,
       "gold_tables": [
         "constructorStandings",
         "constructors"
@@ -4052,10 +4052,10 @@
       "retrieved_tables": [
         "constructors",
         "constructorResults",
+        "constructorStandings",
         "races",
         "driverStandings",
         "qualifying",
-        "constructorStandings",
         "results",
         "circuits",
         "lapTimes",
@@ -4063,9 +4063,9 @@
         "seasons",
         "drivers"
       ],
-      "pred_row_count": 0,
+      "pred_row_count": 11,
       "gold_row_count": 6,
-      "comparison_reason": "pred failed: invalid_sql"
+      "comparison_reason": "set mismatch (unique rows differ): |gold|=6, |pred|=11"
     },
     {
       "question_id": 959,
@@ -4081,7 +4081,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 102579.37759999913,
+      "latency_ms": 31.05890000006184,
       "input_tokens": 10652,
       "output_tokens": 12160,
       "gold_tables": [
@@ -4120,7 +4120,7 @@
       "error_message": "",
       "repair_attempted": true,
       "first_pass_match": false,
-      "latency_ms": 59039.827600001445,
+      "latency_ms": 27.55579999939073,
       "input_tokens": 19788,
       "output_tokens": 6708,
       "gold_tables": [
@@ -4158,7 +4158,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 57428.384599999845,
+      "latency_ms": 29.20079999967129,
       "input_tokens": 22097,
       "output_tokens": 6938,
       "gold_tables": [
@@ -4191,16 +4191,16 @@
       "dialect": "sqlite",
       "question": "List down top 3 German drivers who has the shortest average pit stop duration and were born between 1980-1985.",
       "gold_sql": "SELECT T2.forename, T2.surname FROM pitStops AS T1 INNER JOIN drivers AS T2 on T1.driverId = T2.driverId WHERE T2.nationality = 'German' AND STRFTIME('%Y', T2.dob) BETWEEN '1980' AND '1985' GROUP BY T2.forename, T2.surname ORDER BY AVG(T1.duration) LIMIT 3",
-      "pred_sql": "",
-      "match": false,
+      "pred_sql": "SELECT d.forename, d.surname FROM pitStops AS p INNER JOIN drivers AS d ON p.driverId = d.driverId WHERE d.nationality = 'German' AND CAST(strftime('%Y', d.dob) AS INTEGER) BETWEEN 1980 AND 1985 GROUP BY d.driverId, d.forename, d.surname ORDER BY SUM(CAST(p.duration AS REAL)) / COUNT(p.duration) ASC LIMIT 3",
+      "match": true,
       "schema_recall": true,
-      "error_kind": "invalid_sql",
-      "error_message": "generate_sql produced no SQL",
-      "repair_attempted": true,
-      "first_pass_match": false,
-      "latency_ms": 125805.77939999966,
-      "input_tokens": 23058,
-      "output_tokens": 13479,
+      "error_kind": null,
+      "error_message": "",
+      "repair_attempted": false,
+      "first_pass_match": true,
+      "latency_ms": 28.27640000032261,
+      "input_tokens": 10680,
+      "output_tokens": 6363,
       "gold_tables": [
         "pitStops",
         "drivers"
@@ -4218,9 +4218,9 @@
         "constructorStandings",
         "seasons"
       ],
-      "pred_row_count": 0,
+      "pred_row_count": 3,
       "gold_row_count": 3,
-      "comparison_reason": "pred failed: invalid_sql"
+      "comparison_reason": ""
     },
     {
       "question_id": 989,
@@ -4236,7 +4236,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 69875.87210000129,
+      "latency_ms": 30.329500001244014,
       "input_tokens": 10911,
       "output_tokens": 9305,
       "gold_tables": [
@@ -4268,16 +4268,16 @@
       "dialect": "sqlite",
       "question": "What is the constructor reference name of the champion in the 2009 Singapore Grand Prix? Please give its website.",
       "gold_sql": "SELECT T3.constructorRef, T3.url FROM results AS T1 INNER JOIN races AS T2 on T1.raceId = T2.raceId INNER JOIN constructors AS T3 on T1.constructorId = T3.constructorId WHERE T2.name = 'Singapore Grand Prix' AND T2.year = 2009 AND T1.time LIKE '_:%:__.___'",
-      "pred_sql": "SELECT constructors.constructorRef, constructors.url FROM results INNER JOIN races ON results.raceId = races.raceId INNER JOIN constructors ON results.constructorId = constructors.constructorId WHERE races.year = 2009 AND races.name = 'Singapore Grand Prix' AND results.time = (SELECT MAX(r2.time) FROM results AS r2 INNER JOIN races AS r3 ON r2.raceId = r3.raceId WHERE r3.year = 2009 AND r3.name = 'Singapore Grand Prix')",
+      "pred_sql": "SELECT c.constructorRef, c.url FROM races AS r INNER JOIN results AS res ON r.raceId = res.raceId INNER JOIN constructors AS c ON res.constructorId = c.constructorId WHERE r.year = 2009 AND r.name = 'Singapore Grand Prix' AND res.time = (SELECT MAX(time) FROM results WHERE raceId = r.raceId)",
       "match": true,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 115610.45609999928,
-      "input_tokens": 377,
-      "output_tokens": 13168,
+      "latency_ms": 56.457599999703234,
+      "input_tokens": 11212,
+      "output_tokens": 15497,
       "gold_tables": [
         "results",
         "races",
@@ -4285,17 +4285,17 @@
       ],
       "retrieved_tables": [
         "constructors",
+        "constructorStandings",
         "constructorResults",
         "races",
         "qualifying",
-        "drivers",
-        "constructorStandings",
         "results",
         "circuits",
         "driverStandings",
         "lapTimes",
         "pitStops",
-        "seasons"
+        "seasons",
+        "drivers"
       ],
       "pred_row_count": 1,
       "gold_row_count": 1,
@@ -4315,7 +4315,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 41459.06970000033,
+      "latency_ms": 206.5184000020963,
       "input_tokens": 15359,
       "output_tokens": 4712,
       "gold_tables": [
@@ -4350,7 +4350,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 56648.87129999988,
+      "latency_ms": 28.921600001922343,
       "input_tokens": 15310,
       "output_tokens": 5806,
       "gold_tables": [
@@ -4384,7 +4384,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 53454.08940000016,
+      "latency_ms": 224.86940000089817,
       "input_tokens": 15362,
       "output_tokens": 5156,
       "gold_tables": [
@@ -4418,7 +4418,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 45710.515799999484,
+      "latency_ms": 25.988299999880837,
       "input_tokens": 15709,
       "output_tokens": 4741,
       "gold_tables": [
@@ -4450,7 +4450,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 55060.95989999994,
+      "latency_ms": 33.33829999974114,
       "input_tokens": 15496,
       "output_tokens": 6082,
       "gold_tables": [
@@ -4483,7 +4483,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 60635.20140000037,
+      "latency_ms": 407.3898000024201,
       "input_tokens": 15551,
       "output_tokens": 6647,
       "gold_tables": [
@@ -4516,7 +4516,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 57560.58050000138,
+      "latency_ms": 385.6501999980537,
       "input_tokens": 15109,
       "output_tokens": 6215,
       "gold_tables": [
@@ -4550,7 +4550,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 36067.355099999986,
+      "latency_ms": 246.1628999990353,
       "input_tokens": 15820,
       "output_tokens": 4376,
       "gold_tables": [
@@ -4584,7 +4584,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 28478.151499999512,
+      "latency_ms": 221.2403000012273,
       "input_tokens": 15830,
       "output_tokens": 3345,
       "gold_tables": [
@@ -4618,7 +4618,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 31767.74260000093,
+      "latency_ms": 37.192900002992246,
       "input_tokens": 15469,
       "output_tokens": 3466,
       "gold_tables": [
@@ -4643,16 +4643,16 @@
       "dialect": "sqlite",
       "question": "Please list the names of the players whose volley score and dribbling score are over 70.",
       "gold_sql": "SELECT DISTINCT t1.player_name FROM Player AS t1 INNER JOIN Player_Attributes AS t2 ON t1.player_api_id = t2.player_api_id WHERE t2.volleys > 70 AND t2.dribbling > 70",
-      "pred_sql": "SELECT DISTINCT p.player_name FROM Player p JOIN Player_Attributes pa ON p.player_api_id = pa.player_api_id WHERE pa.volleys > 70 AND pa.dribbling > 70",
+      "pred_sql": "SELECT DISTINCT T1.player_name FROM Player AS T1 INNER JOIN Player_Attributes AS T2 ON T1.player_api_id = T2.player_api_id WHERE T2.volleys > 70 AND T2.dribbling > 70",
       "match": true,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
-      "repair_attempted": true,
-      "first_pass_match": false,
-      "latency_ms": 109219.2914999996,
-      "input_tokens": 28265,
-      "output_tokens": 10764,
+      "repair_attempted": false,
+      "first_pass_match": true,
+      "latency_ms": 281.5699999991921,
+      "input_tokens": 16020,
+      "output_tokens": 6119,
       "gold_tables": [
         "Player",
         "Player_Attributes"
@@ -4677,16 +4677,16 @@
       "dialect": "sqlite",
       "question": "How much higher in percentage is Ariel Borysiuk's overall rating than that of Paulin Puel?",
       "gold_sql": "SELECT (SUM(CASE WHEN t1.player_name = 'Ariel Borysiuk' THEN t2.overall_rating ELSE 0 END) * 1.0 - SUM(CASE WHEN t1.player_name = 'Paulin Puel' THEN t2.overall_rating ELSE 0 END)) * 100 / SUM(CASE WHEN t1.player_name = 'Paulin Puel' THEN t2.overall_rating ELSE 0 END) FROM Player AS t1 INNER JOIN Player_Attributes AS t2 ON t1.player_api_id = t2.player_api_id",
-      "pred_sql": "",
+      "pred_sql": "SELECT CAST((ab.rating - pp.rating) AS REAL) * 100 / pp.rating FROM (SELECT pa.overall_rating AS rating FROM Player_Attributes AS pa INNER JOIN Player AS p ON pa.player_api_id = p.player_api_id WHERE p.player_name = 'Ariel Borysiuk' ORDER BY pa.date DESC LIMIT 1) AS ab, (SELECT pa.overall_rating AS rating FROM Player_Attributes AS pa INNER JOIN Player AS p ON pa.player_api_id = p.player_api_id WHERE p.player_name = 'Paulin Puel' ORDER BY pa.date DESC LIMIT 1) AS pp",
       "match": false,
       "schema_recall": true,
-      "error_kind": "invalid_sql",
-      "error_message": "generate_sql produced no SQL",
-      "repair_attempted": true,
+      "error_kind": null,
+      "error_message": "",
+      "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 143505.50060000023,
-      "input_tokens": 48999,
-      "output_tokens": 11425,
+      "latency_ms": 578.5335000000487,
+      "input_tokens": 15476,
+      "output_tokens": 3524,
       "gold_tables": [
         "Player",
         "Player_Attributes"
@@ -4700,9 +4700,9 @@
         "Country",
         "League"
       ],
-      "pred_row_count": 0,
+      "pred_row_count": 1,
       "gold_row_count": 1,
-      "comparison_reason": "pred failed: invalid_sql"
+      "comparison_reason": "set mismatch (unique rows differ): |gold|=1, |pred|=1"
     },
     {
       "question_id": 1103,
@@ -4711,16 +4711,16 @@
       "dialect": "sqlite",
       "question": "What was the overall rating for Aaron Mooy on 2016/2/4?",
       "gold_sql": "SELECT t2.overall_rating FROM Player AS t1 INNER JOIN Player_Attributes AS t2 ON t1.player_api_id = t2.player_api_id WHERE SUBSTR(t2.`date`, 1, 10) = '2016-02-04' AND t1.player_name = 'Aaron Mooy'",
-      "pred_sql": "SELECT pa.overall_rating FROM Player p JOIN Player_Attributes pa ON p.player_api_id = pa.player_api_id WHERE p.player_name = 'Aaron Mooy' AND pa.date LIKE '2016-02-04%'",
+      "pred_sql": "SELECT overall_rating FROM Player JOIN Player_Attributes ON Player.player_api_id = Player_Attributes.player_api_id WHERE Player.player_name = 'Aaron Mooy' AND Player_Attributes.date LIKE '2016-02-04%'",
       "match": true,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
-      "repair_attempted": true,
-      "first_pass_match": false,
-      "latency_ms": 48672.55340000156,
-      "input_tokens": 28729,
-      "output_tokens": 3706,
+      "repair_attempted": false,
+      "first_pass_match": true,
+      "latency_ms": 260.0769999990007,
+      "input_tokens": 15304,
+      "output_tokens": 2213,
       "gold_tables": [
         "Player",
         "Player_Attributes"
@@ -4752,7 +4752,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 23232.075500000064,
+      "latency_ms": 26.867799999308772,
       "input_tokens": 15670,
       "output_tokens": 2657,
       "gold_tables": [
@@ -4778,16 +4778,16 @@
       "dialect": "sqlite",
       "question": "List down most tallest players' name.",
       "gold_sql": "SELECT player_name FROM (SELECT player_name, height, DENSE_RANK() OVER (ORDER BY height DESC) as rank FROM Player) WHERE rank = 1",
-      "pred_sql": "SELECT player_name FROM (SELECT player_name, RANK() OVER (ORDER BY height DESC) AS rnk FROM Player) AS p WHERE rnk = 1",
+      "pred_sql": "SELECT player_name FROM Player WHERE height = (SELECT MAX(height) FROM Player)",
       "match": true,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
-      "repair_attempted": true,
-      "first_pass_match": false,
-      "latency_ms": 93990.02689999907,
-      "input_tokens": 31873,
-      "output_tokens": 7589,
+      "repair_attempted": false,
+      "first_pass_match": true,
+      "latency_ms": 42.43689999930211,
+      "input_tokens": 15605,
+      "output_tokens": 3564,
       "gold_tables": [
         "Player"
       ],
@@ -4818,7 +4818,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 38779.30699999888,
+      "latency_ms": 384.8820999992313,
       "input_tokens": 15431,
       "output_tokens": 4565,
       "gold_tables": [
@@ -4851,7 +4851,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 16747.306899998875,
+      "latency_ms": 27.82449999722303,
       "input_tokens": 15306,
       "output_tokens": 1864,
       "gold_tables": [
@@ -4885,7 +4885,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 10612.935299999663,
+      "latency_ms": 33.817900002759416,
       "input_tokens": 14989,
       "output_tokens": 765,
       "gold_tables": [
@@ -4917,7 +4917,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 43565.01190000017,
+      "latency_ms": 24.251899998489534,
       "input_tokens": 15773,
       "output_tokens": 4438,
       "gold_tables": [
@@ -4943,16 +4943,16 @@
       "dialect": "sqlite",
       "question": "Please state the finishing rate and curve score of the player who has the heaviest weight.",
       "gold_sql": "SELECT id, finishing, curve FROM Player_Attributes WHERE player_api_id = ( SELECT player_api_id FROM Player ORDER BY weight DESC LIMIT 1 ) LIMIT 1",
-      "pred_sql": "SELECT finishing, curve FROM Player_Attributes WHERE player_api_id = (SELECT player_api_id FROM Player WHERE weight = (SELECT MAX(weight) FROM Player) LIMIT 1) ORDER BY date DESC LIMIT 1",
+      "pred_sql": "SELECT pa.finishing, pa.curve FROM Player AS p INNER JOIN Player_Attributes AS pa ON p.player_api_id = pa.player_api_id WHERE p.weight = (SELECT MAX(weight) FROM Player) ORDER BY p.player_api_id ASC, pa.id ASC LIMIT 1",
       "match": false,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
-      "repair_attempted": true,
+      "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 144463.38749999995,
-      "input_tokens": 28408,
-      "output_tokens": 15167,
+      "latency_ms": 271.64340000308584,
+      "input_tokens": 15644,
+      "output_tokens": 8744,
       "gold_tables": [
         "Player_Attributes",
         "Player"
@@ -4968,7 +4968,7 @@
       ],
       "pred_row_count": 1,
       "gold_row_count": 1,
-      "comparison_reason": "ordered row 0 mismatch: gold=(98022, 13, 13), pred=(13, 13)"
+      "comparison_reason": "ordered row 0 mismatch: gold=(98022, 13, 13), pred=(12, 15)"
     },
     {
       "question_id": 1146,
@@ -4977,16 +4977,16 @@
       "dialect": "sqlite",
       "question": "Please provide the full name of the away team that scored the most goals.",
       "gold_sql": "SELECT t2.team_long_name FROM Match AS t1 INNER JOIN Team AS t2 ON t1.away_team_api_id = t2.team_api_id ORDER BY t1.away_team_goal DESC LIMIT 1",
-      "pred_sql": "SELECT t.team_long_name FROM Match m JOIN Team t ON m.away_team_api_id = t.team_api_id ORDER BY m.away_team_goal DESC LIMIT 1",
+      "pred_sql": "SELECT Team.team_long_name FROM Match JOIN Team ON Match.away_team_api_id = Team.team_api_id ORDER BY Match.away_team_goal DESC LIMIT 1",
       "match": true,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
-      "repair_attempted": true,
-      "first_pass_match": false,
-      "latency_ms": 59138.53350000136,
-      "input_tokens": 28662,
-      "output_tokens": 6162,
+      "repair_attempted": false,
+      "first_pass_match": true,
+      "latency_ms": 270.4654999979539,
+      "input_tokens": 15182,
+      "output_tokens": 1253,
       "gold_tables": [
         "Match",
         "Team"
@@ -5018,7 +5018,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 50353.971399999864,
+      "latency_ms": 387.20720000128495,
       "input_tokens": 15359,
       "output_tokens": 5001,
       "gold_tables": [
@@ -5051,7 +5051,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 65932.6488000006,
+      "latency_ms": 23.39909999864176,
       "input_tokens": 9058,
       "output_tokens": 7274,
       "gold_tables": [
@@ -5080,7 +5080,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 43254.27900000068,
+      "latency_ms": 20.656299999245675,
       "input_tokens": 8860,
       "output_tokens": 5701,
       "gold_tables": [
@@ -5103,16 +5103,16 @@
       "dialect": "sqlite",
       "question": "For patients with severe degree of thrombosis, list their ID, sex and disease the patient is diagnosed with.",
       "gold_sql": "SELECT DISTINCT T1.ID, T1.SEX, T1.Diagnosis FROM Patient AS T1 INNER JOIN Examination AS T2 ON T1.ID = T2.ID WHERE T2.Thrombosis = 2",
-      "pred_sql": "SELECT DISTINCT p.ID, p.SEX, p.Diagnosis FROM Patient p JOIN Examination e ON p.ID = e.ID WHERE e.Thrombosis = 2",
+      "pred_sql": "SELECT DISTINCT T1.ID, T1.SEX, T1.Diagnosis FROM Patient AS T1 INNER JOIN Examination AS T2 ON T1.ID = T2.ID WHERE T2.Thrombosis = 2",
       "match": true,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
-      "repair_attempted": true,
-      "first_pass_match": false,
-      "latency_ms": 108117.89900000076,
-      "input_tokens": 16021,
-      "output_tokens": 9696,
+      "repair_attempted": false,
+      "first_pass_match": true,
+      "latency_ms": 20.59670000016922,
+      "input_tokens": 8746,
+      "output_tokens": 5129,
       "gold_tables": [
         "Patient",
         "Examination"
@@ -5133,16 +5133,16 @@
       "dialect": "sqlite",
       "question": "The oldest SJS patient's medical laboratory work was completed on what date, and what age was the patient when they initially arrived at the hospital?",
       "gold_sql": "SELECT T1.Date, STRFTIME('%Y', T2.`First Date`) - STRFTIME('%Y', T2.Birthday),T2.Birthday FROM Laboratory AS T1 INNER JOIN Patient AS T2 ON T1.ID = T2.ID WHERE T2.Diagnosis = 'SJS' AND T2.Birthday IS NOT NULL ORDER BY T2.Birthday ASC LIMIT 1",
-      "pred_sql": "",
+      "pred_sql": "SELECT MIN(l.`Date`), (strftime('%Y', p.`First Date`) - strftime('%Y', p.Birthday)) FROM Patient p INNER JOIN Laboratory l ON p.ID = l.ID WHERE p.ID = (SELECT p2.ID FROM Patient p2 INNER JOIN Laboratory l2 ON p2.ID = l2.ID WHERE p2.Diagnosis = 'SJS' ORDER BY p2.Birthday ASC LIMIT 1)",
       "match": false,
       "schema_recall": true,
-      "error_kind": "invalid_sql",
-      "error_message": "generate_sql produced no SQL",
-      "repair_attempted": true,
+      "error_kind": null,
+      "error_message": "",
+      "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 226609.81699999864,
-      "input_tokens": 23424,
-      "output_tokens": 25852,
+      "latency_ms": 26.85829999973066,
+      "input_tokens": 9569,
+      "output_tokens": 18441,
       "gold_tables": [
         "Laboratory",
         "Patient"
@@ -5152,9 +5152,9 @@
         "Examination",
         "Laboratory"
       ],
-      "pred_row_count": 0,
+      "pred_row_count": 1,
       "gold_row_count": 1,
-      "comparison_reason": "pred failed: invalid_sql"
+      "comparison_reason": "ordered row 0 mismatch: gold=('1981-07-31', 69, '1917-04-18'), pred=('1981-07-31', 69)"
     },
     {
       "question_id": 1185,
@@ -5170,7 +5170,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 91633.68300000002,
+      "latency_ms": 25.457200001255842,
       "input_tokens": 9405,
       "output_tokens": 8295,
       "gold_tables": [
@@ -5200,7 +5200,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 26173.312099999748,
+      "latency_ms": 19.32160000069416,
       "input_tokens": 9068,
       "output_tokens": 2812,
       "gold_tables": [
@@ -5222,24 +5222,28 @@
       "dialect": "sqlite",
       "question": "Was the patient with the number 57266's uric acid within a normal range?",
       "gold_sql": "SELECT CASE WHEN (T1.SEX = 'F' AND T2.UA > 6.5) OR (T1.SEX = 'M' AND T2.UA > 8.0) THEN true ELSE false END FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T1.ID = 57266",
-      "pred_sql": "",
+      "pred_sql": "SELECT CASE WHEN EXISTS (SELECT 1 FROM Laboratory AS L INNER JOIN Patient AS P ON L.ID = P.ID WHERE L.ID = 57266 AND ((P.SEX = 'M' AND L.UA > 8.0) OR (P.SEX = 'F' AND L.UA > 6.5))) THEN 'Yes' ELSE 'No' END",
       "match": false,
-      "schema_recall": false,
-      "error_kind": "pipeline_exception",
-      "error_message": "grok CLI error: You\u2019ve hit the rate limit for your plan. Upgrade your account or try again later.",
+      "schema_recall": true,
+      "error_kind": null,
+      "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 23265.93529999991,
-      "input_tokens": 0,
-      "output_tokens": 0,
+      "latency_ms": 22.88559999942663,
+      "input_tokens": 9758,
+      "output_tokens": 5869,
       "gold_tables": [
         "Patient",
         "Laboratory"
       ],
-      "retrieved_tables": [],
-      "pred_row_count": 0,
-      "gold_row_count": 0,
-      "comparison_reason": "pipeline raised: ProviderError('grok CLI error: You\u2019ve hit the rate limit for your plan. Upgrade your account or try again later.')"
+      "retrieved_tables": [
+        "Examination",
+        "Patient",
+        "Laboratory"
+      ],
+      "pred_row_count": 1,
+      "gold_row_count": 67,
+      "comparison_reason": "set mismatch (unique rows differ): |gold|=2, |pred|=1"
     },
     {
       "question_id": 1208,
@@ -5255,7 +5259,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 40802.97509999946,
+      "latency_ms": 24.1822999996657,
       "input_tokens": 9355,
       "output_tokens": 3834,
       "gold_tables": [
@@ -5285,7 +5289,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 21271.453499999552,
+      "latency_ms": 29.911099998571444,
       "input_tokens": 8998,
       "output_tokens": 2325,
       "gold_tables": [
@@ -5315,7 +5319,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 133976.5700000007,
+      "latency_ms": 26.261599999997998,
       "input_tokens": 595,
       "output_tokens": 9282,
       "gold_tables": [
@@ -5345,7 +5349,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 78506.12759999967,
+      "latency_ms": 25.902400000632042,
       "input_tokens": 10154,
       "output_tokens": 8607,
       "gold_tables": [
@@ -5375,7 +5379,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 95696.62830000016,
+      "latency_ms": 32.34829999928479,
       "input_tokens": 8992,
       "output_tokens": 7681,
       "gold_tables": [
@@ -5405,7 +5409,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 47680.03309999949,
+      "latency_ms": 31.330500001786277,
       "input_tokens": 9100,
       "output_tokens": 6415,
       "gold_tables": [
@@ -5435,7 +5439,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 23845.961799999714,
+      "latency_ms": 36.65160000309697,
       "input_tokens": 13547,
       "output_tokens": 2001,
       "gold_tables": [
@@ -5466,7 +5470,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 63216.59340000042,
+      "latency_ms": 21.914700002525933,
       "input_tokens": 8755,
       "output_tokens": 7210,
       "gold_tables": [
@@ -5497,7 +5501,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 51042.80139999901,
+      "latency_ms": 34.54269999929238,
       "input_tokens": 9229,
       "output_tokens": 4901,
       "gold_tables": [
@@ -5520,16 +5524,16 @@
       "dialect": "sqlite",
       "question": "For the patients with an abnormal Ig M level, what is the most common disease they are diagnosed with?",
       "gold_sql": "SELECT T1.Diagnosis FROM Patient AS T1 INNER JOIN Laboratory AS T2 ON T1.ID = T2.ID WHERE T2.IGM NOT BETWEEN 40 AND 400 GROUP BY T1.Diagnosis ORDER BY COUNT(T1.Diagnosis) DESC LIMIT 1",
-      "pred_sql": "",
+      "pred_sql": "SELECT `Diagnosis` FROM `Examination` WHERE `ID` IN (SELECT DISTINCT `ID` FROM `Laboratory` WHERE `IGM` <= 40 OR `IGM` >= 400) GROUP BY `Diagnosis` ORDER BY COUNT(`Diagnosis`) DESC LIMIT 1",
       "match": false,
       "schema_recall": true,
-      "error_kind": "invalid_sql",
-      "error_message": "generate_sql produced no SQL",
-      "repair_attempted": true,
+      "error_kind": null,
+      "error_message": "",
+      "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 141561.2938000013,
-      "input_tokens": 16890,
-      "output_tokens": 13289,
+      "latency_ms": 32.13250000044354,
+      "input_tokens": 8827,
+      "output_tokens": 8052,
       "gold_tables": [
         "Patient",
         "Laboratory"
@@ -5539,9 +5543,9 @@
         "Laboratory",
         "Patient"
       ],
-      "pred_row_count": 0,
+      "pred_row_count": 1,
       "gold_row_count": 1,
-      "comparison_reason": "pred failed: invalid_sql"
+      "comparison_reason": "ordered row 0 mismatch: gold=('RA',), pred=('SLE',)"
     },
     {
       "question_id": 1257,
@@ -5557,7 +5561,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 62088.310200000706,
+      "latency_ms": 33.23819999786792,
       "input_tokens": 9058,
       "output_tokens": 7607,
       "gold_tables": [
@@ -5587,7 +5591,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 47683.304100000896,
+      "latency_ms": 26.862399998208275,
       "input_tokens": 9066,
       "output_tokens": 5943,
       "gold_tables": [
@@ -5617,7 +5621,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 41127.13379999877,
+      "latency_ms": 24.53879999666242,
       "input_tokens": 8866,
       "output_tokens": 5372,
       "gold_tables": [
@@ -5647,7 +5651,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 60789.75910000008,
+      "latency_ms": 26.658700000552926,
       "input_tokens": 9158,
       "output_tokens": 7750,
       "gold_tables": [
@@ -5678,7 +5682,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 15347.772399998576,
+      "latency_ms": 21.8910000003234,
       "input_tokens": 8957,
       "output_tokens": 1130,
       "gold_tables": [
@@ -5713,7 +5717,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 30232.249800001227,
+      "latency_ms": 22.40439999877708,
       "input_tokens": 9595,
       "output_tokens": 3462,
       "gold_tables": [
@@ -5748,7 +5752,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 14496.425499999532,
+      "latency_ms": 19.339500002388377,
       "input_tokens": 8997,
       "output_tokens": 1121,
       "gold_tables": [
@@ -5782,7 +5786,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 19097.674799999368,
+      "latency_ms": 21.033500001067296,
       "input_tokens": 9242,
       "output_tokens": 1632,
       "gold_tables": [
@@ -5817,7 +5821,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 14653.047499999957,
+      "latency_ms": 20.94529999885708,
       "input_tokens": 9140,
       "output_tokens": 1169,
       "gold_tables": [
@@ -5852,7 +5856,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 86038.27929999898,
+      "latency_ms": 23.080000002664747,
       "input_tokens": 9493,
       "output_tokens": 6922,
       "gold_tables": [
@@ -5887,7 +5891,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 25915.95210000014,
+      "latency_ms": 18.66679999875487,
       "input_tokens": 8546,
       "output_tokens": 1926,
       "gold_tables": [
@@ -5919,7 +5923,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 15989.524399999937,
+      "latency_ms": 18.71720000053756,
       "input_tokens": 8744,
       "output_tokens": 1257,
       "gold_tables": [
@@ -5945,16 +5949,16 @@
       "dialect": "sqlite",
       "question": "Which student has been entrusted to manage the budget for the Yearly Kickoff?",
       "gold_sql": "SELECT T4.first_name, T4.last_name FROM event AS T1 INNER JOIN budget AS T2 ON T1.event_id = T2.link_to_event INNER JOIN expense AS T3 ON T2.budget_id = T3.link_to_budget INNER JOIN member AS T4 ON T3.link_to_member = T4.member_id WHERE T1.event_name = 'Yearly Kickoff'",
-      "pred_sql": "SELECT DISTINCT m.first_name || ' ' || m.last_name AS full_name FROM event e JOIN budget b ON b.link_to_event = e.event_id JOIN expense ex ON ex.link_to_budget = b.budget_id JOIN member m ON m.member_id = ex.link_to_member WHERE e.event_name = 'Yearly Kickoff'",
-      "match": false,
+      "pred_sql": "SELECT T1.first_name, T1.last_name FROM member AS T1 INNER JOIN expense AS T2 ON T1.member_id = T2.link_to_member INNER JOIN budget AS T3 ON T2.link_to_budget = T3.budget_id INNER JOIN event AS T4 ON T3.link_to_event = T4.event_id WHERE T4.event_name = 'Yearly Kickoff'",
+      "match": true,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
-      "repair_attempted": true,
-      "first_pass_match": false,
-      "latency_ms": 125454.24670000102,
-      "input_tokens": 19739,
-      "output_tokens": 11010,
+      "repair_attempted": false,
+      "first_pass_match": true,
+      "latency_ms": 18.899799997598166,
+      "input_tokens": 9348,
+      "output_tokens": 5060,
       "gold_tables": [
         "event",
         "budget",
@@ -5971,9 +5975,9 @@
         "major",
         "zip_code"
       ],
-      "pred_row_count": 2,
+      "pred_row_count": 4,
       "gold_row_count": 4,
-      "comparison_reason": "set mismatch (unique rows differ): |gold|=2, |pred|=2"
+      "comparison_reason": ""
     },
     {
       "question_id": 1390,
@@ -5989,7 +5993,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 41702.35179999872,
+      "latency_ms": 21.880399999645306,
       "input_tokens": 8612,
       "output_tokens": 2795,
       "gold_tables": [
@@ -6016,16 +6020,16 @@
       "dialect": "sqlite",
       "question": "Did Maya Mclean attend the 'Women's Soccer' event?",
       "gold_sql": "SELECT CASE WHEN T3.event_name = 'Women''s Soccer' THEN 'YES' END AS result FROM member AS T1 INNER JOIN attendance AS T2 ON T1.member_id = T2.link_to_member INNER JOIN event AS T3 ON T2.link_to_event = T3.event_id WHERE T1.first_name = 'Maya' AND T1.last_name = 'Mclean'",
-      "pred_sql": "SELECT CASE WHEN EXISTS (SELECT 1 FROM attendance a JOIN member m ON a.link_to_member = m.member_id JOIN event e ON a.link_to_event = e.event_id WHERE m.first_name = 'Maya' AND m.last_name = 'Mclean' AND e.event_name = 'Women''s Soccer') THEN 'Yes' ELSE 'No' END AS attended",
+      "pred_sql": "SELECT CASE WHEN EXISTS (SELECT 1 FROM attendance a INNER JOIN member m ON a.link_to_member = m.member_id INNER JOIN event e ON a.link_to_event = e.event_id WHERE m.first_name = 'Maya' AND m.last_name = 'Mclean' AND e.event_name = 'Women''s Soccer') THEN 'Yes' ELSE 'No' END AS attended",
       "match": false,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
-      "repair_attempted": true,
+      "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 68909.07129999869,
-      "input_tokens": 16737,
-      "output_tokens": 7280,
+      "latency_ms": 25.309099997684825,
+      "input_tokens": 9016,
+      "output_tokens": 3500,
       "gold_tables": [
         "member",
         "attendance",
@@ -6059,7 +6063,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 28927.571899999748,
+      "latency_ms": 21.30609999949229,
       "input_tokens": 9212,
       "output_tokens": 2972,
       "gold_tables": [
@@ -6094,7 +6098,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 42303.264500000296,
+      "latency_ms": 21.159899999474874,
       "input_tokens": 13803,
       "output_tokens": 5141,
       "gold_tables": [
@@ -6130,7 +6134,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 11045.492600000216,
+      "latency_ms": 17.837800001871074,
       "input_tokens": 8917,
       "output_tokens": 608,
       "gold_tables": [
@@ -6164,7 +6168,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 39476.4823000005,
+      "latency_ms": 19.81750000049942,
       "input_tokens": 8972,
       "output_tokens": 4350,
       "gold_tables": [
@@ -6192,16 +6196,16 @@
       "dialect": "sqlite",
       "question": "State what kind of expenses that Sacha Harrison incurred?",
       "gold_sql": "SELECT T2.expense_description FROM member AS T1 INNER JOIN expense AS T2 ON T1.member_id = T2.link_to_member WHERE T1.first_name = 'Sacha' AND T1.last_name = 'Harrison'",
-      "pred_sql": "SELECT DISTINCT expense.expense_description FROM expense JOIN member ON expense.link_to_member = member.member_id WHERE member.first_name = 'Sacha' AND member.last_name = 'Harrison'",
+      "pred_sql": "SELECT DISTINCT expense_description FROM expense INNER JOIN member ON expense.link_to_member = member.member_id WHERE member.first_name = 'Sacha' AND member.last_name = 'Harrison'",
       "match": true,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
-      "repair_attempted": true,
-      "first_pass_match": false,
-      "latency_ms": 91598.83769999942,
-      "input_tokens": 19627,
-      "output_tokens": 6747,
+      "repair_attempted": false,
+      "first_pass_match": true,
+      "latency_ms": 19.434699999692384,
+      "input_tokens": 9531,
+      "output_tokens": 3212,
       "gold_tables": [
         "member",
         "expense"
@@ -6234,7 +6238,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 22654.787399998895,
+      "latency_ms": 19.34400000027381,
       "input_tokens": 10523,
       "output_tokens": 1545,
       "gold_tables": [
@@ -6269,7 +6273,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 18605.788799999573,
+      "latency_ms": 20.62659999864991,
       "input_tokens": 9250,
       "output_tokens": 1946,
       "gold_tables": [
@@ -6299,16 +6303,16 @@
       "dialect": "sqlite",
       "question": "In 2012, who had the least consumption in LAM?",
       "gold_sql": "SELECT T1.CustomerID FROM customers AS T1 INNER JOIN yearmonth AS T2 ON T1.CustomerID = T2.CustomerID WHERE T1.Segment = 'LAM' AND SUBSTR(T2.Date, 1, 4) = '2012' GROUP BY T1.CustomerID ORDER BY SUM(T2.Consumption) ASC LIMIT 1",
-      "pred_sql": "SELECT y.CustomerID, SUM(y.Consumption) AS total_consumption FROM yearmonth y JOIN customers c ON y.CustomerID = c.CustomerID WHERE c.Segment = 'LAM' AND y.Date BETWEEN '201201' AND '201212' GROUP BY y.CustomerID ORDER BY total_consumption ASC LIMIT 1",
-      "match": false,
+      "pred_sql": "SELECT `customers`.`CustomerID` FROM `yearmonth` INNER JOIN `customers` ON `yearmonth`.`CustomerID` = `customers`.`CustomerID` WHERE `yearmonth`.`Date` BETWEEN '201201' AND '201212' AND `customers`.`Segment` = 'LAM' GROUP BY `customers`.`CustomerID` ORDER BY SUM(`yearmonth`.`Consumption`) ASC LIMIT 1",
+      "match": true,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
-      "repair_attempted": true,
-      "first_pass_match": false,
-      "latency_ms": 123250.80640000124,
-      "input_tokens": 14272,
-      "output_tokens": 9470,
+      "repair_attempted": false,
+      "first_pass_match": true,
+      "latency_ms": 397.13209999899846,
+      "input_tokens": 7471,
+      "output_tokens": 7570,
       "gold_tables": [
         "customers",
         "yearmonth"
@@ -6322,7 +6326,7 @@
       ],
       "pred_row_count": 1,
       "gold_row_count": 1,
-      "comparison_reason": "ordered row 0 mismatch: gold=(47273,), pred=(47273, 0.74)"
+      "comparison_reason": ""
     },
     {
       "question_id": 1473,
@@ -6338,7 +6342,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 39545.86539999946,
+      "latency_ms": 469.37740000066697,
       "input_tokens": 7473,
       "output_tokens": 3664,
       "gold_tables": [
@@ -6370,7 +6374,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 36945.04339999912,
+      "latency_ms": 447.2600999979477,
       "input_tokens": 8380,
       "output_tokens": 3680,
       "gold_tables": [
@@ -6402,7 +6406,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 11701.988700002403,
+      "latency_ms": 641.1059999991267,
       "input_tokens": 7284,
       "output_tokens": 1040,
       "gold_tables": [
@@ -6427,16 +6431,16 @@
       "dialect": "sqlite",
       "question": "What was the gas consumption peak month for SME customers in 2013?",
       "gold_sql": "SELECT SUBSTR(T2.Date, 5, 2) FROM customers AS T1 INNER JOIN yearmonth AS T2 ON T1.CustomerID = T2.CustomerID WHERE SUBSTR(T2.Date, 1, 4) = '2013' AND T1.Segment = 'SME' GROUP BY SUBSTR(T2.Date, 5, 2) ORDER BY SUM(T2.Consumption) DESC LIMIT 1",
-      "pred_sql": "SELECT ym.Date, SUM(ym.Consumption) AS total_consumption FROM yearmonth ym JOIN customers c ON ym.CustomerID = c.CustomerID WHERE c.Segment = 'SME' AND ym.Date BETWEEN '201301' AND '201312' GROUP BY ym.Date ORDER BY total_consumption DESC LIMIT 1",
+      "pred_sql": "SELECT y.Date FROM yearmonth AS y INNER JOIN customers AS c ON y.CustomerID = c.CustomerID WHERE y.Date BETWEEN '201301' AND '201312' AND c.Segment = 'SME' GROUP BY y.Date ORDER BY SUM(y.Consumption) DESC LIMIT 1",
       "match": false,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
-      "repair_attempted": true,
+      "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 93250.54290000116,
-      "input_tokens": 15875,
-      "output_tokens": 9364,
+      "latency_ms": 594.8996000006446,
+      "input_tokens": 7735,
+      "output_tokens": 4421,
       "gold_tables": [
         "customers",
         "yearmonth"
@@ -6450,7 +6454,7 @@
       ],
       "pred_row_count": 1,
       "gold_row_count": 1,
-      "comparison_reason": "ordered row 0 mismatch: gold=('04',), pred=('201304', 126047776.92)"
+      "comparison_reason": "ordered row 0 mismatch: gold=('04',), pred=('201304',)"
     },
     {
       "question_id": 1484,
@@ -6459,16 +6463,16 @@
       "dialect": "sqlite",
       "question": "How many more \"discount\" gas stations does the Czech Republic have compared to Slovakia?",
       "gold_sql": "SELECT SUM(IIF(Country = 'CZE', 1, 0)) - SUM(IIF(Country = 'SVK', 1, 0)) FROM gasstations WHERE Segment = 'Discount'",
-      "pred_sql": "",
-      "match": false,
+      "pred_sql": "SELECT SUM(CASE WHEN Country = 'CZE' THEN 1 ELSE 0 END) - SUM(CASE WHEN Country = 'SVK' THEN 1 ELSE 0 END) FROM gasstations WHERE Segment = 'Discount'",
+      "match": true,
       "schema_recall": true,
-      "error_kind": "invalid_sql",
-      "error_message": "generate_sql produced no SQL",
-      "repair_attempted": true,
-      "first_pass_match": false,
-      "latency_ms": 125458.079,
-      "input_tokens": 16389,
-      "output_tokens": 11155,
+      "error_kind": null,
+      "error_message": "",
+      "repair_attempted": false,
+      "first_pass_match": true,
+      "latency_ms": 26.035599999886472,
+      "input_tokens": 7909,
+      "output_tokens": 5707,
       "gold_tables": [
         "gasstations"
       ],
@@ -6479,9 +6483,9 @@
         "yearmonth",
         "products"
       ],
-      "pred_row_count": 0,
+      "pred_row_count": 1,
       "gold_row_count": 1,
-      "comparison_reason": "pred failed: invalid_sql"
+      "comparison_reason": ""
     },
     {
       "question_id": 1486,
@@ -6497,7 +6501,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 27045.305800002097,
+      "latency_ms": 37.66410000025644,
       "input_tokens": 7704,
       "output_tokens": 2824,
       "gold_tables": [
@@ -6528,7 +6532,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 57090.95679999882,
+      "latency_ms": 82.1959999993851,
       "input_tokens": 8781,
       "output_tokens": 6244,
       "gold_tables": [
@@ -6552,16 +6556,16 @@
       "dialect": "sqlite",
       "question": "Please list the product description of the products consumed in September, 2013.",
       "gold_sql": "SELECT T3.Description FROM transactions_1k AS T1 INNER JOIN yearmonth AS T2 ON T1.CustomerID = T2.CustomerID INNER JOIN products AS T3 ON T1.ProductID = T3.ProductID WHERE T2.Date = '201309'",
-      "pred_sql": "SELECT DISTINCT p.Description FROM products p JOIN transactions_1k t ON t.ProductID = p.ProductID JOIN yearmonth ym ON ym.CustomerID = t.CustomerID WHERE ym.Date = '201309'",
+      "pred_sql": "SELECT DISTINCT t3.Description FROM yearmonth AS t1 INNER JOIN transactions_1k AS t2 ON t1.CustomerID = t2.CustomerID INNER JOIN products AS t3 ON t2.ProductID = t3.ProductID WHERE SUBSTR(t1.Date, 1, 6) = '201309'",
       "match": true,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
-      "repair_attempted": true,
-      "first_pass_match": false,
-      "latency_ms": 192877.08070000008,
-      "input_tokens": 13416,
-      "output_tokens": 23336,
+      "repair_attempted": false,
+      "first_pass_match": true,
+      "latency_ms": 108.48080000141636,
+      "input_tokens": 17913,
+      "output_tokens": 8353,
       "gold_tables": [
         "transactions_1k",
         "yearmonth",
@@ -6592,7 +6596,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 194859.5572999984,
+      "latency_ms": 108.62959999940358,
       "input_tokens": 1280,
       "output_tokens": 8572,
       "gold_tables": [
@@ -6618,16 +6622,16 @@
       "dialect": "sqlite",
       "question": "Please list the product descriptions of the transactions taken place in the gas stations in the Czech Republic.",
       "gold_sql": "SELECT DISTINCT T3.Description FROM transactions_1k AS T1 INNER JOIN gasstations AS T2 ON T1.GasStationID = T2.GasStationID INNER JOIN products AS T3 ON T1.ProductID = T3.ProductID WHERE T2.Country = 'CZE'",
-      "pred_sql": "",
-      "match": false,
+      "pred_sql": "SELECT products.Description FROM transactions_1k INNER JOIN gasstations ON transactions_1k.GasStationID = gasstations.GasStationID INNER JOIN products ON transactions_1k.ProductID = products.ProductID WHERE gasstations.Country = 'CZE'",
+      "match": true,
       "schema_recall": true,
-      "error_kind": "invalid_sql",
-      "error_message": "generate_sql produced no SQL",
-      "repair_attempted": true,
-      "first_pass_match": false,
-      "latency_ms": 73551.3624999985,
-      "input_tokens": 12278,
-      "output_tokens": 7474,
+      "error_kind": null,
+      "error_message": "",
+      "repair_attempted": false,
+      "first_pass_match": true,
+      "latency_ms": 26.385699999082135,
+      "input_tokens": 7715,
+      "output_tokens": 5304,
       "gold_tables": [
         "transactions_1k",
         "gasstations",
@@ -6640,9 +6644,9 @@
         "customers",
         "yearmonth"
       ],
-      "pred_row_count": 0,
+      "pred_row_count": 933,
       "gold_row_count": 21,
-      "comparison_reason": "pred failed: invalid_sql"
+      "comparison_reason": ""
     },
     {
       "question_id": 1515,
@@ -6658,7 +6662,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 70309.48799999896,
+      "latency_ms": 19.64389999920968,
       "input_tokens": 7729,
       "output_tokens": 7672,
       "gold_tables": [
@@ -6690,7 +6694,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 37723.831499999505,
+      "latency_ms": 19.560400000045775,
       "input_tokens": 7958,
       "output_tokens": 2387,
       "gold_tables": [
@@ -6715,16 +6719,16 @@
       "dialect": "sqlite",
       "question": "What is the percentage of the customers who used EUR in 2012/8/25?",
       "gold_sql": "SELECT CAST(SUM(IIF(T2.Currency = 'EUR', 1, 0)) AS FLOAT) * 100 / COUNT(T1.CustomerID) FROM transactions_1k AS T1 INNER JOIN customers AS T2 ON T1.CustomerID = T2.CustomerID WHERE T1.Date = '2012-08-25'",
-      "pred_sql": "",
+      "pred_sql": "SELECT CAST(SUM(IIF(Currency = 'EUR', 1, 0)) AS REAL) * 100 / COUNT(*) FROM (SELECT c.Currency AS Currency FROM transactions_1k t JOIN customers c ON t.CustomerID = c.CustomerID WHERE t.Date = '2012-08-25' GROUP BY c.CustomerID)",
       "match": false,
       "schema_recall": true,
-      "error_kind": "invalid_sql",
-      "error_message": "generate_sql produced no SQL",
+      "error_kind": null,
+      "error_message": "",
       "repair_attempted": true,
       "first_pass_match": false,
-      "latency_ms": 170977.92889999982,
-      "input_tokens": 12734,
-      "output_tokens": 12245,
+      "latency_ms": 31.942400000843918,
+      "input_tokens": 13277,
+      "output_tokens": 11855,
       "gold_tables": [
         "transactions_1k",
         "customers"
@@ -6736,9 +6740,9 @@
         "gasstations",
         "products"
       ],
-      "pred_row_count": 0,
+      "pred_row_count": 1,
       "gold_row_count": 1,
-      "comparison_reason": "pred failed: invalid_sql"
+      "comparison_reason": "set mismatch (unique rows differ): |gold|=1, |pred|=1"
     },
     {
       "question_id": 1526,
@@ -6747,16 +6751,16 @@
       "dialect": "sqlite",
       "question": "For the customer who paid 634.8 in 2012/8/25, what was the consumption decrease rate from Year 2012 to 2013?",
       "gold_sql": "SELECT CAST(SUM(IIF(SUBSTRING(Date, 1, 4) = '2012', Consumption, 0)) - SUM(IIF(SUBSTRING(Date, 1, 4) = '2013', Consumption, 0)) AS FLOAT) / SUM(IIF(SUBSTRING(Date, 1, 4) = '2012', Consumption, 0)) FROM yearmonth WHERE CustomerID = ( SELECT T1.CustomerID FROM transactions_1k AS T1 INNER JOIN gasstations AS T2 ON T1.GasStationID = T2.GasStationID WHERE T1.Date = '2012-08-25' AND T1.Price  = 1513.12 )",
-      "pred_sql": "SELECT (SUM(CASE WHEN substr(Date,1,4)='2012' THEN Consumption ELSE 0 END) - SUM(CASE WHEN substr(Date,1,4)='2013' THEN Consumption ELSE 0 END)) * 1.0 / NULLIF(SUM(CASE WHEN substr(Date,1,4)='2012' THEN Consumption ELSE 0 END),0) AS consumption_decrease_rate FROM yearmonth WHERE CustomerID = (SELECT CustomerID FROM transactions_1k WHERE Date='2012-08-25' AND Price=634.8 LIMIT 1)",
+      "pred_sql": "SELECT CAST((SUM(CASE WHEN ym.`Date` LIKE '2012%' THEN ym.`Consumption` ELSE 0 END) - SUM(CASE WHEN ym.`Date` LIKE '2013%' THEN ym.`Consumption` ELSE 0 END)) AS REAL) / SUM(CASE WHEN ym.`Date` LIKE '2012%' THEN ym.`Consumption` ELSE 0 END) FROM `yearmonth` AS ym WHERE ym.`CustomerID` = (SELECT t.`CustomerID` FROM `transactions_1k` AS t WHERE t.`Date` = '2012-08-25' AND t.`Price` = 634.8 LIMIT 1)",
       "match": false,
       "schema_recall": true,
       "error_kind": null,
       "error_message": "",
-      "repair_attempted": true,
+      "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 188862.60819999734,
-      "input_tokens": 16917,
-      "output_tokens": 19437,
+      "latency_ms": 129.9704999983078,
+      "input_tokens": 8108,
+      "output_tokens": 5740,
       "gold_tables": [
         "yearmonth",
         "transactions_1k",
@@ -6787,7 +6791,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": true,
-      "latency_ms": 19833.20889999959,
+      "latency_ms": 25.41420000125072,
       "input_tokens": 7286,
       "output_tokens": 1852,
       "gold_tables": [
@@ -6818,7 +6822,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 96957.14940000107,
+      "latency_ms": 119.4748999987496,
       "input_tokens": 7761,
       "output_tokens": 7480,
       "gold_tables": [
@@ -6851,7 +6855,7 @@
       "error_message": "",
       "repair_attempted": false,
       "first_pass_match": false,
-      "latency_ms": 37737.756399998034,
+      "latency_ms": 98.02230000059353,
       "input_tokens": 7963,
       "output_tokens": 4719,
       "gold_tables": [
