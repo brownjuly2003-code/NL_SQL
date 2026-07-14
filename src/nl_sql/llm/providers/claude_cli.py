@@ -44,6 +44,10 @@ from nl_sql.llm.providers.base import (
 # plan quota. Names are the Claude Code tool names, not the grok ones.
 _DISALLOWED_TOOLS = "Bash,Read,Write,Edit,Glob,Grep,WebFetch,WebSearch,Task,TodoWrite,NotebookEdit"
 
+# A dropped process spawn is not an answer. See the retry loop in generate().
+_SPAWN_ATTEMPTS = 3
+_SPAWN_BACKOFF_SECONDS = 2.0
+
 
 class ClaudeCliProvider:
     name: str = "claude_cli"
@@ -78,26 +82,54 @@ class ClaudeCliProvider:
             argv += ["--system-prompt", req.system]
         return argv
 
+    def _run_once(self, req: GenerateRequest, tmp: str) -> subprocess.CompletedProcess[str]:
+        return subprocess.run(
+            self._argv(req),
+            input=req.prompt,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            timeout=self._timeout,
+            cwd=tmp,
+            check=False,
+        )
+
     def generate(self, req: GenerateRequest) -> GenerateResponse:
         started = time.perf_counter()
-        with tempfile.TemporaryDirectory(prefix="claude-gen-") as tmp:
-            try:
-                proc = subprocess.run(
-                    self._argv(req),
-                    input=req.prompt,
-                    capture_output=True,
-                    text=True,
-                    encoding="utf-8",
-                    timeout=self._timeout,
-                    cwd=tmp,
-                    check=False,
-                )
-            except FileNotFoundError as exc:
-                raise ProviderError(f"claude CLI not found at {self._cli_path!r}") from exc
-            except subprocess.TimeoutExpired as exc:
-                raise ProviderError(
-                    f"claude CLI timed out after {self._timeout}s for model={self.model}"
-                ) from exc
+        proc: subprocess.CompletedProcess[str] | None = None
+        last_error = ""
+        # Spawning the CLI means cmd.exe -> node.exe, and Windows drops that under
+        # load: with several eval runs going, 24 of 200 questions died on a transient
+        # "not found" / "This version of ... node" before the model was ever called,
+        # and scored as misses. The failure is in the spawn, not the answer, so it is
+        # worth retrying rather than surfacing.
+        for attempt in range(_SPAWN_ATTEMPTS):
+            with tempfile.TemporaryDirectory(prefix="claude-gen-") as tmp:
+                try:
+                    proc = self._run_once(req, tmp)
+                except FileNotFoundError as exc:
+                    last_error = f"claude CLI not found at {self._cli_path!r}: {exc}"
+                    proc = None
+                except OSError as exc:
+                    last_error = f"claude CLI failed to spawn: {exc}"
+                    proc = None
+                except subprocess.TimeoutExpired as exc:
+                    raise ProviderError(
+                        f"claude CLI timed out after {self._timeout}s for model={self.model}"
+                    ) from exc
+            if proc is not None and proc.stdout and proc.stdout.lstrip().startswith("{"):
+                break
+            if proc is not None:
+                last_error = (proc.stderr or proc.stdout or "").strip()[:200]
+                proc = None
+            if attempt < _SPAWN_ATTEMPTS - 1:
+                time.sleep(_SPAWN_BACKOFF_SECONDS * (attempt + 1))
+
+        if proc is None:
+            raise ProviderError(
+                f"claude CLI produced no usable output after {_SPAWN_ATTEMPTS} attempts: "
+                f"{last_error}"
+            )
 
         stdout = proc.stdout or ""
         try:

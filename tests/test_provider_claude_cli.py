@@ -102,3 +102,39 @@ def test_claude_cli_surfaces_error_envelope(monkeypatch: pytest.MonkeyPatch) -> 
 
     with pytest.raises(ProviderError, match="error_max_turns"):
         ClaudeCliProvider().generate(GenerateRequest(prompt="q"))
+
+
+def test_claude_cli_retries_a_dropped_spawn(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Spawning the CLI means cmd.exe -> node.exe, and Windows drops that under load.
+    On the first n=200 run, 24 questions died on a transient "not found" before the
+    model was ever called and scored as misses — a harness failure masquerading as a
+    wrong answer. The spawn is worth retrying; the answer is not."""
+    monkeypatch.setattr("nl_sql.llm.providers.claude_cli.time.sleep", lambda _s: None)
+    attempts: list[int] = []
+
+    def _flaky(argv: list[str], **kwargs: Any) -> _FakeCompleted:
+        attempts.append(1)
+        if len(attempts) == 1:
+            raise FileNotFoundError("claude.cmd")
+        return _FakeCompleted(_ENVELOPE)
+
+    monkeypatch.setattr(subprocess, "run", _flaky)
+
+    response = ClaudeCliProvider().generate(GenerateRequest(prompt="q"))
+
+    assert "SELECT 1;" in response.text
+    assert len(attempts) == 2, "the dropped spawn must be retried, not surfaced"
+
+
+def test_claude_cli_gives_up_after_repeated_spawn_failures(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr("nl_sql.llm.providers.claude_cli.time.sleep", lambda _s: None)
+
+    def _always_fail(argv: list[str], **kwargs: Any) -> _FakeCompleted:
+        raise FileNotFoundError("claude.cmd")
+
+    monkeypatch.setattr(subprocess, "run", _always_fail)
+
+    with pytest.raises(ProviderError, match="no usable output"):
+        ClaudeCliProvider().generate(GenerateRequest(prompt="q"))
