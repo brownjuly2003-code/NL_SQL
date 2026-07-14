@@ -67,6 +67,7 @@ class ClaudeCliProvider:
         self._cli_path = cli_path
         self._timeout = timeout_seconds
         self._max_turns = max_turns
+        self._cwd: str | None = None
 
     def _argv(self, req: GenerateRequest) -> list[str]:
         argv = [
@@ -90,7 +91,28 @@ class ClaudeCliProvider:
             argv += ["--system-prompt", req.system]
         return argv
 
-    def _run_once(self, req: GenerateRequest, tmp: str) -> subprocess.CompletedProcess[str]:
+    def _workdir(self) -> str:
+        """One scratch directory for the whole run, created once.
+
+        It used to be a fresh `TemporaryDirectory` per call, and that was the bug behind
+        the "claude CLI not found" misses. The CLI outlives `subprocess.run` — cmd.exe
+        hands off to node.exe, which keeps the cwd handle open a moment longer — so the
+        context manager's cleanup hit `WinError 32: being used by another process`, and
+        the NEXT call then tried to spawn into a directory Windows was still tearing
+        down and got `WinError 2: cannot find the file`. Python raises that as
+        FileNotFoundError, and this module blamed the CLI path in the message, which is
+        why the failure read as "the binary is missing" when the binary was fine and the
+        cwd was not. Retrying could not help: each attempt rebuilt the same race.
+
+        A directory that is created once and never deleted mid-run has no race to lose.
+        It stays a scratch dir, so the model still cannot see the repository (no
+        CLAUDE.md, no source) — which is the only reason cwd is redirected at all.
+        """
+        if self._cwd is None:
+            self._cwd = tempfile.mkdtemp(prefix="claude-gen-")
+        return self._cwd
+
+    def _run_once(self, req: GenerateRequest) -> subprocess.CompletedProcess[str]:
         return subprocess.run(
             self._argv(req),
             input=req.prompt,
@@ -98,7 +120,7 @@ class ClaudeCliProvider:
             text=True,
             encoding="utf-8",
             timeout=self._timeout,
-            cwd=tmp,
+            cwd=self._workdir(),
             check=False,
         )
 
@@ -106,25 +128,25 @@ class ClaudeCliProvider:
         started = time.perf_counter()
         proc: subprocess.CompletedProcess[str] | None = None
         last_error = ""
-        # Spawning the CLI means cmd.exe -> node.exe, and Windows drops that under
-        # load: with several eval runs going, 24 of 200 questions died on a transient
-        # "not found" / "This version of ... node" before the model was ever called,
-        # and scored as misses. The failure is in the spawn, not the answer, so it is
-        # worth retrying rather than surfacing.
+        # A spawn can still fail transiently (the machine is busy, the shim is slow), so
+        # the retry stays — but it is no longer papering over a race we caused ourselves.
         for attempt in range(_SPAWN_ATTEMPTS):
-            with tempfile.TemporaryDirectory(prefix="claude-gen-") as tmp:
-                try:
-                    proc = self._run_once(req, tmp)
-                except FileNotFoundError as exc:
-                    last_error = f"claude CLI not found at {self._cli_path!r}: {exc}"
-                    proc = None
-                except OSError as exc:
-                    last_error = f"claude CLI failed to spawn: {exc}"
-                    proc = None
-                except subprocess.TimeoutExpired as exc:
-                    raise ProviderError(
-                        f"claude CLI timed out after {self._timeout}s for model={self.model}"
-                    ) from exc
+            try:
+                proc = self._run_once(req)
+            except FileNotFoundError as exc:
+                # Could be the CLI, could be the cwd. Say both rather than guess — the
+                # old message asserted the first and sent us hunting the wrong bug.
+                last_error = (
+                    f"spawn failed (cli={self._cli_path!r}, cwd={self._cwd!r}): {exc}"
+                )
+                proc = None
+            except OSError as exc:
+                last_error = f"claude CLI failed to spawn: {exc}"
+                proc = None
+            except subprocess.TimeoutExpired as exc:
+                raise ProviderError(
+                    f"claude CLI timed out after {self._timeout}s for model={self.model}"
+                ) from exc
             if proc is not None and proc.stdout and proc.stdout.lstrip().startswith("{"):
                 break
             if proc is not None:
