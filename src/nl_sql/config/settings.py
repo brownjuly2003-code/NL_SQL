@@ -14,6 +14,7 @@ ProviderName = Literal[
     "gracekelly",
     "zen",
     "grok_cli",
+    "claude_cli",
 ]
 
 
@@ -85,6 +86,16 @@ class Settings(BaseSettings):
     """Must be > 1. Grok spends its first turn announcing what it is about to do;
     `--max-turns 1` returns that preamble instead of the SQL (47.0% / 31% invalid
     on the first n=200 run). See llm/providers/grok_cli.py."""
+
+    # Claude Code CLI — subscription path (plan limits, no key). `--system-prompt`
+    # replaces the harness prompt, so the model answers as a completion, not an
+    # agent. See llm/providers/claude_cli.py.
+    claude_cli_path: str = "claude"
+    claude_cli_model: str = "claude-sonnet-5"
+    claude_cli_timeout_seconds: float = 600.0
+    claude_cli_max_turns: int = 4
+    """Must be > 1: a denied tool call eats a turn and the CLI then answers
+    `error_max_turns` instead of the SQL."""
 
     # Perplexity browser path via local GraceKelly (D:\GraceKelly). Free
     # because it rides the user's Perplexity Pro subscription via Playwright.

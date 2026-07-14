@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from nl_sql.config import Settings, get_settings
 from nl_sql.llm.providers.base import LLMProvider, ProviderError
+from nl_sql.llm.providers.claude_cli import ClaudeCliProvider
 from nl_sql.llm.providers.github_models import GitHubModelsProvider
 from nl_sql.llm.providers.gracekelly import GraceKellyProvider
 from nl_sql.llm.providers.grok_cli import GrokCliProvider
@@ -79,6 +80,13 @@ def build_provider(name: str, settings: Settings | None = None) -> LLMProvider:
                 model=s.grok_cli_model,
                 timeout_seconds=s.grok_cli_timeout_seconds,
                 max_turns=s.grok_cli_max_turns,
+            )
+        case "claude_cli":
+            return ClaudeCliProvider(
+                cli_path=s.claude_cli_path,
+                model=s.claude_cli_model,
+                timeout_seconds=s.claude_cli_timeout_seconds,
+                max_turns=s.claude_cli_max_turns,
             )
         case _:
             raise ProviderError(f"unknown provider name: {name!r}")

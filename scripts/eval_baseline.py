@@ -58,6 +58,7 @@ _MODEL_FIELD: dict[str, str] = {
     "gracekelly": "gracekelly_model",
     "zen": "zen_model",
     "grok_cli": "grok_cli_model",
+    "claude_cli": "claude_cli_model",
 }
 
 
@@ -316,6 +317,7 @@ def main(argv: list[str] | None = None) -> int:
             "gracekelly",
             "zen",
             "grok_cli",
+            "claude_cli",
         ],
         default="mistral",
         help=(
