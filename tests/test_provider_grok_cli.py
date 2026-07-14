@@ -65,7 +65,12 @@ def test_grok_cli_parses_envelope(monkeypatch: pytest.MonkeyPatch) -> None:
 
 def test_grok_cli_runs_toolless(monkeypatch: pytest.MonkeyPatch) -> None:
     """A generator has no business reading files or browsing, and a stray tool turn
-    burns the user's weekly quota. That is an argv-level guarantee, so assert it."""
+    burns the user's weekly quota. That is an argv-level guarantee, so assert it.
+
+    `--tools` is an allow-list, so the empty string hands the model no tools at all —
+    including `task`, the one that spawns subagents. A subagent is a second model
+    drawing on the same weekly quota, so this is a spend guarantee, not just hygiene:
+    nothing can be spawned because there is nothing available to spawn it with."""
     calls = _stub_run(monkeypatch, _ENVELOPE)
     provider = GrokCliProvider()
 
@@ -73,9 +78,12 @@ def test_grok_cli_runs_toolless(monkeypatch: pytest.MonkeyPatch) -> None:
 
     argv = calls[0]
     assert argv[argv.index("--system-prompt-override") + 1] == "you are a SQL expert"
-    disallowed = argv[argv.index("--disallowed-tools") + 1]
-    for tool in ("bash", "read", "write", "websearch"):
-        assert tool in disallowed
+    assert argv[argv.index("--tools") + 1] == "", "an empty allow-list means zero tools"
+    assert "--disallowed-tools" not in argv, (
+        "a deny-list naming `task` makes grok-build refuse to start, and still ships "
+        "every tool definition in the prompt (13368 input tokens vs 6449)"
+    )
+    assert "--no-subagents" in argv
     assert "--verbatim" in argv
     assert "--no-memory" in argv
 

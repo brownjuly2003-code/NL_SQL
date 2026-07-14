@@ -47,9 +47,24 @@ from nl_sql.llm.providers.base import (
     ProviderError,
 )
 
-# Every built-in that could touch the machine. A generator has no business
-# reading files or searching the web, and a stray tool turn burns weekly quota.
-_DISALLOWED_TOOLS = "bash,edit,read,write,glob,grep,webfetch,websearch,task,todowrite"
+# `--tools` is an ALLOW-list ("built-in tools to allow"), so the empty string grants
+# the model exactly nothing. That is the whole toolbox gone — including `task`, which
+# is the one that spawns subagents, and a subagent is a second model burning the same
+# weekly quota. Nothing can be spawned because nothing is available to spawn it with.
+#
+# This replaced a deny-list (`--disallowed-tools bash,edit,…,task,…`), which was worse
+# in two ways. It could not run grok-build at all: naming `task` in the deny-list makes
+# the CLI refuse to start the session ("agent building failed: Requirements unsatisfied:
+# GrokBuild:run_terminal_cmd / auto_background_on_timeout requires enabled_background").
+# The message blames the terminal, but bisecting the list shows `task` is the only entry
+# that triggers it — removing the subagent tool leaves the model's own tool config in a
+# combination its validator rejects. A CLI bug, not a policy.
+#
+# And it was twice as expensive: a deny-list still ships every tool DEFINITION in the
+# system prompt and only forbids the calls. Measured on the same canary: 13368 input
+# tokens with the deny-list, 6449 with `--tools ""`. So the "~13k of agent scaffolding
+# is unavoidable" note in _NEXT_SESSION §4.2 was wrong — half of it was the tool specs.
+_ALLOWED_TOOLS = ""
 
 
 class GrokCliProvider:
@@ -86,8 +101,8 @@ class GrokCliProvider:
             "--verbatim",
             "--max-turns",
             str(self._max_turns),
-            "--disallowed-tools",
-            _DISALLOWED_TOOLS,
+            "--tools",
+            _ALLOWED_TOOLS,
             "--no-memory",
             "--no-plan",
             "--no-subagents",
