@@ -81,6 +81,10 @@ class Settings(BaseSettings):
     grok_cli_path: str = "grok"
     grok_cli_model: str = "grok-composer-2.5-fast"
     grok_cli_timeout_seconds: float = 600.0
+    grok_cli_max_turns: int = 4
+    """Must be > 1. Grok spends its first turn announcing what it is about to do;
+    `--max-turns 1` returns that preamble instead of the SQL (47.0% / 31% invalid
+    on the first n=200 run). See llm/providers/grok_cli.py."""
 
     # Perplexity browser path via local GraceKelly (D:\GraceKelly). Free
     # because it rides the user's Perplexity Pro subscription via Playwright.

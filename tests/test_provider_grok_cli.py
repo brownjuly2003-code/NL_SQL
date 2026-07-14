@@ -63,22 +63,36 @@ def test_grok_cli_parses_envelope(monkeypatch: pytest.MonkeyPatch) -> None:
     assert response.model == "grok-composer-2.5-fast"
 
 
-def test_grok_cli_runs_a_single_toolless_turn(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_grok_cli_runs_toolless(monkeypatch: pytest.MonkeyPatch) -> None:
     """A generator has no business reading files or browsing, and a stray tool turn
-    burns the user's weekly quota. Both are argv-level guarantees, so assert them."""
+    burns the user's weekly quota. That is an argv-level guarantee, so assert it."""
     calls = _stub_run(monkeypatch, _ENVELOPE)
     provider = GrokCliProvider()
 
     provider.generate(GenerateRequest(prompt="write SQL", system="you are a SQL expert"))
 
     argv = calls[0]
-    assert argv[argv.index("--max-turns") + 1] == "1"
     assert argv[argv.index("--system-prompt-override") + 1] == "you are a SQL expert"
     disallowed = argv[argv.index("--disallowed-tools") + 1]
     for tool in ("bash", "read", "write", "websearch"):
         assert tool in disallowed
     assert "--verbatim" in argv
     assert "--no-memory" in argv
+
+
+def test_grok_cli_leaves_room_for_the_agent_preamble(monkeypatch: pytest.MonkeyPatch) -> None:
+    """`--max-turns 1` is the obvious way to make an agent behave as a completion, and
+    it is wrong. Grok spends turn one announcing what it is about to do and reaching for
+    a tool; cut there, it returns that preamble as the answer (stopReason: Cancelled).
+    The first n=200 run scored 47.0% with 31% invalid SQL — measuring this bug, not the
+    model. Several turns let it talk past the preamble and emit the SQL.
+    """
+    calls = _stub_run(monkeypatch, _ENVELOPE)
+
+    GrokCliProvider().generate(GenerateRequest(prompt="write SQL"))
+
+    argv = calls[0]
+    assert int(argv[argv.index("--max-turns") + 1]) > 1
 
 
 def test_grok_cli_surfaces_error_envelope(monkeypatch: pytest.MonkeyPatch) -> None:

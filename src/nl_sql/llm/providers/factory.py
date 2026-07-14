@@ -78,6 +78,7 @@ def build_provider(name: str, settings: Settings | None = None) -> LLMProvider:
                 cli_path=s.grok_cli_path,
                 model=s.grok_cli_model,
                 timeout_seconds=s.grok_cli_timeout_seconds,
+                max_turns=s.grok_cli_max_turns,
             )
         case _:
             raise ProviderError(f"unknown provider name: {name!r}")

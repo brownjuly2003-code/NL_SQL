@@ -19,9 +19,18 @@ Three things the 2026-07-14 probe established, all of which shape this module:
   well past the Windows command-line limit, so it goes to a file and we pass
   `--prompt-file`.
 
-The agent is stripped down to a single toolless turn (`--max-turns 1`,
-`--disallowed-tools`, `--no-memory`, `--no-plan`) and pointed at a scratch cwd, so
-it behaves as a text completion rather than wandering the repository.
+The agent is stripped of tools (`--disallowed-tools`, `--no-memory`, `--no-plan`) and
+pointed at a scratch cwd, so it cannot wander the repository.
+
+**But it must not be stripped of turns.** `--max-turns 1` looks like the way to make
+an agent behave as a text completion, and it is a trap: Grok spends its first turn
+announcing what it is about to do ("Проверю, есть ли в workspace база…") and reaching
+for a tool. Cutting it there returns that preamble as the answer — `stopReason:
+Cancelled`, prose where SQL should be. The first n=200 run scored 47.0% with 31%
+invalid SQL and measured this bug, not the model. With four turns it talks past the
+preamble and emits a fenced SQL block (`stopReason: EndTurn`), which the pipeline's
+extractor reads normally. `--json-schema` does not help: the model ignores it and the
+CLI reports `structuredOutputError`.
 """
 
 from __future__ import annotations
@@ -51,10 +60,12 @@ class GrokCliProvider:
         cli_path: str = "grok",
         model: str = "grok-composer-2.5-fast",
         timeout_seconds: float = 600.0,
+        max_turns: int = 4,
     ) -> None:
         self.model = model
         self._cli_path = cli_path
         self._timeout = timeout_seconds
+        self._max_turns = max_turns
 
     def _argv(self, prompt_file: Path, req: GenerateRequest) -> list[str]:
         argv = [
@@ -65,7 +76,7 @@ class GrokCliProvider:
             "json",
             "--verbatim",
             "--max-turns",
-            "1",
+            str(self._max_turns),
             "--disallowed-tools",
             _DISALLOWED_TOOLS,
             "--no-memory",
