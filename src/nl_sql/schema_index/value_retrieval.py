@@ -26,8 +26,13 @@ from sqlalchemy.types import String
 # match list with noise ("the", "and", "id", "avg").
 _MIN_TOKEN_LEN = 3
 _MAX_MATCHES = 8
-_MAX_HITS_PER_PHRASE_COL = 3
+_MAX_HITS_PER_PHRASE_COL = 2
 _MAX_VALUE_CHARS = 80
+# Hard caps so a long evidence line x a wide schema cannot hang an eval
+# question on sequential LIKE scans of million-row BIRD tables.
+_MAX_PHRASES = 6
+_MAX_PROBES = 40
+_LIKE_MIN_LEN = 6
 
 _STOPWORDS = frozenset(
     {
@@ -241,42 +246,63 @@ def retrieve_value_matches(
         return []
 
     # Cap phrase count so a long evidence line does not explode into O(N*M) probes.
-    phrases = phrases[:12]
+    # Prefer multi-word / longer phrases: they are the ones value retrieval
+    # is for (district names, publisher strings), and they stay cheap under
+    # an equality-first lookup.
+    phrases = phrases[:_MAX_PHRASES]
 
     insp = inspect(engine)
     available = set(insp.get_table_names())
     metadata = MetaData()
     candidates: list[ValueMatch] = []
+    probes = 0
+
+    # Preload text columns so the phrase-outer loop can stop early once a
+    # high-value multi-word phrase is grounded across columns.
+    text_cols: list[tuple[str, str, Any]] = []
+    for tname in table_names:
+        if tname not in available:
+            continue
+        try:
+            sa_table = Table(tname, metadata, autoload_with=engine)
+        except SQLAlchemyError:
+            continue
+        for col_meta in insp.get_columns(tname):
+            col_name = str(col_meta["name"])
+            col_type = str(col_meta.get("type") or "")
+            if not _is_textish(col_type, col_name):
+                continue
+            text_cols.append((tname, col_name, sa_table.c[col_name]))
 
     with engine.connect() as conn:
-        for tname in table_names:
-            if tname not in available:
+        for phrase in phrases:
+            if probes >= _MAX_PROBES:
+                break
+            # Single short tokens: equality only (no full-table LIKE).
+            allow_like = (" " in phrase) or (len(phrase) >= _LIKE_MIN_LEN)
+            phrase_hits = 0
+            for tname, col_name, sa_col in text_cols:
+                if probes >= _MAX_PROBES:
+                    break
+                probes += 1
+                for value in _lookup_phrase(
+                    conn,
+                    sa_col,
+                    phrase,
+                    limit=_MAX_HITS_PER_PHRASE_COL,
+                    max_chars=max_value_chars,
+                    allow_like=allow_like,
+                ):
+                    score = _best_score(value, [phrase])
+                    if score <= 0:
+                        continue
+                    candidates.append(
+                        ValueMatch(value=value, table=tname, column=col_name, score=score)
+                    )
+                    phrase_hits += 1
+            # Exact multi-word hits are enough — don't burn probes on weaker phrases.
+            if phrase_hits and " " in phrase:
                 continue
-            try:
-                sa_table = Table(tname, metadata, autoload_with=engine)
-            except SQLAlchemyError:
-                continue
-            for col_meta in insp.get_columns(tname):
-                col_name = str(col_meta["name"])
-                col_type = str(col_meta.get("type") or "")
-                if not _is_textish(col_type, col_name):
-                    continue
-                sa_col = sa_table.c[col_name]
-                for phrase in phrases:
-                    for value in _lookup_phrase(
-                        conn,
-                        sa_table,
-                        sa_col,
-                        phrase,
-                        limit=_MAX_HITS_PER_PHRASE_COL,
-                        max_chars=max_value_chars,
-                    ):
-                        score = _best_score(value, [phrase])
-                        if score <= 0:
-                            continue
-                        candidates.append(
-                            ValueMatch(value=value, table=tname, column=col_name, score=score)
-                        )
 
     if not candidates:
         return []
@@ -348,17 +374,18 @@ def _is_textish(col_type: str, col_name: str) -> bool:
 
 def _lookup_phrase(
     conn: Any,
-    sa_table: Table,
     sa_col: Any,
     phrase: str,
     *,
     limit: int,
     max_chars: int,
+    allow_like: bool = True,
 ) -> list[str]:
     """Return up to ``limit`` distinct cell values containing ``phrase``.
 
-    Prefer exact equality first, then a LIKE fallback for partials. Escape
-    LIKE metacharacters so user tokens are literal.
+    Prefer exact equality first, then an optional LIKE fallback for partials.
+    Escape LIKE metacharacters so user tokens are literal. Equality is cheap;
+    LIKE on unindexed million-row BIRD tables is not — callers gate it.
     """
     needle = phrase.strip()
     if len(needle) < _MIN_TOKEN_LEN:
@@ -393,8 +420,8 @@ def _lookup_phrase(
     except SQLAlchemyError:
         return []
 
-    if len(out) >= limit:
-        return out
+    if len(out) >= limit or not allow_like:
+        return out[:limit]
 
     escaped = needle.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
     pattern = f"%{escaped}%"
