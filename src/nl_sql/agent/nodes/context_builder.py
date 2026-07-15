@@ -29,6 +29,7 @@ def make_context_builder_node(
     primary_sample_size: int = 3,
     extended_sample_size: int = 0,
     cross_db_fewshot: bool = False,
+    enable_value_retrieval: bool = False,
 ) -> Callable[[PipelineState], PipelineState]:
     """Construct the context-builder node.
 
@@ -38,9 +39,14 @@ def make_context_builder_node(
     `retrieve_context` to attach an "extended samples" appendix to the
     bundle. `render_schema_block` then formats it as a supplementary
     block. No-op when either flag is missing — the production default.
+
+    Value retrieval (CHESS-style): when `registry` is provided AND
+    `enable_value_retrieval` is True, the same engine scan grounds
+    question tokens against real cell values of the retrieved tables.
     """
 
     mixture_enabled = registry is not None and extended_sample_size > primary_sample_size
+    needs_engine = mixture_enabled or (registry is not None and enable_value_retrieval)
 
     def node(state: PipelineState) -> PipelineState:
         question = state.get("question", "")
@@ -51,7 +57,7 @@ def make_context_builder_node(
                 "trace": _append_trace(state, "context_builder", note="missing question or db_id"),
             }
         engine: Engine | None = None
-        if mixture_enabled:
+        if needs_engine:
             assert registry is not None
             engine = registry.get(db_id).make_engine()
         try:
@@ -67,6 +73,7 @@ def make_context_builder_node(
                 primary_sample_size=primary_sample_size,
                 extended_sample_size=extended_sample_size,
                 cross_db_fewshot=cross_db_fewshot,
+                enable_value_retrieval=enable_value_retrieval,
             )
         finally:
             if engine is not None:
@@ -82,6 +89,7 @@ def make_context_builder_node(
                 extended_sample_tables=(
                     sorted(bundle.extended_samples) if bundle.extended_samples else []
                 ),
+                value_matches=len(bundle.value_matches),
             ),
         }
 

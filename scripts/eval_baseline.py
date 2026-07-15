@@ -285,6 +285,16 @@ def main(argv: list[str] | None = None) -> int:
         ),
     )
     parser.add_argument(
+        "--value-retrieval",
+        action="store_true",
+        help=(
+            "config E: CHESS-style question-driven value retrieval "
+            "(PipelineConfig.enable_value_retrieval) — scan text columns of "
+            "schema-RAG tables for cell values matching question tokens and "
+            "inject short grounding lines next to the question. Default off."
+        ),
+    )
+    parser.add_argument(
         "--extended-sample-size",
         type=int,
         default=0,
@@ -601,6 +611,7 @@ def main(argv: list[str] | None = None) -> int:
                     "use_compact_prompt": args.compact_prompt,
                     "enable_grounded_critique": args.critique,
                     "verify_retry_on_empty": args.retry_on_empty,
+                    "enable_value_retrieval": args.value_retrieval,
                 }
             )
             run = runner(

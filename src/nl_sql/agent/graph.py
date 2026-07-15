@@ -158,6 +158,12 @@ class PipelineConfig:
     with these on top, not this flag). Default False: the live Streamlit/API
     pipeline must not serve a canned answer to a benchmark question.
     `scripts/eval_baseline.py --bird-rescue-hints` turns them on."""
+    enable_value_retrieval: bool = False
+    """When True, scan text columns of the schema-RAG tables for cell values
+    matching tokens in the question (CHESS-style value grounding) and inject
+    short "value X appears in T.C" lines next to the question. Default OFF —
+    live product path unchanged until an n=200 verdict says otherwise.
+    `scripts/eval_baseline.py --value-retrieval` turns them on."""
 
 
 @dataclass(slots=True)
@@ -196,6 +202,7 @@ def build_pipeline(config: PipelineConfig) -> CompiledStateGraph[Any, Any, Any, 
             primary_sample_size=config.primary_sample_size,
             extended_sample_size=config.extended_sample_size,
             cross_db_fewshot=config.cross_db_fewshot,
+            enable_value_retrieval=config.enable_value_retrieval,
         ),
         "generate_sql": make_generate_sql_node(
             config.sql_provider,

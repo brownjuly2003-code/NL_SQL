@@ -326,6 +326,7 @@ def run_config_e(
     use_compact_prompt: bool = False,
     enable_grounded_critique: bool = False,
     verify_retry_on_empty: bool = False,
+    enable_value_retrieval: bool = False,
     progress: Callable[[int, int, EvalRecord], None] | None = None,
 ) -> EvalRun:
     """Run configuration E (config C + repair_once enabled) — final v2 config.
@@ -386,6 +387,7 @@ def run_config_e(
             use_compact_prompt=use_compact_prompt,
             enable_grounded_critique=enable_grounded_critique,
             verify_retry_on_empty=verify_retry_on_empty,
+            enable_value_retrieval=enable_value_retrieval,
         )
     )
     records: list[EvalRecord] = []

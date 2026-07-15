@@ -20,6 +20,7 @@ from sqlalchemy.engine import Engine
 
 from nl_sql.schema_index.indexer import FewShotHit, SchemaIndex, SchemaQueryHit
 from nl_sql.schema_index.introspector import fetch_extended_samples
+from nl_sql.schema_index.value_retrieval import ValueMatch, retrieve_value_matches
 
 
 @dataclass(frozen=True, slots=True)
@@ -37,6 +38,11 @@ class ContextBundle:
     sample_size=3). Set by `retrieve_context` when called with both
     `engine` and `extended_sample_size > primary_sample_size`. Rendered
     as an "additional sample values" appendix by `render_schema_block`.
+    """
+    value_matches: list[ValueMatch] = field(default_factory=list)
+    """CHESS-style value grounding. Populated when `retrieve_context` is
+    called with `engine` and `enable_value_retrieval=True`. Rendered into
+    the generate_sql prompt next to the question.
     """
 
     @property
@@ -61,6 +67,7 @@ def retrieve_context(
     primary_sample_size: int = 3,
     extended_sample_size: int = 0,
     cross_db_fewshot: bool = False,
+    enable_value_retrieval: bool = False,
 ) -> ContextBundle:
     """One call → schema cards + FK neighbours + fewshots, db_id-scoped.
 
@@ -74,6 +81,10 @@ def retrieve_context(
     `extended_samples` field is populated with the tail (rows
     primary..extended) of each retrieved table's column samples. Wired
     by `make_context_builder_node` via the registry's read-only engine.
+
+    Value retrieval (optional): when `engine` is provided and
+    `enable_value_retrieval` is True, scan text columns of the selected
+    tables for cell values matching question tokens (CHESS-style).
     """
     schema_hits = (
         index.query_schema(question, db_id=db_id, top_k=schema_top_k) if schema_top_k > 0 else []
@@ -126,19 +137,25 @@ def retrieve_context(
         if chosen_neighbours:
             fk_extra = _materialise_neighbours(index, db_id=db_id, names=chosen_neighbours)
 
+    all_tables = list(seed_tables)
+    for hit in fk_extra:
+        if hit.table_name and hit.table_name not in all_tables:
+            all_tables.append(hit.table_name)
+
     extended_samples: dict[str, dict[str, tuple[Any, ...]]] | None = None
-    if engine is not None and extended_sample_size > primary_sample_size:
-        all_tables = list(seed_tables)
-        for hit in fk_extra:
-            if hit.table_name and hit.table_name not in all_tables:
-                all_tables.append(hit.table_name)
-        if all_tables:
-            extended_samples = fetch_extended_samples(
-                engine,
-                all_tables,
-                primary_size=primary_sample_size,
-                extended_size=extended_sample_size,
-            )
+    if engine is not None and extended_sample_size > primary_sample_size and all_tables:
+        extended_samples = fetch_extended_samples(
+            engine,
+            all_tables,
+            primary_size=primary_sample_size,
+            extended_size=extended_sample_size,
+        )
+
+    value_matches: list[ValueMatch] = []
+    if engine is not None and enable_value_retrieval and all_tables:
+        value_matches = retrieve_value_matches(engine, question, all_tables)
+        if value_matches:
+            notes.append(f"value_retrieval matched {len(value_matches)} cell value(s)")
 
     return ContextBundle(
         db_id=db_id,
@@ -149,6 +166,7 @@ def retrieve_context(
         truncated=truncated,
         notes=notes,
         extended_samples=extended_samples,
+        value_matches=value_matches,
     )
 
 

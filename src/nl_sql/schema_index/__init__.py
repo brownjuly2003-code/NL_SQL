@@ -30,6 +30,12 @@ from nl_sql.schema_index.introspector import (
     introspect,
 )
 from nl_sql.schema_index.retriever import ContextBundle, retrieve_context
+from nl_sql.schema_index.value_retrieval import (
+    ValueMatch,
+    extract_query_phrases,
+    format_value_grounding,
+    retrieve_value_matches,
+)
 
 __all__ = [
     "FEWSHOT_COLLECTION",
@@ -43,7 +49,11 @@ __all__ = [
     "SchemaIndex",
     "SchemaQueryHit",
     "TableInfo",
+    "ValueMatch",
+    "extract_query_phrases",
+    "format_value_grounding",
     "introspect",
     "retrieve_context",
+    "retrieve_value_matches",
     "to_chunks",
 ]

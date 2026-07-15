@@ -19,6 +19,7 @@ from nl_sql.agent.nodes._support import (
 from nl_sql.agent.prompts import load_prompt
 from nl_sql.agent.state import PipelineState
 from nl_sql.llm.providers.base import GenerateRequest, LLMProvider
+from nl_sql.schema_index.value_retrieval import format_value_grounding
 
 
 def make_generate_sql_node(
@@ -49,6 +50,14 @@ def make_generate_sql_node(
                 sort_alphabetically=sort_schema_block,
                 enable_bird_rescue_hints=enable_bird_rescue_hints,
             )
+        # CHESS-style value grounding: append short "value X appears in T.C"
+        # lines to the question so they sit next to the NL (and any Hint).
+        # Empty when the flag is off or nothing matched — prompt text then
+        # matches the historical path, so the LLM cache stays warm.
+        value_block = ""
+        if context is not None and getattr(context, "value_matches", None):
+            value_block = format_value_grounding(list(context.value_matches))
+        question_for_prompt = f"{question}\n\n{value_block}" if value_block else question
         # Prompt selection. The default `generate_sql` grew around codestral:
         # heavy projection coaching, a DISTINCT rule taught on Chinook tables,
         # per-database disambiguation. `generate_sql_compact` keeps only what is
@@ -68,7 +77,7 @@ def make_generate_sql_node(
             schema_block=schema_text,
             fewshot_block=render_fewshot_block(context),
             plan_block=plan_block,
-            question=question,
+            question=question_for_prompt,
         )
         response = provider.generate(
             GenerateRequest(prompt=prompt, max_tokens=max_tokens, temperature=temperature)
