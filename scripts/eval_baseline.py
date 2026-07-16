@@ -295,6 +295,17 @@ def main(argv: list[str] | None = None) -> int:
         ),
     )
     parser.add_argument(
+        "--fewshot-selection",
+        choices=["dense", "dail"],
+        default="dense",
+        help=(
+            "config E: how to retrieve few-shot Q→SQL pairs "
+            "(PipelineConfig.fewshot_selection). 'dense' (default) embeds the "
+            "raw question; 'dail' embeds a schema-masked question (DAIL-SQL 2a) "
+            "so shots prefer intent over shared table/column names. Default dense."
+        ),
+    )
+    parser.add_argument(
         "--extended-sample-size",
         type=int,
         default=0,
@@ -612,6 +623,7 @@ def main(argv: list[str] | None = None) -> int:
                     "enable_grounded_critique": args.critique,
                     "verify_retry_on_empty": args.retry_on_empty,
                     "enable_value_retrieval": args.value_retrieval,
+                    "fewshot_selection": args.fewshot_selection,
                 }
             )
             run = runner(

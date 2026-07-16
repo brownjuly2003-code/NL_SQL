@@ -18,6 +18,10 @@ from typing import Any, cast
 
 from sqlalchemy.engine import Engine
 
+from nl_sql.schema_index.fewshot_selection import (
+    collect_schema_tokens,
+    fewshot_query_text,
+)
 from nl_sql.schema_index.indexer import FewShotHit, SchemaIndex, SchemaQueryHit
 from nl_sql.schema_index.introspector import fetch_extended_samples
 from nl_sql.schema_index.value_retrieval import ValueMatch, retrieve_value_matches
@@ -68,6 +72,7 @@ def retrieve_context(
     extended_sample_size: int = 0,
     cross_db_fewshot: bool = False,
     enable_value_retrieval: bool = False,
+    fewshot_selection: str = "dense",
 ) -> ContextBundle:
     """One call → schema cards + FK neighbours + fewshots, db_id-scoped.
 
@@ -85,13 +90,32 @@ def retrieve_context(
     Value retrieval (optional): when `engine` is provided and
     `enable_value_retrieval` is True, scan text columns of the selected
     tables for cell values matching question tokens (CHESS-style).
+
+    `fewshot_selection`: ``"dense"`` (default) embeds the raw question;
+    ``"dail"`` embeds a schema-masked question (DAIL 2a) so few-shot
+    retrieval prefers intent over shared table/column names.
     """
     schema_hits = (
         index.query_schema(question, db_id=db_id, top_k=schema_top_k) if schema_top_k > 0 else []
     )
+
+    notes: list[str] = []
+    fewshot_q = question
+    if fewshot_top_k > 0 and (fewshot_selection or "dense").strip().lower() == "dail":
+        schema_tokens = collect_schema_tokens(index, db_id)
+        fewshot_q = fewshot_query_text(
+            question,
+            selection="dail",
+            schema_tokens=schema_tokens,
+        )
+        if fewshot_q != question:
+            notes.append("fewshot_selection=dail (schema-masked query)")
+        else:
+            notes.append("fewshot_selection=dail (no schema tokens matched)")
+
     fewshots = (
         index.query_fewshots(
-            question,
+            fewshot_q,
             db_id=db_id,
             top_k=fewshot_top_k,
             cross_db=cross_db_fewshot,
@@ -100,7 +124,6 @@ def retrieve_context(
         else []
     )
 
-    notes: list[str] = []
     if not schema_hits:
         notes.append(f"no schema chunks indexed for db_id={db_id!r}")
 

@@ -15,6 +15,13 @@ Public surface:
 from __future__ import annotations
 
 from nl_sql.schema_index.chunker import SchemaChunk, to_chunks
+from nl_sql.schema_index.fewshot_selection import (
+    MASK_TOKEN,
+    collect_schema_tokens,
+    fewshot_query_text,
+    mask_schema_tokens,
+    parse_column_names_from_chunk,
+)
 from nl_sql.schema_index.indexer import (
     FEWSHOT_COLLECTION,
     SCHEMA_COLLECTION,
@@ -39,6 +46,7 @@ from nl_sql.schema_index.value_retrieval import (
 
 __all__ = [
     "FEWSHOT_COLLECTION",
+    "MASK_TOKEN",
     "SCHEMA_COLLECTION",
     "ColumnInfo",
     "ContextBundle",
@@ -50,9 +58,13 @@ __all__ = [
     "SchemaQueryHit",
     "TableInfo",
     "ValueMatch",
+    "collect_schema_tokens",
     "extract_query_phrases",
+    "fewshot_query_text",
     "format_value_grounding",
     "introspect",
+    "mask_schema_tokens",
+    "parse_column_names_from_chunk",
     "retrieve_context",
     "retrieve_value_matches",
     "to_chunks",

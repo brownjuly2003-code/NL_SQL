@@ -164,6 +164,12 @@ class PipelineConfig:
     short "value X appears in T.C" lines next to the question. Default OFF —
     live product path unchanged until an n=200 verdict says otherwise.
     `scripts/eval_baseline.py --value-retrieval` turns them on."""
+    fewshot_selection: str = "dense"
+    """How to pick few-shot Q→SQL pairs. ``"dense"`` (default) embeds the raw
+    question; ``"dail"`` embeds a schema-masked question (DAIL-SQL 2a) so
+    retrieval prefers intent/structure over shared table/column names.
+    Default dense keeps the product path unchanged.
+    `scripts/eval_baseline.py --fewshot-selection dail` turns DAIL on."""
 
 
 @dataclass(slots=True)
@@ -203,6 +209,7 @@ def build_pipeline(config: PipelineConfig) -> CompiledStateGraph[Any, Any, Any, 
             extended_sample_size=config.extended_sample_size,
             cross_db_fewshot=config.cross_db_fewshot,
             enable_value_retrieval=config.enable_value_retrieval,
+            fewshot_selection=config.fewshot_selection,
         ),
         "generate_sql": make_generate_sql_node(
             config.sql_provider,

@@ -327,6 +327,7 @@ def run_config_e(
     enable_grounded_critique: bool = False,
     verify_retry_on_empty: bool = False,
     enable_value_retrieval: bool = False,
+    fewshot_selection: str = "dense",
     progress: Callable[[int, int, EvalRecord], None] | None = None,
 ) -> EvalRun:
     """Run configuration E (config C + repair_once enabled) — final v2 config.
@@ -388,6 +389,7 @@ def run_config_e(
             enable_grounded_critique=enable_grounded_critique,
             verify_retry_on_empty=verify_retry_on_empty,
             enable_value_retrieval=enable_value_retrieval,
+            fewshot_selection=fewshot_selection,
         )
     )
     records: list[EvalRecord] = []
