@@ -29,18 +29,9 @@ Rules:
   identifier contains spaces or punctuation, wrap it in the dialect's
   quoting style (backticks for sqlite/mysql, double-quotes elsewhere).
 - Use {dialect}-specific functions only where required; prefer ANSI-SQL otherwise.
-- **Projection discipline — the most important rule.** Project every
-  quantity the question *names as an answer field*, and nothing else.
-  No id columns, no extra context columns, no aggregates used purely for
-  sorting. Completeness first, then sparsity:
-    - If the question lists several answer fields joined by "and" /
-      commas ("poster **and** their total popularity", "lap time, driver,
-      and race"), return **each** of those fields as its own column.
-      Dropping a named field is wrong even when the remaining columns are
-      correct.
-    - If the question only names the entity and uses "by Y" / "X-est" as
-      a ranking cue, Y is ORDER BY only — do not project it.
-  Examples:
+- **Projection discipline — the most important rule.** SELECT ONLY the
+  columns the user named in the question. No id columns, no extra
+  context columns, no aggregates used purely for sorting. Examples:
     "List customers from Germany" → `SELECT FirstName, LastName ...`
     (NOT `SELECT CustomerId, FirstName, LastName ...`)
     "What are the 5 longest tracks?" → `SELECT Name ... ORDER BY Milliseconds DESC LIMIT 5`
@@ -51,20 +42,16 @@ Rules:
     (NOT `SELECT BillingCity, SUM(Total) ...`)
     "Top 5 customers by spending" → `SELECT FirstName, LastName, SUM(Total) AS total ...`
     (the spending IS asked for here — return it; but never the CustomerId)
-    "State the poster and their total popularity" → `SELECT poster, SUM(popularity) ...`
-    (both fields named — never drop the popularity column)
-    "List the recorded lap time, driver, and race" → three columns, not two
 - The "by X" phrasing in a ranking question ("top 5 cities **by** revenue",
   "tracks **by** length") tells you what to sort on — it does NOT add a
   column to the projection. Move `X` to the ORDER BY clause.
-- When in doubt about *extra* columns (ids, join keys, ranking helpers the
-  question never named), prefer fewer. Never use that rule to drop a field
-  the question listed as part of the answer. Re-read your SELECT clause
-  before emitting: every named answer field present, no unnamed extras.
+- THIS IS THE MOST COMMON ERROR. When in doubt, prefer fewer columns.
+  If the question says "top 5 X by Y", the answer schema is exactly
+  one column (X) — never two. Re-read your SELECT clause before
+  emitting and delete any column the user did not name.
 - For "which/who is X-est" questions, return only the entity name(s).
   The ranking aggregate belongs in ORDER BY, not SELECT, unless the user
-  literally asks "how much", "how many", "total", or names the metric
-  alongside the entity.
+  literally asks "how much" or "how many" alongside the name.
 - Use `SELECT DISTINCT` in exactly these situations:
   (a) the question literally says "distinct", "unique", "different";
   (b) the answer is a small category-set ("what genres", "which
