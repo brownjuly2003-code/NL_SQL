@@ -58,6 +58,17 @@ def make_generate_sql_node(
         if context is not None and getattr(context, "value_matches", None):
             value_block = format_value_grounding(list(context.value_matches))
         question_for_prompt = f"{question}\n\n{value_block}" if value_block else question
+        # A4 (E-SQL): explicit restatement rides NEXT TO the question, never
+        # instead of it — an enrichment mistake must not override the original.
+        # Empty when the lever is off, so the prompt text (and the LLM cache)
+        # matches the historical path exactly.
+        enriched = (state.get("enriched_question") or "").strip()
+        if enriched:
+            question_for_prompt = (
+                f"{question_for_prompt}\n\n"
+                f"Explicit restatement (auxiliary; the original question above is "
+                f"authoritative):\n{enriched}"
+            )
         # Prompt selection. The default `generate_sql` grew around codestral:
         # heavy projection coaching, a DISTINCT rule taught on Chinook tables,
         # per-database disambiguation. `generate_sql_compact` keeps only what is

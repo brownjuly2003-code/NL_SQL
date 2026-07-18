@@ -309,6 +309,17 @@ def main(argv: list[str] | None = None) -> int:
         ),
     )
     parser.add_argument(
+        "--enrich-question",
+        action="store_true",
+        help=(
+            "config E: A4 question enrichment (E-SQL 2409.16751, "
+            "PipelineConfig.enrichment_provider) — one extra mistral call per "
+            "question rewrites it into an explicit restatement (schema names, "
+            "conditions, steps) rendered NEXT TO the original question in the "
+            "generate prompt. Default off."
+        ),
+    )
+    parser.add_argument(
         "--extended-sample-size",
         type=int,
         default=0,
@@ -622,6 +633,14 @@ def main(argv: list[str] | None = None) -> int:
                     _build_provider_with_model("mistral", settings, None)
                 )
                 print("[info] fewshot synthesis provider: mistral (A3 synthetic few-shots)")
+            # A4: same free-Mistral rule as A3 — the auxiliary call must not
+            # ride a metered generator.
+            enrichment_provider: LLMProvider | None = None
+            if args.config != "C" and args.enrich_question:
+                enrichment_provider = _wrap_cache(
+                    _build_provider_with_model("mistral", settings, None)
+                )
+                print("[info] question enrichment provider: mistral (A4 E-SQL)")
             # Only E takes a few-shot pool: C is the no-repair, no-fewshot ablation
             # and must stay that way to remain comparable with its own history.
             extra: dict[str, Any] = (
@@ -637,6 +656,7 @@ def main(argv: list[str] | None = None) -> int:
                     "enable_value_retrieval": args.value_retrieval,
                     "fewshot_selection": args.fewshot_selection,
                     "fewshot_synthesis_provider": fewshot_synthesis_provider,
+                    "enrichment_provider": enrichment_provider,
                 }
             )
             run = runner(

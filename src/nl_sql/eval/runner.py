@@ -329,6 +329,7 @@ def run_config_e(
     enable_value_retrieval: bool = False,
     fewshot_selection: str = "dense",
     fewshot_synthesis_provider: LLMProvider | None = None,
+    enrichment_provider: LLMProvider | None = None,
     progress: Callable[[int, int, EvalRecord], None] | None = None,
 ) -> EvalRun:
     """Run configuration E (config C + repair_once enabled) — final v2 config.
@@ -392,6 +393,7 @@ def run_config_e(
             enable_value_retrieval=enable_value_retrieval,
             fewshot_selection=fewshot_selection,
             fewshot_synthesis_provider=fewshot_synthesis_provider,
+            enrichment_provider=enrichment_provider,
         )
     )
     records: list[EvalRecord] = []

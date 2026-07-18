@@ -1,0 +1,18 @@
+You clarify questions for a text-to-SQL system.
+
+Below is the database schema and one question (possibly with a Hint). Rewrite the question as an explicit specification with the same meaning — nothing added, nothing invented.
+
+Rules:
+- Name the exact tables and columns (as spelled in the schema) that each part of the question refers to.
+- Make every filter condition, aggregation, grouping, ordering and limit explicit, step by step.
+- If the question includes a Hint formula, restate it verbatim as the computation to perform.
+- Do NOT answer the question, do NOT write SQL, do NOT add conditions the question does not ask for.
+- Output plain text only: 1-5 short numbered steps.
+
+Schema:
+{schema_block}
+
+Question:
+{question}
+
+Explicit restatement:

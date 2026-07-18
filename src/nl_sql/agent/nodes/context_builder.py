@@ -15,6 +15,7 @@ from sqlalchemy.engine import Engine
 
 from nl_sql.agent.nodes._support import render_schema_block
 from nl_sql.agent.nodes.fewshot_synthesis import synthesize_fewshots
+from nl_sql.agent.nodes.question_enrichment import enrich_question
 from nl_sql.agent.state import PipelineState
 from nl_sql.db.registry import DatabaseRegistry
 from nl_sql.llm.providers.base import LLMProvider
@@ -36,6 +37,7 @@ def make_context_builder_node(
     enable_value_retrieval: bool = False,
     fewshot_selection: str = "dense",
     fewshot_synthesis_provider: LLMProvider | None = None,
+    enrichment_provider: LLMProvider | None = None,
 ) -> Callable[[PipelineState], PipelineState]:
     """Construct the context-builder node.
 
@@ -55,6 +57,12 @@ def make_context_builder_node(
     one extra LLM call on `fewshot_synthesis_provider` writes fresh Q→SQL
     pairs against the target schema, replacing the retrieved shots; on any
     synthesis failure the retrieved shots stay, with a trace note).
+
+    `enrichment_provider` (phase A4, E-SQL): when set, one extra LLM call
+    rewrites the question into an explicit restatement (schema names,
+    conditions, steps), stored as ``state["enriched_question"]``. On any
+    failure the field stays empty and the trace carries a note — the
+    pipeline never depends on enrichment succeeding.
     """
 
     mixture_enabled = registry is not None and extended_sample_size > primary_sample_size
@@ -116,11 +124,29 @@ def make_context_builder_node(
                 )
             elif not synthesis_note:
                 synthesis_note = "fewshot_synthesis returned no pairs; using retrieved shots"
+        enriched = ""
+        enrich_note = ""
+        if enrichment_provider is not None:
+            try:
+                enriched = enrich_question(
+                    enrichment_provider,
+                    question=question,
+                    schema_text=render_schema_block(bundle),
+                )
+            except Exception as exc:  # enrichment is auxiliary — never fail the question
+                enrich_note = f"question_enrichment failed: {type(exc).__name__}: {exc}"
+            if not enriched and not enrich_note:
+                enrich_note = "question_enrichment returned empty text"
         trace_extra: dict[str, object] = {}
         if synthesis_note:
             trace_extra["fewshot_synthesis"] = synthesis_note
+        if enrichment_provider is not None:
+            trace_extra["question_enriched"] = bool(enriched)
+        if enrich_note:
+            trace_extra["question_enrichment"] = enrich_note
         return {
             "context": bundle,
+            "enriched_question": enriched,
             "trace": _append_trace(
                 state,
                 "context_builder",

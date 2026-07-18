@@ -181,6 +181,14 @@ class PipelineConfig:
     so the free Mistral tier can do synthesis while a metered generator does
     the SQL. Default None: "synthetic" without a provider degrades to plain
     dense retrieval."""
+    enrichment_provider: LLMProvider | None = None
+    """Provider for phase-A4 question enrichment (E-SQL 2409.16751). When
+    set, the context_builder spends one extra LLM call rewriting the question
+    into an explicit restatement (schema names, conditions, steps) that
+    `generate_sql` renders NEXT TO the original question — the original stays
+    authoritative. Kept separate from `sql_provider` for the same reason as
+    A3: the free Mistral tier does the auxiliary call. Default None = off.
+    `scripts/eval_baseline.py --enrich-question` turns it on."""
 
 
 @dataclass(slots=True)
@@ -222,6 +230,7 @@ def build_pipeline(config: PipelineConfig) -> CompiledStateGraph[Any, Any, Any, 
             enable_value_retrieval=config.enable_value_retrieval,
             fewshot_selection=config.fewshot_selection,
             fewshot_synthesis_provider=config.fewshot_synthesis_provider,
+            enrichment_provider=config.enrichment_provider,
         ),
         "generate_sql": make_generate_sql_node(
             config.sql_provider,

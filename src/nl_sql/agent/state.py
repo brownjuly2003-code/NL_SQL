@@ -47,6 +47,11 @@ class PipelineState(TypedDict, total=False):
 
     # --- after context_builder -----------------------------------------
     context: ContextBundle | None
+    enriched_question: str
+    """Phase-A4 (E-SQL) explicit restatement of the question, produced by
+    the context_builder when `PipelineConfig.enrich_question` is on. Empty
+    when the lever is off or enrichment failed. `generate_sql` renders it
+    NEXT TO the original question — the original stays authoritative."""
 
     # --- after plan_query (optional, only when enable_planner=True) ----
     plan: str
