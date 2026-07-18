@@ -45,7 +45,7 @@ from nl_sql.eval.metrics.schema_recall import schema_recall_at_k
 from nl_sql.eval.self_consistency import Candidate, vote
 from nl_sql.execution.errors import ExecutionErrorKind
 from nl_sql.execution.runner import ExecutionOutcome, execute_validated
-from nl_sql.llm.providers.base import GenerateRequest, LLMProvider
+from nl_sql.llm.providers.base import EmbeddingProvider, GenerateRequest, LLMProvider
 from nl_sql.schema_index.chunker import SchemaChunk, to_chunks
 from nl_sql.schema_index.indexer import SchemaIndex, SchemaQueryHit
 from nl_sql.schema_index.introspector import introspect
@@ -330,6 +330,7 @@ def run_config_e(
     fewshot_selection: str = "dense",
     fewshot_synthesis_provider: LLMProvider | None = None,
     enrichment_provider: LLMProvider | None = None,
+    description_embedder: EmbeddingProvider | None = None,
     progress: Callable[[int, int, EvalRecord], None] | None = None,
 ) -> EvalRun:
     """Run configuration E (config C + repair_once enabled) — final v2 config.
@@ -394,6 +395,7 @@ def run_config_e(
             fewshot_selection=fewshot_selection,
             fewshot_synthesis_provider=fewshot_synthesis_provider,
             enrichment_provider=enrichment_provider,
+            description_embedder=description_embedder,
         )
     )
     records: list[EvalRecord] = []

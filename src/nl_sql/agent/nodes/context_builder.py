@@ -18,9 +18,13 @@ from nl_sql.agent.nodes.fewshot_synthesis import synthesize_fewshots
 from nl_sql.agent.nodes.question_enrichment import enrich_question
 from nl_sql.agent.state import PipelineState
 from nl_sql.db.registry import DatabaseRegistry
-from nl_sql.llm.providers.base import LLMProvider
+from nl_sql.llm.providers.base import EmbeddingProvider, LLMProvider
 from nl_sql.schema_index.indexer import SchemaIndex
 from nl_sql.schema_index.retriever import retrieve_context
+from nl_sql.schema_index.targeted_descriptions import (
+    render_column_notes,
+    select_targeted_descriptions,
+)
 
 
 def make_context_builder_node(
@@ -38,6 +42,7 @@ def make_context_builder_node(
     fewshot_selection: str = "dense",
     fewshot_synthesis_provider: LLMProvider | None = None,
     enrichment_provider: LLMProvider | None = None,
+    description_embedder: EmbeddingProvider | None = None,
 ) -> Callable[[PipelineState], PipelineState]:
     """Construct the context-builder node.
 
@@ -63,6 +68,12 @@ def make_context_builder_node(
     conditions, steps), stored as ``state["enriched_question"]``. On any
     failure the field stays empty and the trace carries a note — the
     pipeline never depends on enrichment succeeding.
+
+    `description_embedder` (phase A8): when set, the BIRD per-column
+    description lines of the retrieved tables are ranked by embedding
+    similarity to the question and the top-5 land in
+    ``state["column_notes"]`` for the generate prompt. Soft-fails to an
+    empty block with a trace note, like the other auxiliary levers.
     """
 
     mixture_enabled = registry is not None and extended_sample_size > primary_sample_size
@@ -137,6 +148,21 @@ def make_context_builder_node(
                 enrich_note = f"question_enrichment failed: {type(exc).__name__}: {exc}"
             if not enriched and not enrich_note:
                 enrich_note = "question_enrichment returned empty text"
+        column_notes = ""
+        notes_note = ""
+        notes_count = 0
+        if description_embedder is not None and registry is not None:
+            try:
+                selected = select_targeted_descriptions(
+                    description_embedder,
+                    question=question,
+                    db_url=registry.get(db_id).url,
+                    tables=bundle.all_tables,
+                )
+                notes_count = len(selected)
+                column_notes = render_column_notes(selected)
+            except Exception as exc:  # descriptions are auxiliary — never fail the question
+                notes_note = f"targeted_descriptions failed: {type(exc).__name__}: {exc}"
         trace_extra: dict[str, object] = {}
         if synthesis_note:
             trace_extra["fewshot_synthesis"] = synthesis_note
@@ -144,9 +170,14 @@ def make_context_builder_node(
             trace_extra["question_enriched"] = bool(enriched)
         if enrich_note:
             trace_extra["question_enrichment"] = enrich_note
+        if description_embedder is not None:
+            trace_extra["column_notes"] = notes_count
+        if notes_note:
+            trace_extra["targeted_descriptions"] = notes_note
         return {
             "context": bundle,
             "enriched_question": enriched,
+            "column_notes": column_notes,
             "trace": _append_trace(
                 state,
                 "context_builder",

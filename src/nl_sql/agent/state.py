@@ -52,6 +52,11 @@ class PipelineState(TypedDict, total=False):
     the context_builder when `PipelineConfig.enrich_question` is on. Empty
     when the lever is off or enrichment failed. `generate_sql` renders it
     NEXT TO the original question — the original stays authoritative."""
+    column_notes: str
+    """Phase-A8 targeted column descriptions: top-k BIRD description lines
+    for the retrieved tables, ranked by embedding similarity to the
+    question. Rendered by `generate_sql` as a schema-block appendix. Empty
+    when the lever is off or the database ships no descriptions."""
 
     # --- after plan_query (optional, only when enable_planner=True) ----
     plan: str

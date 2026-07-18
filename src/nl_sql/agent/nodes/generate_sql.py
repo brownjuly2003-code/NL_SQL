@@ -50,6 +50,12 @@ def make_generate_sql_node(
                 sort_alphabetically=sort_schema_block,
                 enable_bird_rescue_hints=enable_bird_rescue_hints,
             )
+        # A8: targeted column descriptions ride as a schema appendix. Empty
+        # when the lever is off, keeping the prompt (and LLM cache) identical
+        # to the historical path.
+        column_notes = (state.get("column_notes") or "").strip()
+        if column_notes:
+            schema_text = f"{schema_text}\n\n{column_notes}"
         # CHESS-style value grounding: append short "value X appears in T.C"
         # lines to the question so they sit next to the NL (and any Hint).
         # Empty when the flag is off or nothing matched — prompt text then

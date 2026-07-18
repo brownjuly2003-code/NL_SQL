@@ -309,6 +309,19 @@ def main(argv: list[str] | None = None) -> int:
         ),
     )
     parser.add_argument(
+        "--column-descriptions",
+        choices=["off", "targeted"],
+        default="off",
+        help=(
+            "config E: A8 targeted column descriptions "
+            "(PipelineConfig.description_embedder). 'targeted' ranks the BIRD "
+            "description lines of the retrieved tables by embedding similarity "
+            "to the question and appends the top-5 to the schema block. The "
+            "whole-schema variant cost -1.5 EA in prompt rent; this pays only "
+            "for likely-relevant lines. Default off."
+        ),
+    )
+    parser.add_argument(
         "--enrich-question",
         action="store_true",
         help=(
@@ -641,6 +654,8 @@ def main(argv: list[str] | None = None) -> int:
                     _build_provider_with_model("mistral", settings, None)
                 )
                 print("[info] question enrichment provider: mistral (A4 E-SQL)")
+            if args.config != "C" and args.column_descriptions == "targeted":
+                print("[info] column descriptions: targeted top-5 (A8)")
             # Only E takes a few-shot pool: C is the no-repair, no-fewshot ablation
             # and must stay that way to remain comparable with its own history.
             extra: dict[str, Any] = (
@@ -657,6 +672,9 @@ def main(argv: list[str] | None = None) -> int:
                     "fewshot_selection": args.fewshot_selection,
                     "fewshot_synthesis_provider": fewshot_synthesis_provider,
                     "enrichment_provider": enrichment_provider,
+                    "description_embedder": (
+                        embedder if args.column_descriptions == "targeted" else None
+                    ),
                 }
             )
             run = runner(

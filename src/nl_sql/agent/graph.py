@@ -54,7 +54,7 @@ from nl_sql.db.connection import Dialect
 from nl_sql.db.registry import DatabaseRegistry
 from nl_sql.execution.errors import ExecutionErrorKind
 from nl_sql.execution.runner import ExecutionOutcome
-from nl_sql.llm.providers.base import LLMProvider
+from nl_sql.llm.providers.base import EmbeddingProvider, LLMProvider
 from nl_sql.render.formats import OutputFormat
 from nl_sql.schema_index.indexer import SchemaIndex
 
@@ -189,6 +189,14 @@ class PipelineConfig:
     authoritative. Kept separate from `sql_provider` for the same reason as
     A3: the free Mistral tier does the auxiliary call. Default None = off.
     `scripts/eval_baseline.py --enrich-question` turns it on."""
+    description_embedder: EmbeddingProvider | None = None
+    """Embedder for phase-A8 targeted column descriptions. When set, the
+    context_builder ranks the BIRD description lines of the retrieved tables
+    by similarity to the question and passes the top-5 to the generate prompt
+    as a schema appendix. The whole-schema variant cost -1.5 EA in prompt
+    rent; this pays only for lines the question likely needs. Default None =
+    off. `scripts/eval_baseline.py --column-descriptions targeted` turns it
+    on."""
 
 
 @dataclass(slots=True)
@@ -231,6 +239,7 @@ def build_pipeline(config: PipelineConfig) -> CompiledStateGraph[Any, Any, Any, 
             fewshot_selection=config.fewshot_selection,
             fewshot_synthesis_provider=config.fewshot_synthesis_provider,
             enrichment_provider=config.enrichment_provider,
+            description_embedder=config.description_embedder,
         ),
         "generate_sql": make_generate_sql_node(
             config.sql_provider,
