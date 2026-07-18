@@ -1,0 +1,19 @@
+You prepare few-shot examples for a text-to-SQL system.
+
+Below is the schema of the target database and one target question. Do NOT answer the target question. Instead, invent {num_examples} NEW question+SQL pairs against this same schema for the system to learn from.
+
+Rules:
+- Mirror the structural form of the target question: the same kind of aggregation, joins, filtering, grouping, ordering and LIMIT usage — but ask about different tables, columns or values of this schema.
+- Each pair must be answerable from the schema exactly as shown; use only tables and columns that appear in it.
+- SQL must be valid {dialect} SQL: one single SELECT statement per pair, no comments.
+- Keep questions short and natural, like a business user would ask.
+- Do NOT restate, paraphrase or answer the target question itself.
+
+Schema:
+{schema_block}
+
+Target question:
+{question}
+
+Answer with a JSON array only, no prose:
+[{{"question": "...", "sql": "..."}}, {{"question": "...", "sql": "..."}}]

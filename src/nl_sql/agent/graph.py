@@ -167,9 +167,20 @@ class PipelineConfig:
     fewshot_selection: str = "dense"
     """How to pick few-shot Q→SQL pairs. ``"dense"`` (default) embeds the raw
     question; ``"dail"`` embeds a schema-masked question (DAIL-SQL 2a) so
-    retrieval prefers intent/structure over shared table/column names.
-    Default dense keeps the product path unchanged.
-    `scripts/eval_baseline.py --fewshot-selection dail` turns DAIL on."""
+    retrieval prefers intent/structure over shared table/column names;
+    ``"synthetic"`` (phase A3, CHASE-SQL 2410.01943) replaces the retrieved
+    shots with fresh Q→SQL pairs written against the target schema by
+    `fewshot_synthesis_provider`. Default dense keeps the product path
+    unchanged. `scripts/eval_baseline.py --fewshot-selection dail|synthetic`
+    turns the levers on."""
+    fewshot_synthesis_provider: LLMProvider | None = None
+    """Provider for phase-A3 instance-aware synthetic few-shots. Used only
+    when ``fewshot_selection == "synthetic"``: one extra LLM call per question
+    writes 2-3 fresh Q→SQL pairs against the target schema, replacing the
+    retrieved shots in the generate prompt. Kept separate from `sql_provider`
+    so the free Mistral tier can do synthesis while a metered generator does
+    the SQL. Default None: "synthetic" without a provider degrades to plain
+    dense retrieval."""
 
 
 @dataclass(slots=True)
@@ -210,6 +221,7 @@ def build_pipeline(config: PipelineConfig) -> CompiledStateGraph[Any, Any, Any, 
             cross_db_fewshot=config.cross_db_fewshot,
             enable_value_retrieval=config.enable_value_retrieval,
             fewshot_selection=config.fewshot_selection,
+            fewshot_synthesis_provider=config.fewshot_synthesis_provider,
         ),
         "generate_sql": make_generate_sql_node(
             config.sql_provider,

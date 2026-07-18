@@ -296,13 +296,16 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument(
         "--fewshot-selection",
-        choices=["dense", "dail"],
+        choices=["dense", "dail", "synthetic"],
         default="dense",
         help=(
-            "config E: how to retrieve few-shot Q→SQL pairs "
+            "config E: how to pick few-shot Q→SQL pairs "
             "(PipelineConfig.fewshot_selection). 'dense' (default) embeds the "
             "raw question; 'dail' embeds a schema-masked question (DAIL-SQL 2a) "
-            "so shots prefer intent over shared table/column names. Default dense."
+            "so shots prefer intent over shared table/column names; 'synthetic' "
+            "(A3, CHASE-SQL) spends one extra mistral call per question writing "
+            "fresh Q→SQL pairs against the target schema, replacing the "
+            "retrieved shots. Default dense."
         ),
     )
     parser.add_argument(
@@ -610,6 +613,15 @@ def main(argv: list[str] | None = None) -> int:
             )
         else:
             runner = run_config_c if args.config == "C" else run_config_e
+            # A3: synthesis rides the free Mistral tier regardless of who the
+            # SQL generator is — a metered generator (zen/grok/claude) must not
+            # pay for the extra per-question call.
+            fewshot_synthesis_provider: LLMProvider | None = None
+            if args.config != "C" and args.fewshot_selection == "synthetic":
+                fewshot_synthesis_provider = _wrap_cache(
+                    _build_provider_with_model("mistral", settings, None)
+                )
+                print("[info] fewshot synthesis provider: mistral (A3 synthetic few-shots)")
             # Only E takes a few-shot pool: C is the no-repair, no-fewshot ablation
             # and must stay that way to remain comparable with its own history.
             extra: dict[str, Any] = (
@@ -624,6 +636,7 @@ def main(argv: list[str] | None = None) -> int:
                     "verify_retry_on_empty": args.retry_on_empty,
                     "enable_value_retrieval": args.value_retrieval,
                     "fewshot_selection": args.fewshot_selection,
+                    "fewshot_synthesis_provider": fewshot_synthesis_provider,
                 }
             )
             run = runner(

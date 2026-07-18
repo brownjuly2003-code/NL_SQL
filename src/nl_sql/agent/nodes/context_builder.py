@@ -9,11 +9,15 @@ phrasing once we observe model failure modes during eval.
 from __future__ import annotations
 
 from collections.abc import Callable
+from dataclasses import replace
 
 from sqlalchemy.engine import Engine
 
+from nl_sql.agent.nodes._support import render_schema_block
+from nl_sql.agent.nodes.fewshot_synthesis import synthesize_fewshots
 from nl_sql.agent.state import PipelineState
 from nl_sql.db.registry import DatabaseRegistry
+from nl_sql.llm.providers.base import LLMProvider
 from nl_sql.schema_index.indexer import SchemaIndex
 from nl_sql.schema_index.retriever import retrieve_context
 
@@ -31,6 +35,7 @@ def make_context_builder_node(
     cross_db_fewshot: bool = False,
     enable_value_retrieval: bool = False,
     fewshot_selection: str = "dense",
+    fewshot_synthesis_provider: LLMProvider | None = None,
 ) -> Callable[[PipelineState], PipelineState]:
     """Construct the context-builder node.
 
@@ -45,8 +50,11 @@ def make_context_builder_node(
     `enable_value_retrieval` is True, the same engine scan grounds
     question tokens against real cell values of the retrieved tables.
 
-    `fewshot_selection`: ``"dense"`` (default) or ``"dail"`` (schema-masked
-    query embedding for few-shot retrieval).
+    `fewshot_selection`: ``"dense"`` (default), ``"dail"`` (schema-masked
+    query embedding for few-shot retrieval) or ``"synthetic"`` (phase A3:
+    one extra LLM call on `fewshot_synthesis_provider` writes fresh Q→SQL
+    pairs against the target schema, replacing the retrieved shots; on any
+    synthesis failure the retrieved shots stay, with a trace note).
     """
 
     mixture_enabled = registry is not None and extended_sample_size > primary_sample_size
@@ -83,6 +91,34 @@ def make_context_builder_node(
         finally:
             if engine is not None:
                 engine.dispose()
+        synthesis_note = ""
+        selection_mode = (fewshot_selection or "dense").strip().lower()
+        if selection_mode == "synthetic" and fewshot_synthesis_provider is not None:
+            try:
+                synthetic = synthesize_fewshots(
+                    fewshot_synthesis_provider,
+                    question=question,
+                    db_id=db_id,
+                    dialect=state.get("dialect", "sqlite"),
+                    schema_text=render_schema_block(bundle),
+                )
+            except Exception as exc:  # keep retrieved shots on any synthesis failure
+                synthetic = []
+                synthesis_note = f"fewshot_synthesis failed: {type(exc).__name__}: {exc}"
+            if synthetic:
+                bundle = replace(
+                    bundle,
+                    fewshots=synthetic,
+                    notes=[
+                        *bundle.notes,
+                        f"fewshot_selection=synthetic ({len(synthetic)} pairs)",
+                    ],
+                )
+            elif not synthesis_note:
+                synthesis_note = "fewshot_synthesis returned no pairs; using retrieved shots"
+        trace_extra: dict[str, object] = {}
+        if synthesis_note:
+            trace_extra["fewshot_synthesis"] = synthesis_note
         return {
             "context": bundle,
             "trace": _append_trace(
@@ -96,6 +132,7 @@ def make_context_builder_node(
                 ),
                 value_matches=len(bundle.value_matches),
                 fewshot_selection=fewshot_selection,
+                **trace_extra,
             ),
         }
 
