@@ -125,3 +125,9 @@ ignore_missing_imports = true
 [[tool.mypy.overrides]]
 module = ["perplexity"]
 ignore_missing_imports = true
+
+# GPU-only training deps for scripts/autotune/train_qlora.py: installed on the
+# rented GPU box only (requirements_gpu.txt), never on the dev machine or CI.
+[[tool.mypy.overrides]]
+module = ["unsloth.*", "trl.*", "datasets.*"]
+ignore_missing_imports = true

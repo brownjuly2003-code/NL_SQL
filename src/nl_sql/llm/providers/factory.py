@@ -9,6 +9,7 @@ from nl_sql.llm.providers.github_models import GitHubModelsProvider
 from nl_sql.llm.providers.gracekelly import GraceKellyProvider
 from nl_sql.llm.providers.grok_cli import GrokCliProvider
 from nl_sql.llm.providers.groq import GroqProvider
+from nl_sql.llm.providers.local_vllm import LocalVLLMProvider
 from nl_sql.llm.providers.mistral import MistralProvider
 from nl_sql.llm.providers.ollama import OllamaProvider
 from nl_sql.llm.providers.openrouter import OpenRouterProvider
@@ -20,8 +21,9 @@ def build_provider(name: str, settings: Settings | None = None) -> LLMProvider:
     """Build an LLMProvider by short name.
 
     Recognized names: ``mistral``, ``github_models``, ``groq``, ``ollama``,
-    ``perplexity``, ``openrouter``, ``gracekelly``, ``zen``, ``grok_cli``. Raises
-    ProviderError for unknown names or missing credentials.
+    ``perplexity``, ``openrouter``, ``gracekelly``, ``zen``, ``grok_cli``,
+    ``claude_cli``, ``local_vllm``. Raises ProviderError for unknown names or
+    missing credentials.
     """
     s = settings or get_settings()
     match name:
@@ -89,6 +91,13 @@ def build_provider(name: str, settings: Settings | None = None) -> LLMProvider:
                 timeout_seconds=s.claude_cli_timeout_seconds,
                 max_turns=s.claude_cli_max_turns,
                 effort=s.claude_cli_effort,
+            )
+        case "local_vllm":
+            return LocalVLLMProvider(
+                base_url=s.local_llm_base_url,
+                model=s.local_llm_model,
+                api_key=s.local_llm_api_key,
+                timeout_seconds=s.local_llm_timeout_seconds,
             )
         case _:
             raise ProviderError(f"unknown provider name: {name!r}")

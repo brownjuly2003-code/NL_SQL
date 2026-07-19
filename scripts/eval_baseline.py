@@ -60,6 +60,7 @@ _MODEL_FIELD: dict[str, str] = {
     "zen": "zen_model",
     "grok_cli": "grok_cli_model",
     "claude_cli": "claude_cli_model",
+    "local_vllm": "local_llm_model",
 }
 
 # Only the two agent-CLI providers expose a reasoning-effort dial.
@@ -383,6 +384,7 @@ def main(argv: list[str] | None = None) -> int:
             "zen",
             "grok_cli",
             "claude_cli",
+            "local_vllm",
         ],
         default="mistral",
         help=(

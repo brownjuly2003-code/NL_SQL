@@ -1,0 +1,14 @@
+{
+  "id": "liovinajo/nlsql-autotune",
+  "title": "nlsql-autotune",
+  "code_file": "kaggle_autotune.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": true,
+  "machine_shape": "NvidiaTeslaT4",
+  "enable_internet": true,
+  "dataset_sources": ["liovinajo/nlsql-autotune-data"],
+  "competition_sources": [],
+  "kernel_sources": []
+}

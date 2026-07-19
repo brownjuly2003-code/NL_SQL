@@ -1,0 +1,32 @@
+# GPU-host requirements for scripts/autotune/train_qlora.py (S3, plan_autotune.md).
+#
+# Target box: rented Linux GPU (RunPod/Vast, single 4090, 24GB VRAM),
+# CUDA 12.1+. Do NOT install this on the Windows dev box — there is no GPU
+# here and these packages are not needed for anything except this one script
+# (see the import guards in train_qlora.py: torch/unsloth/trl/datasets are
+# imported lazily inside the training function precisely so the rest of the
+# repo — ruff, mypy, pytest — stays green without them).
+#
+# Install order on the rented node:
+#   1) pip install --upgrade pip
+#   2) pip install unsloth
+#      # unsloth's installer auto-detects CUDA/torch and pulls a matching
+#      # torch build itself. If auto-detect misfires on the rented image,
+#      # unsloth prints the exact extras string to use instead — see
+#      # https://github.com/unslothai/unsloth#installation-instructions
+#   3) pip install -r scripts/autotune/requirements_gpu.txt
+#
+# Versions below are lower-bounded, not tightly pinned: this is a one-shot
+# rental image, not a maintained environment, so let pip resolve within the
+# range unless a specific combo breaks — tighten only then.
+
+datasets>=3.0
+peft>=0.13
+trl>=0.12
+bitsandbytes>=0.44
+accelerate>=1.0
+transformers>=4.46
+
+# vLLM is for the serving step after training, not for training itself —
+# only needed if you serve from this same box instead of a separate step.
+vllm>=0.6.3

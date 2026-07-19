@@ -13,11 +13,13 @@ import respx
 
 from nl_sql.llm.providers import GenerateRequest, ProviderError
 from nl_sql.llm.providers.github_models import GitHubModelsProvider
+from nl_sql.llm.providers.local_vllm import LocalVLLMProvider
 from nl_sql.llm.providers.mistral import MistralProvider
 from nl_sql.llm.providers.ollama import OllamaProvider
 from nl_sql.llm.providers.zen import ZenProvider
 
 ZEN_URL = "https://opencode.ai/zen/v1/chat/completions"
+LOCAL_VLLM_URL = "http://localhost:8000/v1/chat/completions"
 
 
 def _completion_payload(model: str, text: str) -> dict[str, object]:
@@ -222,3 +224,48 @@ def test_zen_rotates_to_a_spare_key_before_sleeping(monkeypatch: pytest.MonkeyPa
 def test_zen_requires_at_least_one_key() -> None:
     with pytest.raises(ProviderError, match="non-empty api_key"):
         ZenProvider(api_key="  ,  ")
+
+
+@respx.mock
+def test_local_vllm_generate_returns_normalized_response() -> None:
+    route = respx.post(LOCAL_VLLM_URL).mock(
+        return_value=httpx.Response(
+            200,
+            json=_completion_payload("Qwen/Qwen2.5-Coder-7B-Instruct", "SELECT count(*) FROM t;"),
+        )
+    )
+    provider = LocalVLLMProvider()
+
+    response = provider.generate(GenerateRequest(prompt="count rows"))
+
+    assert route.called
+    assert response.text == "SELECT count(*) FROM t;"
+    assert response.model == "Qwen/Qwen2.5-Coder-7B-Instruct"
+
+
+@respx.mock
+def test_local_vllm_generate_does_not_retry_failures() -> None:
+    route = respx.post(LOCAL_VLLM_URL).mock(
+        return_value=httpx.Response(500, json={"error": "GPU box unreachable"})
+    )
+    provider = LocalVLLMProvider()
+
+    with pytest.raises(ProviderError):
+        provider.generate(GenerateRequest(prompt="count rows"))
+
+    assert route.call_count == 1
+
+
+@respx.mock
+def test_local_vllm_uses_configured_base_url_and_model() -> None:
+    route = respx.post("http://10.0.0.1:8000/v1/chat/completions").mock(
+        return_value=httpx.Response(
+            200, json=_completion_payload("custom-student-model", "SELECT 1;")
+        )
+    )
+    provider = LocalVLLMProvider(base_url="http://10.0.0.1:8000/v1", model="custom-student-model")
+
+    response = provider.generate(GenerateRequest(prompt="say SELECT 1"))
+
+    assert route.called
+    assert response.model == "custom-student-model"

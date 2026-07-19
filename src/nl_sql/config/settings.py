@@ -15,6 +15,7 @@ ProviderName = Literal[
     "zen",
     "grok_cli",
     "claude_cli",
+    "local_vllm",
 ]
 
 
@@ -102,6 +103,18 @@ class Settings(BaseSettings):
     """`--effort` (low|medium|high|xhigh|max). None leaves the CLI on its own
     default. The spawned process does NOT inherit the effort of the session that
     launched it, so this is the only way to run a max-effort ablation."""
+
+    # Local vLLM — rented-GPU student-model slot (S2, plan_autotune.md; see
+    # llm/providers/local_vllm.py). No fixed host like Ollama's :11434: the
+    # box only exists for the duration of a GPU rental, so `base_url` must be
+    # set in `.env` each session. `NL_SQL_LOCAL_LLM_API_KEY` defaults to the
+    # literal "dummy" — vLLM's OpenAI-compatible server does not check a key
+    # unless started with `--api-key`, but the openai SDK requires a
+    # non-empty string.
+    local_llm_base_url: str = "http://localhost:8000/v1"
+    local_llm_model: str = "Qwen/Qwen2.5-Coder-7B-Instruct"
+    local_llm_api_key: str = "dummy"
+    local_llm_timeout_seconds: float = 180.0
 
     # Perplexity browser path via local GraceKelly (D:\GraceKelly). Free
     # because it rides the user's Perplexity Pro subscription via Playwright.
