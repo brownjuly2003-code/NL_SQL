@@ -8,7 +8,10 @@
   "enable_gpu": true,
   "machine_shape": "NvidiaTeslaT4",
   "enable_internet": true,
-  "dataset_sources": ["liovinajo/nlsql-autotune-data", "liovinajo/nlsql-autotune-prev"],
+  "dataset_sources": [
+    "liovinajo/nlsql-adapter",
+    "liovinajo/nlsql-relay"
+  ],
   "competition_sources": [],
   "kernel_sources": []
 }
