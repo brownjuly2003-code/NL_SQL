@@ -1,0 +1,55 @@
+# Autotune cycle config — plan_autotune S7.
+#
+#   .venv/Scripts/python.exe scripts/autotune/run_cycle.py --dry-run
+#   .venv/Scripts/python.exe scripts/autotune/run_cycle.py --only eval,report
+#
+# TOML rather than YAML: tomllib is stdlib (no new dependency, no type stubs)
+# and still allows the comments that make this file readable.
+
+name = "v10"
+
+[dataset]
+# Rebuilds data/autotune/{train,val}.jsonl from data/bird_train.parquet.
+# Off by default: the v10 adapter was trained on the dataset already on disk,
+# and rebuilding it silently invalidates that provenance.
+enabled = false
+
+[train]
+# local  — run train_qlora.py on this machine (needs CUDA; bnb-4bit is CUDA-only)
+# remote — the real path of this track: Kaggle/Colab notebook, driven by hand
+# skip   — reuse an adapter that already exists
+mode = "remote"
+adapter = ".tmp/v10_adapter"
+runbook = "plan_autotune.md → 'RUNBOOK добивки 47 вопросов'"
+# Used only when mode = "local".
+args = ["--epochs", "1", "--val-rows", "64"]
+
+[eval]
+config = "E"
+n = 200
+seed = 0
+provider = "local_vllm"
+# The tuning replaces few-shot; keep it at 0 so train and inference agree.
+fewshot_top_k = 0
+explain_provider = "mistral"
+reports_root = "eval/reports"
+
+[[eval.targets]]
+label = "tuned"
+model = "sqltuned"
+suffix = "student-tuned"
+
+[[eval.targets]]
+label = "base"
+# The training base, 4-bit — NOT Qwen/Qwen2.5-Coder-7B-Instruct.
+model = "unsloth/qwen2.5-coder-7b-instruct-bnb-4bit"
+suffix = "student-base"
+
+[report]
+out = ".tmp/autotune_cycle_report.md"
+
+# Reference points the verdict is read against (EA %, n=200, config E, seed 0).
+[report.anchors]
+"codestral (product)" = 61.5
+"mimo-v2.5-free" = 68.5
+"Opus 4.8 max" = 79.5
