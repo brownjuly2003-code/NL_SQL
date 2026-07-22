@@ -6,16 +6,14 @@ Portfolio demo для Senior Data Engineer / Data Analyst. Принимает в
 
 **Статус:** Stages 1–10 закрыты. Production FastAPI surface, retrieval-augmented LangGraph pipeline, редизайн Streamlit UI с EN/RU-переключателем (детали дизайна — в разделе UI ниже). Тесты, ruff и mypy --strict гоняются в CI (бейдж выше — живой). Live API verified на Mistral + Groq.
 
-**Headline metric — три честных уровня (BIRD Mini-Dev SQLite, n=200, $0 free-tier)**
+**Headline metric — два воспроизводимых уровня (BIRD Mini-Dev SQLite, n=200, $0 free-tier)**
 
-Одно число вводило бы в заблуждение, поэтому метрика разложена по слоям. Только уровень 1 включён в продукт (Streamlit UI и `/ask`); уровни 2–3 — eval-конфигурация.
+Одно число вводило бы в заблуждение, поэтому метрика разложена по слоям. В продукт (Streamlit UI и `/ask`) входит только уровень 1.
 
 | Уровень | EA | Что это | В продукте? | Воспроизводится? |
 |---|---:|---|:--:|:--:|
 | **1. Reproducible single-run** | **61.5%** | Чистый пайплайн на free-tier codestral, один прогон, без голосования и подсказок (123/200). | ✅ да | ✅ одной командой |
 | **2. + per-question schema-link hints** | **62.5%** | Тот же прогон с флагом `--bird-rescue-hints` (125/200): 11 hint-блоков под annotation-quirks конкретных BIRD-вопросов. Кодирует ответы к тесту — **в продукте выключен** (`enable_bird_rescue_hints`, off). | ❌ eval | ✅ одной командой |
-| **3. + multi-provider voting** | 85.5% | Само-консистентность + голосование по нескольким провайдерам. | ❌ eval | ❌ архив (Perplexity-bridge истёк 16.06) |
-| **4. + hints поверх voting-архива** | 94.0% | **Не «пайплайн с подсказками», а накопительный merge ~20 слоёв** (188/200): голосование codestral + Sonnet 4.6 + GPT-5.2 + Grok-4.1 + Kimi-K2 + Llama-4 + Qwen3 + gpt-oss через Groq/OpenRouter/Perplexity-мосты, плюс archive-rescore и те же hints. | ❌ eval | ❌ архив |
 
 Уровень 1 — first-pass 59.5%, per-tier simple 76.1% / moderate 58.6% / challenging 41.2% ([`eval/baselines/reproducible_n200.json`](eval/baselines/reproducible_n200.json), отдаётся `GET /eval/latest`).
 
@@ -26,12 +24,12 @@ uv run python scripts/eval_baseline.py --config E --n 200            # → 61.5%
 uv run python scripts/eval_baseline.py --config E --n 200 --bird-rescue-hints   # → 62.5%
 ```
 
-Уровни 3–4 этими командами **не получить**: это архивные композиции многих прогонов разных провайдеров, а не конфигурация пайплайна. Артефакт уровня 4 — `eval/reports/2026-05-26/v31-v30-plus-p3f-q37-merged.json`; его поле `sql_model` перечисляет весь ансамбль.
+В архиве проекта лежат также eval-only композиции: накопительные merge'и примерно двух десятков прогонов разных провайдеров поверх тех же per-question подсказок. Они **не являются конфигурацией пайплайна**, не воспроизводятся ни одной командой (часть шла через Perplexity-мост, которого больше нет) и в метрику продукта не входят — поэтому здесь не приводятся. Полный разбор с числами и артефактами — в [методологии](docs/03_eval_methodology.md), раздел 13.
 
-Почему так честнее: уровень 4 выше human-expert baseline (92.96%), но стоит на ансамбле из двух десятков прогонов **и** на per-question подсказках — открыв `_hints.py`, ревьюер увидит их сразу. Разделение на слои показывает и инженерию (воспроизводимые 61.5%), и научную честность (какой именно слой что даёт), вместо одного числа, которое злой ревьюер спишет целиком.
+**Единственный живой рычаг качества — сила генератора.** Тот же пайплайн на бесплатном `mimo-v2.5-free` даёт **68.5%**, на `claude-opus-4-8` (effort=max) — **79.5%**; при этом шесть подряд литературных приёмов (CHESS, DAIL, CHASE, E-SQL и др.), реализованных и измеренных по одному на прогон, дали от −0.5 до −9.5 п.п. Разбор — [анатомия потолка](docs/ceiling_anatomy.md): коридор разметки ±16.6 п.п., метрика «чинит/ломает» на бесспорной земле, стена из 32 вопросов и почему её не берёт никто.
 
 - **Chinook demo workload (n=60): 100% EA — 60/60.** 30 dev + 30 held-out, сбалансированный split. Все 10 категорий (count/list/filter/aggregation/group-by/having/join-2/join-3/top-n/date-filter) через free-tier codestral — реальный analyst workload.
-- **74.37% EA на Arcwise-corrected gold** (Jin et al., CIDR/VLDB 2026) — noise-floor после исправления annotation-ошибок BIRD. Отчёт: [docs/corrected_gold_evaluation.md](docs/corrected_gold_evaluation.md).
+- **60.3% EA на Arcwise-corrected gold** (120/199) — тот же продуктовый прогон, судимый по исправленной разметке Jin et al. (CIDR/VLDB 2026). Расхождение с 61.5% меньше собственного шума бенчмарка: вердикт по 33 вопросам из 199 зависит только от того, какой разметке верить. Разбор — [анатомия потолка](docs/ceiling_anatomy.md); архивные прогоны на исправленном gold — [docs/corrected_gold_evaluation.md](docs/corrected_gold_evaluation.md).
 - **Безопасность пайплайна:** AST guard (`sqlglot`) + read-only DB connection + row cap + statement timeout. DML/DDL/multi-statement/ATTACH/PRAGMA/`SELECT … INTO` отбрасываются до execution.
 
 Полная по-версионная lift-трасса, saturation-evidence и audit-методология — в [docs/03_eval_methodology.md](docs/03_eval_methodology.md).
@@ -111,18 +109,18 @@ The UI reads `MISTRAL_API_KEY` from `.env`; copy `.env.example` first.
 | Week 3 hard checkpoint | ≥ 35% | 47% (config A) ✅ |
 | Week 4 baseline | ≥ 35–40% | 51% (config C) ✅ |
 | Week 8+ stretch | ≥ 50% | 57% (hybrid + Sonnet) ✅ |
-| + multi-provider voting (2026-05-12) | — | 65.5% ✅ |
-| + grounded-critique directed retry | — | 72.0% ✅ |
-| + Sonnet 4.6 bridge на all-fails (2026-05-13) | — | 77.0% ✅ |
-| + cross-Groq / gpt-oss / M-Schema / CHASE-SQL DAC voting (2026-05-17) | — | 81.0% ✅ |
-| + helallao Perplexity Pro / reasoning-mode voting (2026-05-18) | — | 85.5% (saturation ceiling, BIRD-official set scoring) |
-| + post-cooldown Pro/reasoning rescues v17–v21 (2026-05-23) | — | 88.0% ✅ |
-| + targeted P3.F schema-link hints + archive-rescore v22–v31 (2026-05-26) | — | **94.0%** ✅ |
+| **Продуктовый пайплайн** (codestral, одна команда) | — | **61.5%** ✅ |
+| Тот же пайплайн, лучший бесплатный генератор (`mimo-v2.5-free`) | — | **68.5%** |
+| Тот же пайплайн, `claude-opus-4-8` (effort=max) | — | **79.5%** |
 | GPT-4 zero-shot reference | — | 47.8% |
 | Published SOTA (paid API + fine-tuning) | — | 73–76% (CHESS) |
 | Human expert baseline (BIRD paper) | — | 92.96% |
 
-Это историческая lift-трасса архива, не воспроизводимое одно число. Строки 85.5% и 94.0% — voting- и voting+hint-слои (eval-only, см. таблицу уровней в начале): каждая получена merge'ем множества прогонов разных провайдеров, а не одной конфигурацией. Воспроизводимый продуктовый пайплайн — **61.5%** (уровень 1), с подсказками — **62.5%** (уровень 2).
+Все три верхние строки — **один и тот же пайплайн**, отличается только генератор: это и есть главный вывод проекта (см. [анатомию потолка](docs/ceiling_anatomy.md)). Опубликованы они как исследовательские точки: `claude-opus-4-8` едет на личной подписке и в HF Space не вызывается, поэтому продуктовое число — 61.5%.
+
+Судить эти числа по одному лишь EA не стоит: у BIRD-разметки собственный коридор **±16.6 п.п.** (33 вопроса из 199 меняют вердикт от одной лишь переразметки gold). Устойчивая метрика — «чинит/ломает» на вопросах, где обе разметки согласны.
+
+Кроме этого, в архиве проекта есть eval-only композиции — merge'и многих прогонов разных провайдеров поверх per-question подсказок. Они не воспроизводятся и не являются конфигурацией пайплайна, поэтому в таблице выше их нет; разбор с числами — в методологии.
 
 > Полная по-версионная трасса, per-qid rescues, saturation-evidence и audit-методология — в [`docs/03_eval_methodology.md`](docs/03_eval_methodology.md).
 

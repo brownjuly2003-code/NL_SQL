@@ -2,15 +2,15 @@
   "source_report": "eval\\reports\\2026-07-14\\E_dense_fewshot_repair-zen-mimo-v2.5-free.json",
   "summary": {
     "original": {
-      "matched": 136,
+      "matched": 137,
       "total": 200
     },
     "sql_only": {
-      "matched": 142,
+      "matched": 143,
       "total": 199
     },
     "full": {
-      "matched": 135,
+      "matched": 136,
       "total": 199
     }
   },
@@ -25,7 +25,7 @@
         "total": 99
       },
       "challenging": {
-        "matched": 18,
+        "matched": 19,
         "total": 34
       }
     },
@@ -39,7 +39,7 @@
         "total": 98
       },
       "challenging": {
-        "matched": 20,
+        "matched": 21,
         "total": 34
       }
     },
@@ -53,7 +53,7 @@
         "total": 98
       },
       "challenging": {
-        "matched": 20,
+        "matched": 21,
         "total": 34
       }
     }
@@ -711,7 +711,7 @@
       "question_id": 120,
       "db_id": "financial",
       "difficulty": "moderate",
-      "pred_sql": "SELECT T1.account_id, T1.frequency FROM account AS T1 INNER JOIN disp AS T2 ON T1.account_id = T2.account_id INNER JOIN client AS T3 ON T2.client_id = T3.client_id INNER JOIN district AS T4 ON T3.district_id = T4.district_id WHERE T4.A3 = 'east Bohemia' AND T1.date BETWEEN '1995-01-01' AND '2000-12-31' AND T2.type = 'OWNER'",
+      "pred_sql": "SELECT DISTINCT a.account_id, a.frequency FROM account a INNER JOIN disp d ON a.account_id = d.account_id INNER JOIN client c ON d.client_id = c.client_id INNER JOIN district dist ON c.district_id = dist.district_id WHERE dist.A3 = 'east Bohemia' AND d.type = 'OWNER' AND a.date >= '1995-01-01' AND a.date <= '2000-12-31'",
       "original_match": true,
       "original_reason": "",
       "original_gold_rows": 364
@@ -798,15 +798,15 @@
       "question_id": 173,
       "db_id": "financial",
       "difficulty": "challenging",
-      "pred_sql": "SELECT (SELECT COUNT(*) FROM trans WHERE account_id = 3 AND k_symbol = 'SLUZBY') AS statement_frequency, k_symbol FROM trans WHERE account_id = 3 AND type IN ('VYDAJ', 'VYBER') GROUP BY k_symbol HAVING SUM(amount) = 3539 LIMIT 1",
+      "pred_sql": "SELECT (SELECT COUNT(*) FROM trans WHERE account_id = 3 AND k_symbol = 'SLUZBY') AS frequency, (SELECT k_symbol FROM trans WHERE account_id = 3 AND type IN ('VYDAJ', 'VYBER') GROUP BY k_symbol HAVING SUM(amount) = 3539 LIMIT 1) AS aim",
       "original_match": false,
-      "original_reason": "set mismatch (unique rows differ): |gold|=1, |pred|=0",
+      "original_reason": "set mismatch (unique rows differ): |gold|=1, |pred|=1",
       "original_gold_rows": 1,
       "sql_only_match": false,
-      "sql_only_reason": "set mismatch (unique rows differ): |gold|=1, |pred|=0",
+      "sql_only_reason": "set mismatch (unique rows differ): |gold|=1, |pred|=1",
       "sql_only_gold_rows": 1,
       "full_match": false,
-      "full_reason": "set mismatch (unique rows differ): |gold|=1, |pred|=0",
+      "full_reason": "set mismatch (unique rows differ): |gold|=1, |pred|=1",
       "full_gold_rows": 1,
       "sql_only_gold_changed": true,
       "full_gold_changed": true
@@ -845,7 +845,7 @@
       "question_id": 194,
       "db_id": "financial",
       "difficulty": "moderate",
-      "pred_sql": "SELECT DISTINCT client.client_id, (STRFTIME('%Y', DATE('now')) - STRFTIME('%Y', client.birth_date)) - (STRFTIME('%m-%d', DATE('now')) < STRFTIME('%m-%d', client.birth_date)) AS age FROM client INNER JOIN disp ON client.client_id = disp.client_id INNER JOIN card ON disp.disp_id = card.disp_id WHERE card.type = 'gold' AND disp.type = 'OWNER'",
+      "pred_sql": "SELECT DISTINCT c.client_id, (strftime('%Y', 'now') - strftime('%Y', c.birth_date)) - (strftime('%m-%d', 'now') < strftime('%m-%d', c.birth_date)) AS age FROM client AS c INNER JOIN disp AS d ON c.client_id = d.client_id INNER JOIN card AS ca ON d.disp_id = ca.disp_id WHERE ca.type = 'gold' AND d.type = 'OWNER'",
       "original_match": false,
       "original_reason": "set mismatch (unique rows differ): |gold|=88, |pred|=88",
       "original_gold_rows": 88,
@@ -2339,15 +2339,15 @@
       "question_id": 990,
       "db_id": "formula_1",
       "difficulty": "challenging",
-      "pred_sql": "",
-      "original_match": false,
-      "original_reason": "pred execution failed",
+      "pred_sql": "SELECT constructors.constructorRef, constructors.url FROM races JOIN results ON races.raceId = results.raceId JOIN constructors ON results.constructorId = constructors.constructorId WHERE races.year = 2009 AND races.name = 'Singapore Grand Prix' AND results.positionOrder = 1",
+      "original_match": true,
+      "original_reason": "",
       "original_gold_rows": 1,
-      "sql_only_match": false,
-      "sql_only_reason": "pred execution failed",
+      "sql_only_match": true,
+      "sql_only_reason": "",
       "sql_only_gold_rows": 1,
-      "full_match": false,
-      "full_reason": "pred execution failed",
+      "full_match": true,
+      "full_reason": "",
       "full_gold_rows": 1
     },
     {

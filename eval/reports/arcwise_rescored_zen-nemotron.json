@@ -2,7 +2,7 @@
   "source_report": "eval\\reports\\2026-07-14\\E_dense_fewshot_repair-zen-nemotron-3-ultra-free.json",
   "summary": {
     "original": {
-      "matched": 126,
+      "matched": 127,
       "total": 200
     },
     "sql_only": {
@@ -21,7 +21,7 @@
         "total": 67
       },
       "moderate": {
-        "matched": 57,
+        "matched": 58,
         "total": 99
       },
       "challenging": {
@@ -31,11 +31,11 @@
     },
     "sql_only": {
       "simple": {
-        "matched": 52,
+        "matched": 51,
         "total": 67
       },
       "moderate": {
-        "matched": 64,
+        "matched": 65,
         "total": 98
       },
       "challenging": {
@@ -45,11 +45,11 @@
     },
     "full": {
       "simple": {
-        "matched": 48,
+        "matched": 47,
         "total": 67
       },
       "moderate": {
-        "matched": 59,
+        "matched": 60,
         "total": 98
       },
       "challenging": {
@@ -361,6 +361,16 @@
         "qid": 751,
         "variant": "full",
         "difficulty": "moderate"
+      },
+      {
+        "qid": 791,
+        "variant": "sql_only",
+        "difficulty": "simple"
+      },
+      {
+        "qid": 791,
+        "variant": "full",
+        "difficulty": "simple"
       },
       {
         "qid": 881,
@@ -1783,15 +1793,15 @@
       "question_id": 791,
       "db_id": "superhero",
       "difficulty": "simple",
-      "pred_sql": "",
-      "original_match": false,
-      "original_reason": "pred execution failed",
+      "pred_sql": "SELECT CAST(SUM(height_cm) AS REAL) / COUNT(*) AS average_height_cm FROM superhero",
+      "original_match": true,
+      "original_reason": "",
       "original_gold_rows": 1,
       "sql_only_match": false,
-      "sql_only_reason": "pred execution failed",
+      "sql_only_reason": "set mismatch (unique rows differ): |gold|=1, |pred|=1",
       "sql_only_gold_rows": 1,
       "full_match": false,
-      "full_reason": "pred execution failed",
+      "full_reason": "set mismatch (unique rows differ): |gold|=1, |pred|=1",
       "full_gold_rows": 1,
       "sql_only_gold_changed": true,
       "full_gold_changed": true
@@ -1892,7 +1902,7 @@
       "question_id": 847,
       "db_id": "formula_1",
       "difficulty": "simple",
-      "pred_sql": "SELECT d.surname FROM drivers d JOIN qualifying q ON d.driverId = q.driverId WHERE q.raceId = 19 AND q.q2 IS NOT NULL AND q.q2 <> '' ORDER BY q.q2 ASC LIMIT 1",
+      "pred_sql": "SELECT d.surname FROM drivers d JOIN qualifying q ON d.driverId = q.driverId WHERE q.raceId = 19 AND q.q2 IS NOT NULL AND q.q2 != '' ORDER BY q.q2 ASC LIMIT 1",
       "original_match": false,
       "original_reason": "ordered row 0 mismatch: gold=('Fisichella',), pred=('R\u00e4ikk\u00f6nen',)",
       "original_gold_rows": 1,
@@ -1909,7 +1919,7 @@
       "question_id": 859,
       "db_id": "formula_1",
       "difficulty": "simple",
-      "pred_sql": "SELECT q1 FROM qualifying JOIN drivers ON qualifying.driverId = drivers.driverId WHERE qualifying.raceId = 354 AND drivers.forename = 'Bruno' AND drivers.surname = 'Senna'",
+      "pred_sql": "SELECT q.q1 FROM qualifying q JOIN drivers d ON q.driverId = d.driverId WHERE q.raceId = 354 AND d.forename = 'Bruno' AND d.surname = 'Senna'",
       "original_match": true,
       "original_reason": "",
       "original_gold_rows": 1,
@@ -1924,22 +1934,22 @@
       "question_id": 861,
       "db_id": "formula_1",
       "difficulty": "simple",
-      "pred_sql": "SELECT `number` FROM `qualifying` WHERE `raceId` = 903 AND `q3` LIKE '1:54%'",
+      "pred_sql": "SELECT d.`number` FROM `qualifying` AS q INNER JOIN `drivers` AS d ON q.`driverId` = d.`driverId` WHERE q.`raceId` = 903 AND q.`q3` LIKE '1:54%' LIMIT 1",
       "original_match": false,
-      "original_reason": "set mismatch (unique rows differ): |gold|=2, |pred|=2",
+      "original_reason": "set mismatch (unique rows differ): |gold|=2, |pred|=1",
       "original_gold_rows": 2,
       "sql_only_match": false,
-      "sql_only_reason": "set mismatch (unique rows differ): |gold|=2, |pred|=2",
+      "sql_only_reason": "set mismatch (unique rows differ): |gold|=2, |pred|=1",
       "sql_only_gold_rows": 2,
       "full_match": false,
-      "full_reason": "set mismatch (unique rows differ): |gold|=2, |pred|=2",
+      "full_reason": "set mismatch (unique rows differ): |gold|=2, |pred|=1",
       "full_gold_rows": 2
     },
     {
       "question_id": 862,
       "db_id": "formula_1",
       "difficulty": "simple",
-      "pred_sql": "SELECT COUNT(*) FROM results JOIN races ON results.raceId = races.raceId WHERE races.name = 'Bahrain Grand Prix' AND races.year = 2007 AND results.time IS NULL",
+      "pred_sql": "SELECT COUNT(*) FROM results WHERE raceId = (SELECT raceId FROM races WHERE name = 'Bahrain Grand Prix' AND year = 2007) AND time IS NULL",
       "original_match": true,
       "original_reason": "",
       "original_gold_rows": 1,
@@ -1970,30 +1980,30 @@
       "question_id": 866,
       "db_id": "formula_1",
       "difficulty": "moderate",
-      "pred_sql": "",
+      "pred_sql": "SELECT d.url FROM lapTimes lt JOIN drivers d ON lt.driverId = d.driverId WHERE lt.raceId = 161 AND lt.time LIKE '1:27%'",
       "original_match": false,
-      "original_reason": "pred execution failed",
+      "original_reason": "set mismatch (unique rows differ): |gold|=9, |pred|=9",
       "original_gold_rows": 9,
       "sql_only_match": false,
-      "sql_only_reason": "pred execution failed",
+      "sql_only_reason": "set mismatch (unique rows differ): |gold|=9, |pred|=9",
       "sql_only_gold_rows": 9,
       "full_match": false,
-      "full_reason": "pred execution failed",
+      "full_reason": "set mismatch (unique rows differ): |gold|=9, |pred|=9",
       "full_gold_rows": 9
     },
     {
       "question_id": 875,
       "db_id": "formula_1",
       "difficulty": "simple",
-      "pred_sql": "SELECT seasons.url FROM races JOIN seasons ON races.year = seasons.year WHERE races.raceId = 901",
-      "original_match": true,
-      "original_reason": "",
+      "pred_sql": "",
+      "original_match": false,
+      "original_reason": "pred execution failed",
       "original_gold_rows": 1,
-      "sql_only_match": true,
-      "sql_only_reason": "",
+      "sql_only_match": false,
+      "sql_only_reason": "pred execution failed",
       "sql_only_gold_rows": 1,
-      "full_match": true,
-      "full_reason": "",
+      "full_match": false,
+      "full_reason": "pred execution failed",
       "full_gold_rows": 1
     },
     {
@@ -2064,7 +2074,7 @@
       "question_id": 896,
       "db_id": "formula_1",
       "difficulty": "challenging",
-      "pred_sql": "SELECT CAST(SUM(CASE WHEN res.position > 1 THEN 1 ELSE 0 END) AS REAL) * 100 / COUNT(*) AS percentage FROM results res JOIN races r ON res.raceId = r.raceId JOIN drivers d ON res.driverId = d.driverId WHERE d.surname = 'Hamilton' AND r.year >= 2010",
+      "pred_sql": "SELECT CAST(SUM(CASE WHEN r.position > 1 THEN 1 ELSE 0 END) AS REAL) * 100 / COUNT(*) AS percentage FROM results r JOIN races ra ON r.raceId = ra.raceId JOIN drivers d ON r.driverId = d.driverId WHERE d.surname = 'Hamilton' AND ra.year >= 2010",
       "original_match": false,
       "original_reason": "set mismatch (unique rows differ): |gold|=1, |pred|=1",
       "original_gold_rows": 1,
@@ -2080,15 +2090,15 @@
       "question_id": 897,
       "db_id": "formula_1",
       "difficulty": "moderate",
-      "pred_sql": "WITH win_counts AS (\n  SELECT driverId, COUNT(*) AS win_count\n  FROM driverStandings\n  WHERE wins = 1\n  GROUP BY driverId\n),\n top_driver AS (\n  SELECT driverId\n  FROM win_counts\n  ORDER BY win_count DESC\n  LIMIT 1\n)\nSELECT d.forename, d.surname, d.nationality,\n       (SELECT MAX(points) FROM driverStandings WHERE driverId = td.driverId) AS max_points\nFROM drivers d\nJOIN top_driver td ON d.driverId = td.driverId",
-      "original_match": false,
-      "original_reason": "ordered row 0 mismatch: gold=('Michael', 'Schumacher', 'German', 148.0), pred=('David', 'Coulthard', 'British', 73.0)",
+      "pred_sql": "WITH driver_stats AS (\n  SELECT\n    ds.driverId,\n    COUNT(ds.wins) AS win_count,\n    MAX(ds.points) AS max_points\n  FROM driverStandings ds\n  GROUP BY ds.driverId\n),\ntop_driver AS (\n  SELECT driverId, max_points\n  FROM driver_stats\n  ORDER BY win_count DESC\n  LIMIT 1\n)\nSELECT\n  d.forename,\n  d.surname,\n  d.nationality,\n  td.max_points\nFROM top_driver td\nJOIN drivers d ON d.driverId = td.driverId",
+      "original_match": true,
+      "original_reason": "",
       "original_gold_rows": 1,
-      "sql_only_match": false,
-      "sql_only_reason": "ordered row 0 mismatch: gold=('Michael', 'Schumacher', 'German', 148.0), pred=('David', 'Coulthard', 'British', 73.0)",
+      "sql_only_match": true,
+      "sql_only_reason": "",
       "sql_only_gold_rows": 1,
-      "full_match": false,
-      "full_reason": "ordered row 0 mismatch: gold=('Michael', 'Schumacher', 'German', 148.0), pred=('David', 'Coulthard', 'British', 73.0)",
+      "full_match": true,
+      "full_reason": "",
       "full_gold_rows": 1
     },
     {
@@ -2111,15 +2121,15 @@
       "question_id": 902,
       "db_id": "formula_1",
       "difficulty": "simple",
-      "pred_sql": "WITH alex AS (SELECT driverId FROM drivers WHERE forename = 'Alex' AND surname = 'Yoong') SELECT DISTINCT races.name FROM races JOIN results ON races.raceId = results.raceId JOIN alex ON results.driverId = alex.driverId WHERE results.positionOrder < 20",
+      "pred_sql": "",
       "original_match": false,
-      "original_reason": "set mismatch (unique rows differ): |gold|=15, |pred|=9",
+      "original_reason": "pred execution failed",
       "original_gold_rows": 15,
       "sql_only_match": false,
-      "sql_only_reason": "set mismatch (unique rows differ): |gold|=15, |pred|=9",
+      "sql_only_reason": "pred execution failed",
       "sql_only_gold_rows": 15,
       "full_match": false,
-      "full_reason": "set mismatch (unique rows differ): |gold|=15, |pred|=9",
+      "full_reason": "pred execution failed",
       "full_gold_rows": 15
     },
     {
@@ -2186,7 +2196,7 @@
       "question_id": 930,
       "db_id": "formula_1",
       "difficulty": "simple",
-      "pred_sql": "WITH lewis_results AS (\n  SELECT res.raceId, res.rank\n  FROM results AS res\n  JOIN drivers AS d ON res.driverId = d.driverId\n  WHERE d.forename = 'Lewis' AND d.surname = 'Hamilton' AND res.rank IS NOT NULL\n)\nSELECT races.name\nFROM lewis_results\nJOIN races ON lewis_results.raceId = races.raceId\nORDER BY lewis_results.rank ASC\nLIMIT 1",
+      "pred_sql": "WITH lewis AS (SELECT driverId FROM drivers WHERE forename = 'Lewis' AND surname = 'Hamilton'), lewis_results AS (SELECT r.raceId, r.rank FROM results r JOIN lewis l ON r.driverId = l.driverId WHERE r.rank IS NOT NULL) SELECT races.name FROM races JOIN (SELECT raceId, rank FROM lewis_results ORDER BY rank ASC LIMIT 1) lr ON races.raceId = lr.raceId",
       "original_match": false,
       "original_reason": "set mismatch (unique rows differ): |gold|=15, |pred|=1",
       "original_gold_rows": 37,
@@ -2234,7 +2244,7 @@
       "question_id": 959,
       "db_id": "formula_1",
       "difficulty": "simple",
-      "pred_sql": "WITH champion AS (\n  SELECT driverId\n  FROM driverStandings\n  WHERE raceId = (SELECT MAX(raceId) FROM races WHERE year = 2009)\n    AND position = 1\n),\nchamp_results AS (\n  SELECT r.fastestLap,\n         (CAST(substr(r.fastestLapTime, 1, instr(r.fastestLapTime, ':')-1) AS INTEGER) * 60000 +\n          CAST(substr(r.fastestLapTime, instr(r.fastestLapTime, ':')+1, instr(r.fastestLapTime, '.') - instr(r.fastestLapTime, ':') -1) AS INTEGER) * 1000 +\n          CAST(substr(r.fastestLapTime, instr(r.fastestLapTime, '.')+1) AS INTEGER)) AS total_ms\n  FROM results r\n  JOIN races ra ON r.raceId = ra.raceId\n  JOIN champion c ON r.driverId = c.driverId\n  WHERE ra.year = 2009\n    AND r.fastestLap IS NOT NULL\n    AND r.fastestLapTime IS NOT NULL\n)\nSELECT fastestLap\nFROM champ_results\nORDER BY total_ms ASC\nLIMIT 1",
+      "pred_sql": "WITH last_race AS (\n  SELECT `raceId` FROM `races` WHERE `year` = 2009 ORDER BY `date` DESC LIMIT 1\n),\nchampion AS (\n  SELECT `driverId` FROM `driverStandings` WHERE `raceId` = (SELECT `raceId` FROM last_race) AND `position` = 1 LIMIT 1\n)\nSELECT `lap` FROM `lapTimes`\nJOIN `races` ON `lapTimes`.`raceId` = `races`.`raceId`\nWHERE `races`.`year` = 2009\n  AND `lapTimes`.`driverId` = (SELECT `driverId` FROM champion)\nORDER BY `lapTimes`.`milliseconds` ASC\nLIMIT 1",
       "original_match": false,
       "original_reason": "set mismatch (unique rows differ): |gold|=14, |pred|=1",
       "original_gold_rows": 16,
@@ -2264,7 +2274,7 @@
       "question_id": 981,
       "db_id": "formula_1",
       "difficulty": "moderate",
-      "pred_sql": "WITH youngest_driver AS (\n  SELECT d.driverId\n  FROM qualifying q\n  JOIN drivers d ON q.driverId = d.driverId\n  WHERE d.dob IS NOT NULL\n  GROUP BY d.driverId, d.dob\n  ORDER BY d.dob DESC\n  LIMIT 1\n),\nfirst_race AS (\n  SELECT r.year, r.name, r.date, r.time\n  FROM qualifying q\n  JOIN races r ON q.raceId = r.raceId\n  WHERE q.driverId = (SELECT driverId FROM youngest_driver)\n  ORDER BY r.date ASC\n  LIMIT 1\n)\nSELECT year, name, date, time FROM first_race",
+      "pred_sql": "SELECT r.year, r.name, r.date, r.time FROM races r JOIN qualifying q ON r.raceId = q.raceId WHERE q.driverId = (SELECT d.driverId FROM drivers d JOIN qualifying q2 ON d.driverId = q2.driverId WHERE d.dob IS NOT NULL ORDER BY d.dob DESC LIMIT 1) ORDER BY date(REPLACE(r.date, '/', '-')) ASC LIMIT 1",
       "original_match": true,
       "original_reason": "",
       "original_gold_rows": 1,
@@ -2294,7 +2304,7 @@
       "question_id": 989,
       "db_id": "formula_1",
       "difficulty": "moderate",
-      "pred_sql": "WITH race AS (SELECT raceId FROM races WHERE year = 2008 AND name = 'Canadian Grand Prix') SELECT d.forename, d.surname, res.time AS finish_time FROM results res JOIN race r ON res.raceId = r.raceId JOIN drivers d ON res.driverId = d.driverId WHERE res.positionOrder = 1",
+      "pred_sql": "WITH race AS (SELECT raceId FROM races WHERE name = 'Canadian Grand Prix' AND year = 2008), winner AS (SELECT r.driverId, r.time FROM results r JOIN race ra ON r.raceId = ra.raceId WHERE r.positionOrder = 1) SELECT d.forename, d.surname, w.time AS finish_time FROM winner w JOIN drivers d ON w.driverId = d.driverId",
       "original_match": false,
       "original_reason": "set mismatch (unique rows differ): |gold|=1, |pred|=1",
       "original_gold_rows": 1,
@@ -2309,7 +2319,7 @@
       "question_id": 990,
       "db_id": "formula_1",
       "difficulty": "challenging",
-      "pred_sql": "WITH race AS (\n  SELECT raceId FROM races WHERE year = 2009 AND name = 'Singapore Grand Prix'\n),\nwinner AS (\n  SELECT constructorId\n  FROM results\n  WHERE raceId = (SELECT raceId FROM race)\n    AND time = (SELECT MAX(time) FROM results WHERE raceId = (SELECT raceId FROM race))\n)\nSELECT c.constructorRef, c.url\nFROM constructors c\nJOIN winner w ON c.constructorId = w.constructorId",
+      "pred_sql": "WITH target_race AS (\n  SELECT raceId FROM races WHERE year = 2009 AND name = 'Singapore Grand Prix'\n),\nchampion_result AS (\n  SELECT constructorId FROM results\n  WHERE raceId = (SELECT raceId FROM target_race)\n    AND time IS NOT NULL\n  ORDER BY time DESC\n  LIMIT 1\n)\nSELECT c.constructorRef, c.url\nFROM constructors c\nJOIN champion_result cr ON c.constructorId = cr.constructorId",
       "original_match": true,
       "original_reason": "",
       "original_gold_rows": 1,
