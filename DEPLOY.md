@@ -16,15 +16,32 @@ and Mistral key by path) and is intentionally not committed. It:
 
 1. computes the file set from `git ls-files` minus a publish-exclude list
    (`tests/`, `.github/`, `docs/research/`, `reviews/`, `eval/baselines/`,
-   `eval/reports/`);
+   `eval/reports/`, `scripts/autotune/`);
 2. drops anything the hygiene detector flags;
-3. uploads via `huggingface_hub`, then prunes remote files no longer present;
-4. supports `--self-test` (a gate that runs before upload) and `--dry-run`.
+3. scans the bytes of the resulting set for tunnel clients and refuses to upload if any
+   are found (see below);
+4. uploads via `huggingface_hub`, then prunes remote files no longer present;
+5. supports `--self-test` (a gate that runs before upload) and `--dry-run`.
 
 The Space hosts the **app**, not the research record. Eval reports and baselines are
 260 files / 31 MB the app never reads; they stay in this repo, which is public, and are
 excluded from the upload set. `--self-test` asserts that exclusion and fails if it is
 removed, so the rule is executable rather than a comment.
+
+## No tunnel clients on the Space
+
+The GPU research harness (`scripts/autotune/`, Colab and Kaggle notebooks) downloads the
+`cloudflared` binary to expose a fine-tuned model from a Colab session. That is fine in a
+repo and wrong on a Space: Hugging Face's abuse-handler scans Space contents, and a tunnel
+client shipped on free compute matches an abuse rule regardless of what it is for. This
+Space was paused under `rule: Cloudflared` minutes after the first deploy that carried
+those notebooks.
+
+So the harness is excluded by path, **and** the deploy scans every file it is about to
+upload for tunnel markers (`cloudflared`, `ngrok`, `localtunnel`, …) and aborts on a hit —
+the path rule only knows the files that broke once, the content scan covers the rest.
+`--self-test` proves the scanner is not vacuous by planting a marker in a throwaway file
+and requiring it to be caught.
 
 ## What ships to the Space
 
