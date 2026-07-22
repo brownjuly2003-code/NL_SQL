@@ -19,7 +19,7 @@ from typing import Any, Final, cast
 
 import sqlglot
 from sqlglot import exp
-from sqlglot.errors import ParseError
+from sqlglot.errors import SqlglotError
 
 from nl_sql.db.connection import Dialect
 
@@ -123,8 +123,20 @@ def _safe_parse(
         # sqlglot.parse returns list[Optional[Expression]] but its internal
         # Expr alias trips strict mypy; cast keeps the public API typed.
         return cast("list[exp.Expression | None]", sqlglot.parse(sql, read=sqlglot_name))
-    except ParseError as exc:
+    except SqlglotError as exc:
+        # sqlglot's failure modes are SIBLINGS, not a chain: the parser raises
+        # ParseError, the lexer raises TokenError (unterminated string or
+        # identifier quote). Catching only ParseError let TokenError escape
+        # validate_sql and kill the whole pipeline run — a model writing bad
+        # SQL then surfaced as `pipeline_exception`, i.e. indistinguishable
+        # from a transport failure (q1399, 2026-07-22 student-base run).
         report.add("parse_error", str(exc))
+        return None
+    except RecursionError:
+        # Deeply nested parens exhaust the interpreter stack inside sqlglot,
+        # and RecursionError is not a SqlglotError. No AST is no AST: same
+        # verdict as any other parse failure — reject, never propagate.
+        report.add("parse_too_deep", "SQL nesting is too deep to parse")
         return None
 
 

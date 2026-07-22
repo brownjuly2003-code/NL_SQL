@@ -20,7 +20,7 @@ from pathlib import Path
 from typing import Any
 
 from sqlglot import exp, parse_one
-from sqlglot.errors import ParseError
+from sqlglot.errors import SqlglotError
 
 ColumnRef = tuple[str, str]
 
@@ -200,7 +200,9 @@ def _qualified_columns(sql: str) -> tuple[set[ColumnRef], str | None]:
         return set(), None
     try:
         tree = parse_one(sql, read="sqlite")
-    except ParseError as exc:
+    except (SqlglotError, RecursionError) as exc:
+        # SqlglotError covers the lexer's TokenError too (sibling of
+        # ParseError); RecursionError covers pathological nesting.
         return set(), f"SQL parse failed: {exc}"
 
     alias_to_table: dict[str, str] = {}

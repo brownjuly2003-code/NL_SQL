@@ -54,7 +54,10 @@ def extract_tables(sql: str) -> list[str]:
     """Distinct table names in order of appearance; [] when unparseable."""
     try:
         tree = sqlglot.parse_one(sql, dialect=DIALECT)
-    except sqlglot.errors.ParseError:
+    except (sqlglot.errors.SqlglotError, RecursionError):
+        # TokenError (lexer) is a sibling of ParseError, RecursionError is
+        # neither — all are "unparseable", which this function promises to
+        # answer with [] rather than by killing the dataset build.
         return []
     seen: list[str] = []
     for table in tree.find_all(sqlglot_exp.Table):
@@ -95,7 +98,9 @@ def build_example(row: Any) -> dict[str, str]:
 def sql_parses(sql: str) -> bool:
     try:
         sqlglot.parse_one(sql, dialect=DIALECT)
-    except sqlglot.errors.ParseError:
+    except (sqlglot.errors.SqlglotError, RecursionError):
+        # A parse-check predicate must answer False, never raise: a single
+        # token-broken train row would otherwise abort the whole build.
         return False
     return True
 

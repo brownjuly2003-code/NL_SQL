@@ -216,6 +216,37 @@ def test_garbage_input_is_rejected() -> None:
     assert not report.ok
 
 
+def test_unterminated_string_literal_is_reported_not_raised() -> None:
+    """Lexer-level breakage must come back as a report, not as an exception.
+
+    sqlglot raises TokenError (a *sibling* of ParseError, not a subclass) when
+    a string literal never closes. Real regression: q1399 of the 2026-07-22
+    student-base run, where the escaping TokenError was recorded as
+    `pipeline_exception` — i.e. a model failure disguised as a transport one.
+    """
+    sql = "SELECT T1.member_id FROM member AS T1 WHERE T1.first_name = 'Maya AND T1.last_name = 'Mclean'"
+    report = validate_sql(sql)
+    assert not report.ok
+    assert any(v.code == "parse_error" for v in report.violations)
+
+
+def test_unterminated_identifier_quote_is_reported_not_raised() -> None:
+    report = validate_sql('SELECT "col FROM Artists')
+    assert not report.ok
+    assert any(v.code == "parse_error" for v in report.violations)
+
+
+def test_deeply_nested_sql_is_reported_not_raised() -> None:
+    """Nesting deep enough to exhaust the interpreter stack inside sqlglot.
+
+    RecursionError is not a SqlglotError, so it escapes the parse guard on its
+    own path. No AST means the same verdict as any other parse failure: reject.
+    """
+    report = validate_sql("SELECT " + "(" * 2000 + "1" + ")" * 2000)
+    assert not report.ok
+    assert any(v.code == "parse_too_deep" for v in report.violations)
+
+
 @pytest.mark.parametrize(
     "code",
     [
@@ -226,6 +257,8 @@ def test_garbage_input_is_rejected() -> None:
         "denied_table",
         "generate_series_too_large",
         "select_into",
+        "parse_error",
+        "parse_too_deep",
     ],
 )
 def test_violation_codes_are_documented(code: str) -> None:

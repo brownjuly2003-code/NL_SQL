@@ -137,7 +137,11 @@ def extract_gold_tables(sql: str) -> list[str]:
     """
     try:
         tree = sqlglot.parse_one(sql, read="sqlite")
-    except sqlglot.errors.ParseError:
+    except (sqlglot.errors.SqlglotError, RecursionError):
+        # SqlglotError, not ParseError: the lexer raises TokenError, which is a
+        # sibling class — and deep nesting raises RecursionError, which is
+        # neither. All three mean "no AST", which is exactly the fallback case
+        # this docstring promises.
         return _extract_via_regex(sql)
     if tree is None:
         return _extract_via_regex(sql)
