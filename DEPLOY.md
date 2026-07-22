@@ -15,10 +15,16 @@ The deploy script itself (`.deploy_hf.py`) is repo-local (it reads a local token
 and Mistral key by path) and is intentionally not committed. It:
 
 1. computes the file set from `git ls-files` minus a publish-exclude list
-   (`tests/`, `.github/`, `docs/research/`, `reviews/`, `eval/baselines/`);
+   (`tests/`, `.github/`, `docs/research/`, `reviews/`, `eval/baselines/`,
+   `eval/reports/`);
 2. drops anything the hygiene detector flags;
 3. uploads via `huggingface_hub`, then prunes remote files no longer present;
 4. supports `--self-test` (a gate that runs before upload) and `--dry-run`.
+
+The Space hosts the **app**, not the research record. Eval reports and baselines are
+260 files / 31 MB the app never reads; they stay in this repo, which is public, and are
+excluded from the upload set. `--self-test` asserts that exclusion and fails if it is
+removed, so the rule is executable rather than a comment.
 
 ## What ships to the Space
 
