@@ -58,22 +58,46 @@ https://github.com/brownjuly2003-code/NL_SQL/raw/main/docs/ui-live-demo.mp4
 
 ## Quick start
 
+Two tiers: **(A) clone-first** (fastest first run) and **(B) full local rebuild** (all 12 DBs).
+
+### A. Clone-first (fastest)
+
+Requires **Python 3.13**.
+
+A tracked clone already includes **9 SQLite DBs** (chinook + 8 BIRD slices under GitHub's size limit) plus a **prebuilt Chroma** index in `chroma_data/`. No download or reindex is needed for the first run.
+
 ```powershell
 # 1. Sync deps (incl. UI)
-make install-ui                                  # or: uv sync --extra dev --extra ui
+uv sync --extra dev --extra ui
+# or: make install-ui
 
-# 2. Download data (one-time)
+# 2. Env file — supply your own MISTRAL_API_KEY in `.env`
+Copy-Item .env.example .env          # PowerShell
+# cp .env.example .env               # Unix / Git Bash
+
+# 3. Launch the chat UI
+uv run streamlit run app/streamlit_app.py
+# or: make ui
+```
+
+`MISTRAL_API_KEY` is required for embeddings (`mistral-embed`) even if SQL generation uses `GITHUB_TOKEN`, `GROQ_API_KEY`, or Ollama. Supply your own Mistral key; external API calls are subject to your provider quotas (not claimed free here).
+
+Postgres is optional (local/CI). The public HF Space is SQLite-only.
+
+### B. Full local rebuild (12 DBs)
+
+Download data and rebuild the schema index for all 12 DBs:
+
+```powershell
+# Download data (one-time)
 uv run python scripts/download_data.py chinook
 uv run python scripts/download_data.py bird-mini-dev
 
-# 3. Build the schema index (one-time, ~2 min for all 12 DBs)
+# Build the schema index (one-time, ~2 min for all 12 DBs)
 uv run python scripts/build_index.py --db all
-
-# 4. Launch the chat UI
-make ui                                          # or: uv run streamlit run app/streamlit_app.py
 ```
 
-The UI reads `MISTRAL_API_KEY` from `.env`; copy `.env.example` first.
+Then launch the UI as in (A).
 
 Публичный демо — Hugging Face Space (Docker). Как он деплоится (tracked-only + prune),
 см. [`DEPLOY.md`](DEPLOY.md).
