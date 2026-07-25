@@ -20,16 +20,16 @@ def render_show_working(result: PipelineRunResult) -> None:
                 {
                     "node": str(entry.get("node", "?")),
                     "model": str(entry.get("model", "—")),
-                    "tokens_in": entry.get("input_tokens", "—"),
-                    "tokens_out": entry.get("output_tokens", "—"),
-                    "confidence": entry.get("confidence", "—"),
+                    "tokens_in": str(entry.get("input_tokens", "—")),
+                    "tokens_out": str(entry.get("output_tokens", "—")),
+                    "confidence": str(entry.get("confidence", "—")),
                 }
             )
         if trace_rows:
             st.markdown(f"**{t('trace_header')}**")
             st.dataframe(
                 pd.DataFrame(trace_rows),
-                use_container_width=True,
+                width="stretch",
                 hide_index=True,
             )
 
