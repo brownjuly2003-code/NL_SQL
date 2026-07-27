@@ -22,9 +22,7 @@ from nl_sql.schema_index.indexer import SchemaIndex
 def bootstrap() -> tuple[DatabaseRegistry, SchemaIndex, LLMProvider, LLMProvider]:
     settings = get_settings()
     if not settings.mistral_api_key:
-        raise RuntimeError(
-            "MISTRAL_API_KEY is not set in .env — required for embeddings."
-        )
+        raise RuntimeError("MISTRAL_API_KEY is not set in .env — required for embeddings.")
 
     registry = get_default_registry()
 
