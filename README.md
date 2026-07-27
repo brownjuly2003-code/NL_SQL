@@ -80,7 +80,14 @@ uv run streamlit run app/streamlit_app.py
 # or: make ui
 ```
 
-`MISTRAL_API_KEY` is required for embeddings (`mistral-embed`) even if SQL generation uses `GITHUB_TOKEN`, `GROQ_API_KEY`, or Ollama. Supply your own Mistral key; external API calls are subject to your provider quotas (not claimed free here).
+`MISTRAL_API_KEY` is required for embeddings (`mistral-embed`). Supply your own Mistral key;
+external API calls are subject to your provider quotas (not claimed free here).
+
+Choose SQL generation independently in `.env` with
+`NL_SQL_DEFAULT_PROVIDER=mistral|github_models|groq|ollama`. Hosted alternatives
+use your matching `GITHUB_TOKEN` or `GROQ_API_KEY`; Ollama needs no generation
+key but must be running with `NL_SQL_OLLAMA_GEN_MODEL` pulled. This setting
+changes SQL/explanation generation only—query embeddings still use Mistral.
 
 Postgres is optional (local/CI). The public HF Space is SQLite-only.
 

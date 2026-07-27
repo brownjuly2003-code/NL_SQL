@@ -39,6 +39,7 @@ def test_readme_quick_start_local_first_contract() -> None:
     assert "uv run python scripts/build_index.py --db all" in section
 
     assert "required for embeddings" in section
+    assert "NL_SQL_DEFAULT_PROVIDER" in section
     assert "GITHUB_TOKEN" in section
     assert "GROQ_API_KEY" in section
     assert "Ollama" in section

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from pathlib import Path
 from typing import Any
 
 import chromadb
@@ -15,6 +14,7 @@ from nl_sql.llm.cache import CachingEmbeddingProvider, CachingLLMProvider
 from nl_sql.llm.providers import build_provider
 from nl_sql.llm.providers.base import EmbeddingProvider, LLMProvider
 from nl_sql.llm.providers.mistral import MistralProvider
+from nl_sql.paths import under_root
 from nl_sql.schema_index.indexer import SchemaIndex
 
 
@@ -23,12 +23,12 @@ def bootstrap() -> tuple[DatabaseRegistry, SchemaIndex, LLMProvider, LLMProvider
     settings = get_settings()
     if not settings.mistral_api_key:
         raise RuntimeError(
-            "MISTRAL_API_KEY is not set in .env — required for codestral + mistral-embed."
+            "MISTRAL_API_KEY is not set in .env — required for embeddings."
         )
 
     registry = get_default_registry()
 
-    persist_dir = Path("chroma_data")
+    persist_dir = under_root("chroma_data")
     if not persist_dir.is_dir():
         raise RuntimeError(
             f"Chroma persist dir {persist_dir!r} not found. "
@@ -49,7 +49,7 @@ def bootstrap() -> tuple[DatabaseRegistry, SchemaIndex, LLMProvider, LLMProvider
     )
     schema_index = SchemaIndex(persist_dir=persist_dir, embedder=embedder, client=chroma_client)
 
-    raw_sql = build_provider("mistral", settings=settings)
+    raw_sql = build_provider(settings.default_provider, settings=settings)
     sql_provider: LLMProvider = CachingLLMProvider(
         raw_sql,
         cache_dir=settings.llm_cache_dir,
