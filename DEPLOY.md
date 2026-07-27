@@ -1,7 +1,10 @@
 # Deployment — Hugging Face Space (Docker)
 
-The public demo runs on a Hugging Face Space with a Docker runtime (free tier):
-<https://liovina-nl-sql.hf.space>. Cold start ~30 s, then interactive.
+The public Space is <https://liovina-nl-sql.hf.space>, but it is not currently a
+live demo. The Hugging Face API reports `PAUSED` / `Flagged as abusive`
+(`Cloudflared`) since 2026-07-22. Restoring or retiring the deployment is an
+owner-authorized closure action; the policy below describes the safe publish
+path if restoration is chosen.
 
 ## Deploy policy: only what git tracks, then prune
 

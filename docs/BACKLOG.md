@@ -3,7 +3,17 @@
 Single living tracker for code/eval work items. Supersedes the scattered per-audit
 lists — new findings land here with a status so nothing rots undone.
 
-Status: ✅ done · ⛔ gated (needs a human decision or an external host) · 🔎 won't-fix (verified)
+Status: ✅ done · ⛔ external/future · 🔎 won't-fix · 🧊 frozen
+
+## Closure disposition (2026-07-27)
+
+Текущий product scope заморожен; все безопасные локальные обязательства закрыты.
+Секции research pass и `Next levers` ниже сохранены как evidence и future ideas,
+а не как активная очередь. Внешние host/key/pen-test пункты также не являются
+незакрытым local-first claim.
+
+Полный closing scope, сохранённый локальный WIP и обязательные publish/Space
+гейты: [PROJECT_CLOSURE.md](PROJECT_CLOSURE.md).
 
 ## Done (2026-07-11)
 
@@ -46,7 +56,7 @@ The code written during the two passes above had not itself been reviewed. Five 
 - ✅ **The comparator scored correct answers as misses (int vs float).** `_hashable` quantised floats onto the tolerance grid but passed ints through untouched: gold `5` hashed to `5`, pred `5.0` to `5_000_000`, and the set comparison called it a mismatch. That is *stricter than BIRD's own scorer*, which sets raw Python tuples — where `5 == 5.0` collapses — and it contradicted the apples-to-apples claim in the docstring. The ordered path compares through a tolerance and always got these right, so one (gold, pred) pair scored two different ways depending on whether gold had `ORDER BY`. Every number — int, float, and (post-`_normalise_cell`) Decimal — now shares one grid. Re-measured: **SQLite n=200 → 58.0% (116/200), up from 57.5%**; the recovered question is a `challenging` one (41.2% → 44.1%). Postgres n=49 unchanged (49.0%), SQLite control n=49 unchanged (44.9%), Chinook still 100%. The fix is monotone — it can only merge buckets that were wrongly split — so no previously-passing question can regress.
 - ✅ **Engine leak on the hot path.** `DatabaseSpec.make_engine()` called `create_engine` on *every* invocation — once per `/ask`, once per eval question — so no pool was ever reused and none disposed, while `connect()`'s docstring promised reuse. On Postgres that opens a fresh backend per question and walks straight into `max_connections` under sustained load. Engines are built once per spec and pooled now (`dispose_engines()` clears the cache). Paired fix: the SQLite statement-timeout progress handler is disarmed on the way out — pooled connections get handed to the next caller (schema introspection never arms one of its own), and a handler left behind carries an already-expired deadline that would interrupt that caller's first non-trivial query.
 
-## In progress — lifting the reproducible number (2026-07-11)
+## Closed research pass — lifting the reproducible number (2026-07-11)
 
 The reproducible single-run is the only number that matters here: 58.0% at the
 start of this pass. Every step below is measured on the same n=200 BIRD Mini-Dev
@@ -96,14 +106,12 @@ retrieve descriptions only for the columns a question plausibly touches.
 Rule of thumb this pass earned: **space at the top of the prompt is a scarce
 resource, and any lever that lengthens the prompt must pay for the room it takes.**
 
-## Next levers (research, 2026-07-12 — see `docs/quality_levers_research_2026-07.md`)
+## Retired/future research ideas (2026-07-12 — see `docs/quality_levers_research_2026-07.md`)
 
 After the lever-exhaustion day (eight levers measured dead or parity), three
-research passes mapped what is left: training-free techniques through July 2026,
-free API tiers, and a completeness sweep over the established named systems
-(DIN/DAIL/C3/MAC/PET/TA/E-SQL/RSL/MCS/CHASE/OpenSearch/Alpha/XiYan + the
-NL2SQL360 taxonomy). Ranked worklist — every measurement is a full n=200,
-flag-gated, one lever per run:
+research passes mapped possible follow-on work. This historical ranked list is
+closed with the current project and requires a separately authorized research
+project before any new run:
 
 - ⛔ **Gemini 3 Flash as generator** — AI Studio free tier fits n=200 in a day
   (1,500 req/day, no card); `_openai_compat.py` already speaks the protocol.
@@ -136,7 +144,7 @@ ceiling-anatomy write-up. Side-fact for the latter: ReViSQL's BIRD-Verified
 found defects in 61.1% of BIRD Train instances — a second team independently
 confirming the annotation-noise thesis behind the ~61–62% free-stack ceiling.
 
-## Gated (needs a decision or an external host)
+## External/future items — not active product backlog
 
 - ⛔ **Sustained-load benchmark.** The data-migration half is done (above); a throughput/latency run under sustained load still wants a host that isn't the Windows dev box.
 - ⛔ **Space cleanup + git history.** `SESSION_HANDOFF.md` is un-tracked now, so future deploys won't republish it; removing it from the live Space and any git-history rewrite are force/deploy actions — owner's call.

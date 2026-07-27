@@ -1,10 +1,15 @@
 # NL→SQL Assistant
 
-[![Live demo](https://img.shields.io/badge/live_demo-HF_Space-FF6F00?logo=huggingface&logoColor=white)](https://liovina-nl-sql.hf.space) [![CI](https://github.com/brownjuly2003-code/NL_SQL/actions/workflows/ci.yml/badge.svg)](https://github.com/brownjuly2003-code/NL_SQL/actions/workflows/ci.yml) ![Python](https://img.shields.io/badge/python-3.13-3776AB?logo=python&logoColor=white) ![BIRD Mini-Dev](https://img.shields.io/badge/BIRD_Mini--Dev-61.5%25_reproducible-brightgreen) ![License](https://img.shields.io/badge/license-MIT-blue)
+[![Demo paused](https://img.shields.io/badge/demo-paused-lightgrey?logo=huggingface)](https://liovina-nl-sql.hf.space) [![CI](https://github.com/brownjuly2003-code/NL_SQL/actions/workflows/ci.yml/badge.svg)](https://github.com/brownjuly2003-code/NL_SQL/actions/workflows/ci.yml) ![Python](https://img.shields.io/badge/python-3.13-3776AB?logo=python&logoColor=white) ![BIRD Mini-Dev](https://img.shields.io/badge/BIRD_Mini--Dev-61.5%25_reproducible-brightgreen) ![License](https://img.shields.io/badge/license-MIT-blue)
 
 Portfolio demo для Senior Data Engineer / Data Analyst. Принимает вопрос на естественном языке (RU/EN), возвращает ответ из реляционной БД в одной из четырёх форм: число, предложение, таблица, график. Всегда показывает использованный SQL и объяснение. AST-guard + read-only execution + row cap — без шанса на DML/DDL побег.
 
-**Статус:** Stages 1–10 закрыты. Production FastAPI surface, retrieval-augmented LangGraph pipeline, редизайн Streamlit UI с EN/RU-переключателем (детали дизайна — в разделе UI ниже). Тесты, ruff и mypy --strict гоняются в CI (бейдж выше — живой). Live API verified на Mistral + Groq.
+**Статус:** closure candidate; Stages 1–10 закрыты и scope заморожен.
+Production FastAPI surface, retrieval-augmented LangGraph pipeline, редизайн
+Streamlit UI с EN/RU-переключателем. Тесты, ruff и mypy --strict гоняются в CI.
+Финальные критерии: [docs/PROJECT_CLOSURE.md](docs/PROJECT_CLOSURE.md).
+Публичный HF Space сейчас `PAUSED` / `Flagged as abusive` (`Cloudflared`), поэтому
+live-доступ не заявляется.
 
 **Headline metric — два воспроизводимых уровня (BIRD Mini-Dev SQLite, n=200, $0 free-tier)**
 
@@ -34,7 +39,7 @@ uv run python scripts/eval_baseline.py --config E --n 200 --bird-rescue-hints   
 
 Полная по-версионная lift-трасса, saturation-evidence и audit-методология — в [docs/03_eval_methodology.md](docs/03_eval_methodology.md).
 
-**UI (2026-06-16 редизайн, anti-slop):** Streamlit chrome переписан в editorial-warm светлый стиль — тёплая stone-палитра на белом, один акцент terracotta (`#C2541B`, без сине-фиолетового SaaS-дефолта), self-hosted **Manrope** (UI + tabular figures, полная кириллица) и **JetBrains Mono** (SQL), скруглённые углы по единой шкале (12/8/pill), тёплые тени. Контролы вынесены в закреплённый (sticky) верхний бар: база, режим и переключатель EN↔RU. В сайдбаре остались только schema explorer, advanced retrieval и clear chat — без скролла. Hero + две stat-карточки + свёрнутый блок методологии. Контраст текста/кнопок/ссылок проверен на WCAG AA, focus-ring на всех интерактивных элементах. Без эмодзи и стоковых иконок. Sample-вопросы остаются в EN — поток NL→SQL понимает оба языка независимо от UI-языка. Живой Space `liovina-nl-sql.hf.space` задеплоен на этот дизайн; скриншоты ниже пересняты с live.
+**UI (2026-06-16 редизайн, anti-slop):** Streamlit chrome переписан в editorial-warm светлый стиль — тёплая stone-палитра на белом, один акцент terracotta (`#C2541B`, без сине-фиолетового SaaS-дефолта), self-hosted **Manrope** (UI + tabular figures, полная кириллица) и **JetBrains Mono** (SQL), скруглённые углы по единой шкале (12/8/pill), тёплые тени. Контролы вынесены в закреплённый (sticky) верхний бар: база, режим и переключатель EN↔RU. В сайдбаре остались только schema explorer, advanced retrieval и clear chat — без скролла. Hero + две stat-карточки + свёрнутый блок методологии. Контраст текста/кнопок/ссылок проверен на WCAG AA, focus-ring на всех интерактивных элементах. Без эмодзи и стоковых иконок. Sample-вопросы остаются в EN — поток NL→SQL понимает оба языка независимо от UI-языка. Скриншоты ниже сняты с ранее работавшего Space; текущий Space paused.
 
 | EN | RU |
 |:--:|:--:|
@@ -54,7 +59,9 @@ https://github.com/brownjuly2003-code/NL_SQL/raw/main/docs/ui-live-demo.mp4
 - Diagnostic harness: `scripts/error_taxonomy.py` классифицирует провалы (filter_or_value / row_count_off / order_by_off / exec_failed / empty) для целевой работы с конкретными bucket'ами.
 - Provider abstraction под Mistral / Groq / GitHub Models / Ollama / Perplexity browser bridge — модель меняется без переписывания пайплайна.
 
-**Live demo:** <https://liovina-nl-sql.hf.space> (Hugging Face Spaces, Docker runtime, free tier). Cold start ~30 c при первом заходе, дальше interactive. Default DB — `bird_california_schools`; в sidebar можно переключить на любую из 9 shipped DBs (chinook + 8 BIRD).
+**Deployment status:** public Space <https://liovina-nl-sql.hf.space> существует,
+но сейчас paused/flagged и не является live demo. Когда Space работал, default DB
+была `bird_california_schools`, а selector содержал 9 shipped DBs.
 
 ## Quick start
 
