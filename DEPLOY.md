@@ -48,11 +48,14 @@ uploads only the filtered tracked set → uploads a generated HF-frontmatter
 ## Deploy policy: only what git tracks, then prune
 
 The deploy publishes **exactly the files git tracks** (`git ls-files`), never the
-working tree. Working-kitchen files — internal notes, audits, `.env`, scratch
-reports — are gitignored and a repo-hygiene CI gate fails if any slip into the
-index, so they cannot reach the Space. The upload also **prunes** the Space: files
-removed from the repo (or excluded from the publish set) are deleted on the host,
-not left behind from an earlier push.
+untracked working tree. Before `--apply`, every publish source plus `README.md`
+must match `HEAD`; the script materializes and re-scans the complete staging tree
+before it creates an HF client or changes a secret. Working-kitchen files —
+internal notes, audits, `.env`, scratch reports — are gitignored and a
+repo-hygiene CI gate fails if any slip into the index, so they cannot reach the
+Space. The upload also **prunes** the Space: files removed from the repo (or
+excluded from the publish set) are deleted on the host, not left behind from an
+earlier push.
 
 `scripts/deploy_hf.py` does the following:
 
@@ -65,9 +68,11 @@ not left behind from an earlier push.
    separately);
 4. scans the **bytes** of every publish file for tunnel clients and refuses to
    upload if any are found (see below);
-5. treats generated `README.md`, tracked `Dockerfile`, and `.gitattributes`
-   (when present) as the expected remote set, then prunes remote strays;
-6. supports `--self-test` and `--dry-run` as strictly local modes.
+5. requires every source to exist and match `HEAD`, then stages and scans the
+   complete upload before any remote-capable client is created;
+6. defines the expected remote tree as exactly that staged set plus the generated
+   `README.md`, then prunes every other remote path;
+7. supports `--self-test` and `--dry-run` as strictly local modes.
 
 Source-only deployment metadata (`DEPLOY.md`, `docs/PROJECT_CLOSURE.md`, and
 `scripts/deploy_hf.py`) is also excluded from the app host: these files document

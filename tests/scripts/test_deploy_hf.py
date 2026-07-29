@@ -93,24 +93,22 @@ def test_is_excluded_prefix_matches_directory_and_children() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_expected_remote_paths_includes_generated_and_dockerfile(
-    tmp_path: Path,
-) -> None:
-    publish = ["app/streamlit_app.py", "requirements.txt"]
-    remote = deploy_hf.expected_remote_paths(publish, root=tmp_path, has_gitattributes=False)
-    assert "README.md" in remote
-    assert "Dockerfile" in remote
-    assert "app/streamlit_app.py" in remote
-    assert "requirements.txt" in remote
-    assert ".gitattributes" not in remote
+def test_expected_remote_paths_matches_this_run_upload_surface() -> None:
+    publish = ["app/streamlit_app.py", "requirements.txt", "Dockerfile"]
+
+    remote = deploy_hf.expected_remote_paths(publish)
+
+    assert remote == set(publish) | {"README.md"}
 
 
-def test_expected_remote_paths_includes_gitattributes_when_present(
+def test_expected_remote_paths_does_not_keep_unpublished_worktree_files(
     tmp_path: Path,
 ) -> None:
     (tmp_path / ".gitattributes").write_text("* text=auto\n", encoding="utf-8")
-    remote = deploy_hf.expected_remote_paths(["app/x.py"], root=tmp_path, has_gitattributes=None)
-    assert ".gitattributes" in remote
+
+    remote = deploy_hf.expected_remote_paths(["app/x.py"])
+
+    assert remote == {"app/x.py", "README.md"}
 
 
 def test_safety_gate_requires_tracked_deploy_contract(
@@ -130,6 +128,63 @@ def test_safety_gate_requires_tracked_deploy_contract(
 
     assert any("Dockerfile" in failure and "tracked" in failure for failure in failures)
     assert any("scripts/deploy_hf.py" in failure and "tracked" in failure for failure in failures)
+
+
+def test_safety_gate_requires_dockerfile_in_publish_set(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _configure_minimal_local_repo(tmp_path, monkeypatch)
+    real_filter = deploy_hf.filter_publish_paths
+    monkeypatch.setattr(
+        deploy_hf,
+        "filter_publish_paths",
+        lambda paths: [path for path in real_filter(paths) if path != deploy_hf.TRACKED_DOCKERFILE],
+    )
+
+    failures = deploy_hf.run_safety_gate(root=tmp_path)
+
+    assert any("Dockerfile" in failure and "publish" in failure for failure in failures)
+
+
+def test_safety_gate_rejects_missing_publish_source(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _configure_minimal_local_repo(tmp_path, monkeypatch)
+    monkeypatch.setattr(
+        deploy_hf,
+        "tracked_files",
+        lambda *, root=None: [
+            "README.md",
+            "Dockerfile",
+            "app/streamlit_app.py",
+            "app/missing.py",
+            "scripts/deploy_hf.py",
+        ],
+    )
+    monkeypatch.setattr(deploy_hf, "dirty_tracked_files", lambda **_: [])
+
+    failures = deploy_hf.run_safety_gate(root=tmp_path)
+
+    assert any("app/missing.py" in failure and "missing" in failure for failure in failures)
+
+
+def test_safety_gate_rejects_dirty_publish_source(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _configure_minimal_local_repo(tmp_path, monkeypatch)
+    monkeypatch.setattr(
+        deploy_hf,
+        "dirty_tracked_files",
+        lambda *, root=None: ["app/streamlit_app.py"],
+        raising=False,
+    )
+
+    failures = deploy_hf.run_safety_gate(root=tmp_path, require_clean_publish=True)
+
+    assert any("app/streamlit_app.py" in failure and "dirty" in failure for failure in failures)
 
 
 # ---------------------------------------------------------------------------
@@ -349,6 +404,7 @@ def test_apply_uses_env_secrets_only_and_skips_existing_space(
             "scripts/deploy_hf.py",
         ],
     )
+    monkeypatch.setattr(deploy_hf, "dirty_tracked_files", lambda **_: [])
     # Gate would plant a probe under root; keep real run_safety_gate but
     # with our tmp root so tunnel probe is local.
     monkeypatch.setenv("HF_TOKEN", "hf_test_token_not_a_real_secret")
@@ -428,7 +484,7 @@ def test_apply_requires_mistral_env(
     (tmp_path / "Dockerfile").write_text("FROM x\n", encoding="utf-8")
     monkeypatch.setattr(deploy_hf, "repo_root", lambda: tmp_path)
     monkeypatch.setattr(deploy_hf, "tracked_files", lambda *, root=None: ["Dockerfile"])
-    monkeypatch.setattr(deploy_hf, "run_safety_gate", lambda *, root=None: [])
+    monkeypatch.setattr(deploy_hf, "run_safety_gate", lambda **_: [])
     monkeypatch.setenv("HF_TOKEN", "hf_test_token")
     monkeypatch.delenv("MISTRAL_API_KEY", raising=False)
 
@@ -440,7 +496,7 @@ def test_apply_requires_hf_token_env(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setattr(deploy_hf, "run_safety_gate", lambda *, root=None: [])
+    monkeypatch.setattr(deploy_hf, "run_safety_gate", lambda **_: [])
     monkeypatch.setenv("MISTRAL_API_KEY", "mistral_test")
     monkeypatch.delenv("HF_TOKEN", raising=False)
 
@@ -448,10 +504,33 @@ def test_apply_requires_hf_token_env(
         deploy_hf.apply_deploy(root=tmp_path)
 
 
+def test_apply_stages_sources_before_creating_hf_client(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    (tmp_path / "README.md").write_text("# Demo\n", encoding="utf-8")
+    monkeypatch.setattr(deploy_hf, "repo_root", lambda: tmp_path)
+    monkeypatch.setattr(deploy_hf, "run_safety_gate", lambda **_: [])
+    monkeypatch.setattr(
+        deploy_hf,
+        "publish_paths",
+        lambda **_: ["missing-before-remote.txt"],
+    )
+    api_factory = MagicMock(side_effect=AssertionError("HF client created too early"))
+    monkeypatch.setattr(deploy_hf, "_get_hf_api", api_factory)
+    monkeypatch.setenv("HF_TOKEN", "hf_test_token")
+    monkeypatch.setenv("MISTRAL_API_KEY", "mistral_test_key")
+
+    rc = deploy_hf.main(["--apply"])
+
+    assert rc == 1
+    api_factory.assert_not_called()
+
+
 def test_main_apply_returns_nonzero_when_env_missing(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setattr(deploy_hf, "run_safety_gate", lambda *, root=None: [])
+    monkeypatch.setattr(deploy_hf, "run_safety_gate", lambda **_: [])
     monkeypatch.delenv("HF_TOKEN", raising=False)
     monkeypatch.delenv("MISTRAL_API_KEY", raising=False)
     rc = deploy_hf.main(["--apply"])
@@ -459,7 +538,7 @@ def test_main_apply_returns_nonzero_when_env_missing(
 
 
 def test_main_apply_aborts_on_failed_gate(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(deploy_hf, "run_safety_gate", lambda *, root=None: ["planted failure"])
+    monkeypatch.setattr(deploy_hf, "run_safety_gate", lambda **_: ["planted failure"])
     # Even with env set, gate failure must win before any hub import.
     monkeypatch.setenv("HF_TOKEN", "t")
     monkeypatch.setenv("MISTRAL_API_KEY", "k")
@@ -483,3 +562,7 @@ def test_require_env_rejects_blank(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("HF_TOKEN", "ok")
     assert deploy_hf._require_env("HF_TOKEN") == "ok"
     assert "HF_TOKEN" in os.environ
+
+
+def test_real_repository_safety_gate_passes() -> None:
+    assert deploy_hf.run_safety_gate() == []

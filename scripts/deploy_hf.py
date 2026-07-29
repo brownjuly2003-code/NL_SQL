@@ -23,6 +23,7 @@ from __future__ import annotations
 import argparse
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -146,28 +147,48 @@ def publish_paths(*, root: Path | None = None) -> list[str]:
     return filter_publish_paths(tracked_files(root=root))
 
 
-def expected_remote_paths(
+def expected_remote_paths(publish: Sequence[str]) -> set[str]:
+    """Exact paths uploaded by this run plus its generated HF README."""
+    return set(publish) | {GENERATED_REMOTE_README}
+
+
+def dirty_tracked_files(*, root: Path | None = None) -> list[str]:
+    """Tracked paths whose index or working-tree bytes differ from ``HEAD``."""
+    cwd = repo_root() if root is None else root
+    result = subprocess.run(
+        [
+            "git",
+            "-c",
+            "core.quotepath=false",
+            "diff",
+            "--name-only",
+            "--diff-filter=ACDMRTUXB",
+            "HEAD",
+            "--",
+        ],
+        cwd=cwd,
+        capture_output=True,
+        text=True,
+        check=True,
+        encoding="utf-8",
+    )
+    return [line for line in result.stdout.splitlines() if line]
+
+
+def stage_publish_tree(
     publish: Sequence[str],
     *,
-    root: Path | None = None,
-    has_gitattributes: bool | None = None,
-) -> set[str]:
-    """Remote paths that should remain after upload + prune.
-
-    Always includes the generated frontmatter ``README.md`` and the tracked
-    ``Dockerfile``. Includes ``.gitattributes`` when present in the tree.
-    """
-    base = repo_root() if root is None else root
-    remote = set(publish)
-    remote.add(GENERATED_REMOTE_README)
-    remote.add(TRACKED_DOCKERFILE)
-    if has_gitattributes is None:
-        has_gitattributes = (base / TRACKED_GITATTRIBUTES).is_file() or (
-            TRACKED_GITATTRIBUTES in remote
-        )
-    if has_gitattributes:
-        remote.add(TRACKED_GITATTRIBUTES)
-    return remote
+    root: Path,
+    destination: Path,
+) -> None:
+    """Copy every verified publish source before any remote client is created."""
+    for rel in publish:
+        source = root / rel
+        if not source.is_file():
+            raise FileNotFoundError(f"publish source is missing or not a file: {rel}")
+        target = destination / rel
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source, target)
 
 
 # ---------------------------------------------------------------------------
@@ -241,7 +262,11 @@ def build_hf_readme(*, root: Path | None = None) -> str:
 # ---------------------------------------------------------------------------
 
 
-def run_safety_gate(*, root: Path | None = None) -> list[str]:
+def run_safety_gate(
+    *,
+    root: Path | None = None,
+    require_clean_publish: bool = False,
+) -> list[str]:
     """Return human-readable failure strings; empty list means the gate passed."""
     base = repo_root() if root is None else root
     failures: list[str] = []
@@ -253,6 +278,17 @@ def run_safety_gate(*, root: Path | None = None) -> list[str]:
     missing_required = sorted(required_tracked - set(candidates))
     if missing_required:
         failures.append(f"required deploy files are not tracked: {missing_required}")
+
+    required_sources = [*publish, "README.md"]
+    missing_sources = sorted(rel for rel in required_sources if not (base / rel).is_file())
+    if missing_sources:
+        failures.append(f"publish sources are missing or not files: {missing_sources}")
+
+    if require_clean_publish:
+        deploy_sources = set(required_sources)
+        dirty_sources = sorted(deploy_sources & set(dirty_tracked_files(root=base)))
+        if dirty_sources:
+            failures.append(f"publish sources are dirty relative to HEAD: {dirty_sources}")
 
     for prefix in EXCLUDE_PREFIXES:
         leaked = [p for p in publish if p == prefix.rstrip("/") or p.startswith(prefix)]
@@ -275,12 +311,13 @@ def run_safety_gate(*, root: Path | None = None) -> list[str]:
     if leaks:
         failures.append(f"publish set ships a tunnel client (HF abuse rule): {leaks}")
 
-    generated_readme = build_hf_readme(root=base).encode("utf-8")
-    if _TUNNEL_RE.search(generated_readme) is not None:
-        failures.append("generated HF README still carries a tunnel-client marker")
+    if (base / "README.md").is_file():
+        generated_readme = build_hf_readme(root=base).encode("utf-8")
+        if _TUNNEL_RE.search(generated_readme) is not None:
+            failures.append("generated HF README still carries a tunnel-client marker")
 
-    if TRACKED_DOCKERFILE not in expected_remote_paths(publish, root=base):
-        failures.append("expected remote set must include Dockerfile")
+    if TRACKED_DOCKERFILE not in publish:
+        failures.append("Dockerfile must be in the publish/upload set")
 
     return failures
 
@@ -294,7 +331,7 @@ def self_test(*, root: Path | None = None) -> int:
             print(f"  - {line}", file=sys.stderr)
         return 1
     publish = publish_paths(root=root)
-    remote = expected_remote_paths(publish, root=root)
+    remote = expected_remote_paths(publish)
     print(
         f"[deploy-hf] self-test passed "
         f"({len(publish)} publish file(s), {len(remote)} expected remote path(s))."
@@ -306,7 +343,7 @@ def dry_run(*, root: Path | None = None) -> int:
     """Print the upload set and local gate status without touching the network."""
     base = repo_root() if root is None else root
     publish = publish_paths(root=base)
-    remote = expected_remote_paths(publish, root=base)
+    remote = expected_remote_paths(publish)
     print(f"[deploy-hf] dry-run: {len(publish)} file(s) would be bulk-uploaded")
     for path in publish:
         print(f"  + {path}")
@@ -348,7 +385,7 @@ def _get_hf_api() -> Any:
 def apply_deploy(*, root: Path | None = None) -> int:
     """Run the local gate, then mutate the Space. Requires env secrets."""
     base = repo_root() if root is None else root
-    failures = run_safety_gate(root=base)
+    failures = run_safety_gate(root=base, require_clean_publish=True)
     if failures:
         print("[deploy-hf] --apply aborted: local safety gate failed:", file=sys.stderr)
         for line in failures:
@@ -356,36 +393,59 @@ def apply_deploy(*, root: Path | None = None) -> int:
         return 1
 
     mistral_key = _require_env("MISTRAL_API_KEY")
-    # Token consumed inside _get_hf_api; never printed.
-    api = _get_hf_api()
-
-    from huggingface_hub import CommitOperationDelete
-
+    _require_env("HF_TOKEN")
     publish = publish_paths(root=base)
-    expected = expected_remote_paths(publish, root=base)
+    expected = expected_remote_paths(publish)
+    generated_readme = build_hf_readme(root=base).encode("utf-8")
 
-    if api.repo_exists(repo_id=REPO_ID, repo_type="space"):
-        print(f"[deploy-hf] Space {REPO_ID} already exists — skipping create_repo.")
-    else:
-        print(f"[deploy-hf] Creating Space {REPO_ID} (sdk={SPACE_SDK})…")
-        api.create_repo(
-            repo_id=REPO_ID,
-            repo_type="space",
-            space_sdk=SPACE_SDK,
-            exist_ok=True,
-        )
-
-    print("[deploy-hf] Setting Space secret MISTRAL_API_KEY (value not printed)…")
-    api.add_space_secret(repo_id=REPO_ID, key="MISTRAL_API_KEY", value=mistral_key)
-
-    # Stage the filtered tracked set into a temp tree and upload as a folder.
+    # Materialize and re-scan the complete upload before creating an HF client.
+    # This prevents a sparse/deleted source from causing a partial remote mutation.
     with tempfile.TemporaryDirectory(prefix="nl_sql_hf_upload_") as tmp:
         stage = Path(tmp)
-        for rel in publish:
-            src = base / rel
-            dest = stage / rel
-            dest.parent.mkdir(parents=True, exist_ok=True)
-            dest.write_bytes(src.read_bytes())
+        stage_publish_tree(publish, root=base, destination=stage)
+        staged_leaks = tunnel_hits(publish, root=stage)
+        if staged_leaks:
+            print(
+                f"[deploy-hf] --apply aborted: staged upload carries "
+                f"tunnel markers: {staged_leaks}",
+                file=sys.stderr,
+            )
+            return 1
+        if _TUNNEL_RE.search(generated_readme) is not None:
+            print(
+                "[deploy-hf] --apply aborted: generated README carries a tunnel marker",
+                file=sys.stderr,
+            )
+            return 1
+
+        deploy_sources = set(publish) | {"README.md"}
+        dirty_after_stage = sorted(deploy_sources & set(dirty_tracked_files(root=base)))
+        if dirty_after_stage:
+            print(
+                f"[deploy-hf] --apply aborted: publish sources changed during "
+                f"staging: {dirty_after_stage}",
+                file=sys.stderr,
+            )
+            return 1
+
+        # Only now may a remote-capable client be created.
+        api = _get_hf_api()
+        from huggingface_hub import CommitOperationDelete
+
+        if api.repo_exists(repo_id=REPO_ID, repo_type="space"):
+            print(f"[deploy-hf] Space {REPO_ID} already exists — skipping create_repo.")
+        else:
+            print(f"[deploy-hf] Creating Space {REPO_ID} (sdk={SPACE_SDK})…")
+            api.create_repo(
+                repo_id=REPO_ID,
+                repo_type="space",
+                space_sdk=SPACE_SDK,
+                exist_ok=True,
+            )
+
+        print("[deploy-hf] Setting Space secret MISTRAL_API_KEY (value not printed)…")
+        api.add_space_secret(repo_id=REPO_ID, key="MISTRAL_API_KEY", value=mistral_key)
+
         print(f"[deploy-hf] Uploading {len(publish)} filtered tracked file(s)…")
         api.upload_folder(
             folder_path=str(stage),
@@ -394,34 +454,34 @@ def apply_deploy(*, root: Path | None = None) -> int:
             commit_message="Deploy filtered tracked tree",
         )
 
-    print("[deploy-hf] Uploading generated README.md (HF frontmatter)…")
-    api.upload_file(
-        path_or_fileobj=build_hf_readme(root=base).encode("utf-8"),
-        path_in_repo=GENERATED_REMOTE_README,
-        repo_id=REPO_ID,
-        repo_type="space",
-        commit_message="HF Space README frontmatter",
-    )
-
-    remote = set(api.list_repo_files(REPO_ID, repo_type="space"))
-    strays = sorted(remote - expected)
-    if strays:
-        print(f"[deploy-hf] Pruning {len(strays)} remote stray(s)…")
-        ops = [CommitOperationDelete(path_in_repo=p) for p in strays]
-        api.create_commit(
+        print("[deploy-hf] Uploading generated README.md (HF frontmatter)…")
+        api.upload_file(
+            path_or_fileobj=generated_readme,
+            path_in_repo=GENERATED_REMOTE_README,
             repo_id=REPO_ID,
             repo_type="space",
-            operations=ops,
-            commit_message="Prune remote files not in filtered tracked set",
+            commit_message="HF Space README frontmatter",
         )
-    else:
-        print("[deploy-hf] No remote strays to prune.")
 
-    space_url = f"https://huggingface.co/spaces/{REPO_ID}"
-    direct_url = f"https://{REPO_ID.replace('/', '-')}.hf.space"
-    print(f"[deploy-hf] Done. Dashboard: {space_url}")
-    print(f"[deploy-hf] Direct:    {direct_url}")
-    return 0
+        remote = set(api.list_repo_files(REPO_ID, repo_type="space"))
+        strays = sorted(remote - expected)
+        if strays:
+            print(f"[deploy-hf] Pruning {len(strays)} remote stray(s)…")
+            ops = [CommitOperationDelete(path_in_repo=p) for p in strays]
+            api.create_commit(
+                repo_id=REPO_ID,
+                repo_type="space",
+                operations=ops,
+                commit_message="Prune remote files not in filtered tracked set",
+            )
+        else:
+            print("[deploy-hf] No remote strays to prune.")
+
+        space_url = f"https://huggingface.co/spaces/{REPO_ID}"
+        direct_url = f"https://{REPO_ID.replace('/', '-')}.hf.space"
+        print(f"[deploy-hf] Done. Dashboard: {space_url}")
+        print(f"[deploy-hf] Direct:    {direct_url}")
+        return 0
 
 
 # ---------------------------------------------------------------------------
@@ -466,6 +526,13 @@ def main(argv: list[str] | None = None) -> int:
             return apply_deploy()
         except RuntimeError as exc:
             print(f"[deploy-hf] {exc}", file=sys.stderr)
+            return 1
+        except Exception as exc:
+            print(
+                f"[deploy-hf] --apply failed before completion "
+                f"({type(exc).__name__}); no success reported.",
+                file=sys.stderr,
+            )
             return 1
 
     # No flags: refuse mutation, print usage, nonzero — no network.
