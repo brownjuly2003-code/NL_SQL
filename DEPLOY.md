@@ -4,7 +4,46 @@ The public Space is <https://liovina-nl-sql.hf.space>, but it is not currently a
 live demo. The Hugging Face API reports `PAUSED` / `Flagged as abusive`
 (`Cloudflared`) since 2026-07-22. Restoring or retiring the deployment is an
 owner-authorized closure action; the policy below describes the safe publish
-path if restoration is chosen.
+path if restoration is chosen. **Do not re-deploy under an active flag** — wait
+until Hugging Face clears the pause, then publish once to prune strays.
+
+## Deploy script (tracked)
+
+The clean-clone-safe entry point is **`scripts/deploy_hf.py`**. It is committed,
+needs no local kitchen paths, and authenticates only from the process
+environment:
+
+| Variable | Role |
+|---|---|
+| `HF_TOKEN` | Hugging Face write token for `HfApi` |
+| `MISTRAL_API_KEY` | Value written as the Space secret (never read from a file path) |
+
+Remote mutation requires an **explicit** `--apply`. With no flags the script
+prints usage and exits nonzero without touching the network.
+
+### Local verification (no network, no credentials)
+
+```powershell
+# From a clean clone / this repo root:
+.venv/Scripts/python.exe scripts/deploy_hf.py --self-test
+.venv/Scripts/python.exe scripts/deploy_hf.py --dry-run
+
+# Focused tests (also no network):
+.venv/Scripts/python.exe -m pytest tests/scripts/test_deploy_hf.py -q
+```
+
+### Publish (owner-authorized only)
+
+```powershell
+$env:HF_TOKEN = "<write token>"          # process env only
+$env:MISTRAL_API_KEY = "<mistral key>"   # process env only
+.venv/Scripts/python.exe scripts/deploy_hf.py --apply
+```
+
+On `--apply` the script: runs the local safety gate → requires both env vars →
+skips `create_repo` when the Space already exists → sets the Space secret →
+uploads only the filtered tracked set → uploads a generated HF-frontmatter
+`README.md` → prunes remote files that are no longer in the expected set.
 
 ## Deploy policy: only what git tracks, then prune
 
@@ -12,19 +51,27 @@ The deploy publishes **exactly the files git tracks** (`git ls-files`), never th
 working tree. Working-kitchen files — internal notes, audits, `.env`, scratch
 reports — are gitignored and a repo-hygiene CI gate fails if any slip into the
 index, so they cannot reach the Space. The upload also **prunes** the Space: files
-removed from the repo are deleted on the host, not left behind from an earlier push.
+removed from the repo (or excluded from the publish set) are deleted on the host,
+not left behind from an earlier push.
 
-The deploy script itself (`.deploy_hf.py`) is repo-local (it reads a local token
-and Mistral key by path) and is intentionally not committed. It:
+`scripts/deploy_hf.py` does the following:
 
 1. computes the file set from `git ls-files` minus a publish-exclude list
    (`tests/`, `.github/`, `docs/research/`, `reviews/`, `eval/baselines/`,
    `eval/reports/`, `scripts/autotune/`);
-2. drops anything the hygiene detector flags;
-3. scans the bytes of the resulting set for tunnel clients and refuses to upload if any
-   are found (see below);
-4. uploads via `huggingface_hub`, then prunes remote files no longer present;
-5. supports `--self-test` (a gate that runs before upload) and `--dry-run`.
+2. drops anything the hygiene detector (`scripts/check_repo_hygiene.py`) flags;
+3. excludes the repository `README.md` from bulk upload (an HF-frontmatter
+   version is generated, tunnel-marker terms are sanitized, and it is uploaded
+   separately);
+4. scans the **bytes** of every publish file for tunnel clients and refuses to
+   upload if any are found (see below);
+5. treats generated `README.md`, tracked `Dockerfile`, and `.gitattributes`
+   (when present) as the expected remote set, then prunes remote strays;
+6. supports `--self-test` and `--dry-run` as strictly local modes.
+
+Source-only deployment metadata (`DEPLOY.md`, `docs/PROJECT_CLOSURE.md`, and
+`scripts/deploy_hf.py`) is also excluded from the app host: these files document
+the tunnel signatures and are not runtime dependencies.
 
 The Space hosts the **app**, not the research record. Eval reports and baselines are
 260 files / 31 MB the app never reads; they stay in this repo, which is public, and are
@@ -41,17 +88,20 @@ Space was paused under `rule: Cloudflared` minutes after the first deploy that c
 those notebooks.
 
 So the harness is excluded by path, **and** the deploy scans every file it is about to
-upload for tunnel markers (`cloudflared`, `ngrok`, `localtunnel`, …) and aborts on a hit —
-the path rule only knows the files that broke once, the content scan covers the rest.
-`--self-test` proves the scanner is not vacuous by planting a marker in a throwaway file
-and requiring it to be caught.
+upload for tunnel markers (`cloudflared`, `trycloudflare`, `ngrok`, `localtunnel`,
+`bore.pub`, `serveo.net`, `pinggy`, `loca.lt`) in binary chunks with overlap, and aborts
+on a hit — the path rule only knows the files that broke once, the content scan covers
+the rest. `--self-test` proves the scanner is not vacuous by planting a marker in a
+throwaway file and requiring it to be caught.
 
 ## What ships to the Space
 
 The Space is **SQLite-only** — `psycopg` is pruned from its `requirements.txt`, so
 the Postgres path (see README) is not present there; it is for local/CI use. The
-Space carries a subset of the BIRD Mini-Dev databases (the three largest exceed
-GitHub's 100 MB/file limit and are gitignored):
+tracked root `Dockerfile` (`python:3.13-slim`, `libgomp1`, `PYTHONPATH=/app/src`,
+Streamlit on `0.0.0.0:7860`) is part of the publish set. The Space carries a subset
+of the BIRD Mini-Dev databases (the three largest exceed GitHub's 100 MB/file limit
+and are gitignored):
 
 | DB | size | shipped |
 |---|---|---|
@@ -75,10 +125,17 @@ the app doesn't re-embed schema chunks on cold start.
 
 ## Secret
 
-The Space needs one secret — `MISTRAL_API_KEY` — set in the Space's Settings →
-Variables and secrets. `pydantic-settings` reads it from the environment.
+The Space needs one secret — `MISTRAL_API_KEY` — set via `scripts/deploy_hf.py
+--apply` from the process environment (or manually in the Space's Settings →
+Variables and secrets). `pydantic-settings` reads it from the environment on the
+host. The deploy script never reads or prints local credential file paths.
 
 ## Updating
 
-Re-run the local deploy script; it re-uploads the tracked set and prunes. CI (tests
-+ repo-hygiene) gates `main` before any deploy is worth doing.
+1. Confirm the Space is no longer paused/flagged (owner + HF moderation).
+2. Run `--self-test` / `--dry-run` locally.
+3. Run `--apply` with `HF_TOKEN` and `MISTRAL_API_KEY` in the environment only.
+
+CI (tests + repo-hygiene) gates `main` before any deploy is worth doing.
+Pushing to GitHub does **not** update the Space; publish is a separate
+`--apply` step.

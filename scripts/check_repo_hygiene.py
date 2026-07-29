@@ -8,8 +8,8 @@ public repository (and, via the working-tree deploy, on the public HF Space).
 All of these are ignored via ``.gitignore`` now, but ``git add -f`` or a future
 ``.gitignore`` edit could silently re-introduce them. This gate fails CI the
 moment any such path shows up in ``git ls-files``, so the cleanup can't rot.
-The HF Space is guarded separately: ``.deploy_hf.py`` uploads only tracked
-files and prunes strays from the Space.
+The HF Space is guarded separately: ``scripts/deploy_hf.py`` uploads only
+tracked files and prunes strays from the Space.
 
 Usage::
 
