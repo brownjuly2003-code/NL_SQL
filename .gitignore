@@ -150,3 +150,21 @@ Desktop.ini
 .deploy_helper.py
 .deploy_hf.py
 .tmp_deploy.log
+/for_ju.txt
+
+# Local-only root artefacts (generated page + private working notes)
+/NL-SQL Explainer.html
+/bird_issues.txt
+/bird_issues_short.txt
+
+# Partial/retry/smoke eval fragments — redundant with committed phase-A n=200
+# reports; kept on disk, outside Git. Do NOT ignore the four final research
+# evidence files (student base/tuned + Arcwise rescores).
+/eval/reports/2026-07-15/
+/eval/reports/2026-07-16/*-q[0-9]*.json
+/eval/reports/2026-07-18/*-fix*.json
+/eval/reports/2026-07-18/index.html
+/eval/reports/2026-07-21/E_dense_fewshot_repair-student-base.json
+/eval/reports/2026-07-21/E_dense_fewshot_repair-thrtest.json
+/eval/reports/2026-07-21/index.html
+/eval/reports/2026-07-22/index.html

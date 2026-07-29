@@ -42,14 +42,15 @@ scope явно.
 
 Push, release и deploy/Space mutations требуют явного разрешения владельца.
 
-## Сохранённый локальный WIP
+## Разбор локального WIP (2026-07-29)
 
-Без изменений сохранены:
-
-- `.gitignore` (`/for_ju.txt`);
-- два tracked Chroma binary-файла;
-- `eval/reports/2026-07-16/index.html`;
-- `NL-SQL Explainer.html`, `bird_issues*.txt` и untracked eval reports.
-
-Эти файлы не входят в closing commit и не считаются закрытым продуктовым
-backlog.
+- Финальные отчёты student base/tuned и оба Arcwise-рескора сохраняются в Git
+  как публичные доказательства.
+- Partial/retry/smoke-отчёты и локальные заметки в корне
+  (`NL-SQL Explainer.html`, `bird_issues*.txt`) остаются на диске под точными
+  правилами `.gitignore`.
+- Runtime-churn Chroma и сгенерированный индекс за 2026-07-16 признаны
+  избыточными после сравнения коллекций, размеров и top-5 retrieval; SQLite
+  отличался только таблицей `acquire_write`. Исходные байты сохранены локально,
+  рабочие файлы возвращены к `HEAD`.
+- Это не меняет замороженный продуктовый scope и не разрешает push/deploy.
