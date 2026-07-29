@@ -67,6 +67,32 @@ https://github.com/brownjuly2003-code/NL_SQL/raw/main/docs/ui-live-demo.mp4
 
 Two tiers: **(A) clone-first** (fastest first run) and **(B) full local rebuild** (all 12 DBs).
 
+### Full-source local demo (recommended instead of the paused HF Space)
+
+This path runs the original checkout directly: **all 12 registered SQLite DBs**,
+both Chroma collections, and the normal product pipeline
+(`mistral` / `codestral-latest` by default). It does not use the filtered HF
+publish set, alter source files, or put the API key in a command argument.
+At runtime it uses a temporary byte-for-byte Chroma copy, so Chroma housekeeping
+does not dirty the tracked source index.
+
+Complete the dependency and `.env` steps in (A), the full data steps in (B),
+then run:
+
+```powershell
+# Read-only local preflight: verifies the key is configured, all 12 DBs exist,
+# and the Chroma schema index covers all 12. It makes no API request.
+uv run python scripts/run_local_demo.py --check
+
+# Serve the complete source checkout on loopback only.
+uv run python scripts/run_local_demo.py
+# Open http://127.0.0.1:8501
+```
+
+Keep your own `MISTRAL_API_KEY` in the gitignored `.env` or the current process
+environment. The launcher never prints it. Provider calls use your account and
+quota; local SQLite queries remain read-only.
+
 ### A. Clone-first (fastest)
 
 Requires **Python 3.13**.

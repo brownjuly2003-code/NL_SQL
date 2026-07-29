@@ -32,6 +32,7 @@ def _settings(tmp_path: Path, **overrides: Any) -> SimpleNamespace:
         "mistral_gen_model": "codestral-latest",
         "mistral_embed_model": "mistral-embed",
         "mistral_base_url": "https://api.mistral.ai/v1",
+        "chroma_data_dir": "chroma_data",
         "llm_cache_dir": tmp_path / "cache",
         "llm_cache_size_limit_gb": 1.0,
     }
@@ -104,3 +105,18 @@ def test_bootstrap_reports_mistral_key_is_for_embeddings(
 
     with pytest.raises(RuntimeError, match="required for embeddings"):
         bootstrap_module.bootstrap()
+
+
+def test_chroma_persist_dir_accepts_runtime_absolute_path(
+    bootstrap_module: Any,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    runtime_copy = tmp_path / "runtime-chroma"
+    monkeypatch.setattr(
+        bootstrap_module,
+        "under_root",
+        lambda *_: pytest.fail("absolute runtime path must not be joined to repo root"),
+    )
+
+    assert bootstrap_module.chroma_persist_dir(runtime_copy) == runtime_copy

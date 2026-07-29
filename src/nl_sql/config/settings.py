@@ -161,6 +161,7 @@ class Settings(BaseSettings):
 
     # diskcache for LLM generate/embed responses (per docs/02_architecture_v2.md §6.5).
     # Two subdirs ("gen", "embed") are created under this root by `nl_sql.llm.cache`.
+    chroma_data_dir: str = "chroma_data"
     llm_cache_dir: str = ".cache/llm"
     llm_cache_size_limit_gb: int = 4
 

@@ -49,3 +49,8 @@ def test_readme_quick_start_local_first_contract() -> None:
 
     assert "uv sync --extra dev --extra ui" in section
     assert "uv run streamlit run app/streamlit_app.py" in section
+    assert "full-source local demo" in section.lower()
+    assert "all 12 registered SQLite DBs" in section
+    assert "127.0.0.1" in section
+    assert "uv run python scripts/run_local_demo.py --check" in section
+    assert "uv run python scripts/run_local_demo.py" in section

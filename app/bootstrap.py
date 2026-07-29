@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 import chromadb
@@ -18,6 +19,14 @@ from nl_sql.paths import under_root
 from nl_sql.schema_index.indexer import SchemaIndex
 
 
+def chroma_persist_dir(configured: str | Path) -> Path:
+    """Resolve the default source index or an absolute runtime-copy override."""
+    candidate = Path(configured)
+    if candidate.is_absolute():
+        return candidate
+    return under_root(*candidate.parts)
+
+
 @st.cache_resource(show_spinner="Initialising providers + Chroma index…")
 def bootstrap() -> tuple[DatabaseRegistry, SchemaIndex, LLMProvider, LLMProvider]:
     settings = get_settings()
@@ -26,7 +35,7 @@ def bootstrap() -> tuple[DatabaseRegistry, SchemaIndex, LLMProvider, LLMProvider
 
     registry = get_default_registry()
 
-    persist_dir = under_root("chroma_data")
+    persist_dir = chroma_persist_dir(settings.chroma_data_dir)
     if not persist_dir.is_dir():
         raise RuntimeError(
             f"Chroma persist dir {persist_dir!r} not found. "
