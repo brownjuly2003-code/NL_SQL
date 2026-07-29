@@ -208,6 +208,12 @@ self-consistency, сужение схемы, межмодельное голос
 | База (без дообучения) | 50.0% | 12 | 30 | −18 |
 | После дообучения | 53.0% | 12 | 28 | −16 |
 
+Исходные отчёты: [`student-base`](../eval/reports/2026-07-22/E_dense_fewshot_repair-student-base.json)
+(n=200, EA=50.0%), [`student-tuned`](../eval/reports/2026-07-21/E_dense_fewshot_repair-student-tuned.json)
+(n=200, EA=53.0%); рескоры:
+[`student-base`](../eval/reports/arcwise_rescored_student-base.json) и
+[`student-tuned`](../eval/reports/arcwise_rescored_student-tuned.json).
+
 Парное сравнение на 199 вопросах, отвеченных обеими версиями: **50.3% → 53.3%, +3.0 п.п.**,
 починено 25 / сломано 19, точный критерий Макнемара **p = 0.451**. То есть дообучение
 не дало статистически значимого выигрыша даже над собственной базой, а до продуктовых
