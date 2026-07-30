@@ -10,6 +10,8 @@ Usage::
 
     uv run python scripts/run_local_demo.py --check
     uv run python scripts/run_local_demo.py
+
+See ``LOCAL_DEMO.md`` for the complete PowerShell runbook.
 """
 
 from __future__ import annotations

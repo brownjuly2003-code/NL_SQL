@@ -15,6 +15,24 @@ Status: ✅ done · ⛔ external/future · 🔎 won't-fix · 🧊 frozen
 Полный closing scope, сохранённый локальный WIP и обязательные publish/Space
 гейты: [PROJECT_CLOSURE.md](PROJECT_CLOSURE.md).
 
+## Current — local-first delivery (2026-07-30)
+
+Owner decision (**final**): **no HF delivery path**. Service runs **locally**
+with the owner's own provider keys; product workflow/UI stay unchanged.
+
+| Item | Status |
+|---|---|
+| Full-source local launcher (`scripts/run_local_demo.py`, all 12 DBs + Chroma) | ✅ implemented (`34791cf`) |
+| Local runbook + README local-first alignment (`LOCAL_DEMO.md`, WIP docs) | ✅ content aligned in working tree (uncommitted; full gate verified 2026-07-30) |
+| Historical HF publish hardening (`scripts/deploy_hf.py`, clean-clone deploy) | ✅ implemented (`712f986`, `8c2baf7`) — **superseded as delivery path**, tooling kept optional/historical |
+| HF Space restore / retire / live status claims | ⛔ owner-authorized only; not the active delivery plan |
+| Fresh full repository quality gate on current WIP | ✅ verified 2026-07-30: 606 passed, 14 skipped, coverage 91.06%; Ruff/format/mypy/hygiene/no_raw_compare clean; local demo `--check` OK |
+| Scoped local commit of docs/WIP alignment | ⛔ pending (no commit hash yet) |
+| Push / release | ⛔ owner gate |
+
+Runbook: [LOCAL_DEMO.md](../LOCAL_DEMO.md). Closure framing:
+[PROJECT_CLOSURE.md](PROJECT_CLOSURE.md).
+
 ## Done (2026-07-11)
 
 Security / public surface
@@ -147,7 +165,7 @@ confirming the annotation-noise thesis behind the ~61–62% free-stack ceiling.
 ## External/future items — not active product backlog
 
 - ⛔ **Sustained-load benchmark.** The data-migration half is done (above); a throughput/latency run under sustained load still wants a host that isn't the Windows dev box.
-- ⛔ **Space cleanup + git history.** `SESSION_HANDOFF.md` is un-tracked now, so future deploys won't republish it; removing it from the live Space and any git-history rewrite are force/deploy actions — owner's call.
+- ⛔ **HF Space restore / retire / cleanup + git history.** Publish tooling is implemented and kept; owner decision (2026-07-30) supersedes HF as the delivery path. Any Space mutation, history rewrite, or public host claim remains force/deploy — owner's call only.
 - ⛔ **External pen-test of the public API.** Self-attestation is not a substitute; needs an outside pass.
 
 ## Won't-fix (verified)

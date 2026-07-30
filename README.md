@@ -8,8 +8,12 @@ Portfolio demo для Senior Data Engineer / Data Analyst. Принимает в
 Production FastAPI surface, retrieval-augmented LangGraph pipeline, редизайн
 Streamlit UI с EN/RU-переключателем. Тесты, ruff и mypy --strict гоняются в CI.
 Финальные критерии: [docs/PROJECT_CLOSURE.md](docs/PROJECT_CLOSURE.md).
-Публичный HF Space сейчас `PAUSED` / `Flagged as abusive` (`Cloudflared`), поэтому
-live-доступ не заявляется.
+
+**Доставка / демо:** full-source локальный запуск со **своими** ключами провайдера
+([`LOCAL_DEMO.md`](LOCAL_DEMO.md), `scripts/run_local_demo.py`). UI и pipeline
+те же, что в продукте; Hugging Face **не** является активным путём доставки.
+Исторический HF Space tooling сохранён опционально ([`DEPLOY.md`](DEPLOY.md));
+живой внешний статус Space в этом проходе не заявляется.
 
 **Headline metric — два воспроизводимых уровня (BIRD Mini-Dev SQLite, n=200, $0 free-tier)**
 
@@ -59,29 +63,33 @@ https://github.com/brownjuly2003-code/NL_SQL/raw/main/docs/ui-live-demo.mp4
 - Diagnostic harness: `scripts/error_taxonomy.py` классифицирует провалы (filter_or_value / row_count_off / order_by_off / exec_failed / empty) для целевой работы с конкретными bucket'ами.
 - Provider abstraction под Mistral / Groq / GitHub Models / Ollama / Perplexity browser bridge — модель меняется без переписывания пайплайна.
 
-**Deployment status:** public Space <https://liovina-nl-sql.hf.space> существует,
-но сейчас paused/flagged и не является live demo. Когда Space работал, default DB
-была `bird_california_schools`, а selector содержал 9 shipped DBs.
+**Deployment / delivery:** recommended path is **local full-source** with the
+owner's own provider keys ([`LOCAL_DEMO.md`](LOCAL_DEMO.md)). Optional historical
+HF Docker Space tooling remains in-repo ([`DEPLOY.md`](DEPLOY.md),
+`scripts/deploy_hf.py`) but is **not** the proposed delivery path and is not
+required to run the product. No live external host status is claimed here.
 
 ## Quick start
 
-Two tiers: **(A) clone-first** (fastest first run) and **(B) full local rebuild** (all 12 DBs).
+Two tiers: **(A) clone-first** (fastest first smoke) and **(B) full-source local
+demo** (all 12 DBs — **recommended delivery/demo**).
 
-### Full-source local demo (recommended instead of the paused HF Space)
+### Full-source local demo (recommended)
 
 This path runs the original checkout directly: **all 12 registered SQLite DBs**,
-both Chroma collections, and the normal product pipeline
-(`mistral` / `codestral-latest` by default). It does not use the filtered HF
-publish set, alter source files, or put the API key in a command argument.
-At runtime it uses a temporary byte-for-byte Chroma copy, so Chroma housekeeping
-does not dirty the tracked source index.
+both Chroma collections, and the normal product Streamlit UI / pipeline
+(`mistral` / `codestral-latest` by default). No Hugging Face runtime dependency,
+no filtered publish set, no API key on the command line. At runtime the launcher
+uses a temporary byte-for-byte Chroma copy so housekeeping does not dirty the
+tracked source index.
 
-Complete the dependency and `.env` steps in (A), the full data steps in (B),
-then run:
+Complete the dependency and `.env` steps in (A). On a clean clone, also complete
+the full data steps in (B). On a prepared machine that already has all 12 DBs and
+a complete Chroma index, skip (B) and run:
 
 ```powershell
-# Read-only local preflight: verifies the key is configured, all 12 DBs exist,
-# and the Chroma schema index covers all 12. It makes no API request.
+# Read-only local preflight: key configured, all 12 DBs present,
+# Chroma covers all 12. No API request.
 uv run python scripts/run_local_demo.py --check
 
 # Serve the complete source checkout on loopback only.
@@ -93,11 +101,13 @@ Keep your own `MISTRAL_API_KEY` in the gitignored `.env` or the current process
 environment. The launcher never prints it. Provider calls use your account and
 quota; local SQLite queries remain read-only.
 
-### A. Clone-first (fastest)
+Полная пошаговая инструкция: [`LOCAL_DEMO.md`](LOCAL_DEMO.md).
+
+### A. Clone-first (fastest smoke)
 
 Requires **Python 3.13**.
 
-A tracked clone already includes **9 SQLite DBs** (chinook + 8 BIRD slices under GitHub's size limit) plus a **prebuilt Chroma** index in `chroma_data/`. No download or reindex is needed for the first run.
+A tracked clone already includes **9 SQLite DBs** (chinook + 8 BIRD slices under GitHub's size limit) plus a **prebuilt Chroma** index in `chroma_data/`. No download or reindex is needed for the first run. This is enough for a quick UI smoke; it is **not** the full 12-DB local demo.
 
 ```powershell
 # 1. Sync deps (incl. UI)
@@ -108,7 +118,7 @@ uv sync --extra dev --extra ui
 Copy-Item .env.example .env          # PowerShell
 # cp .env.example .env               # Unix / Git Bash
 
-# 3. Launch the chat UI
+# 3. Launch the chat UI (clone-first surface; 9 DBs)
 uv run streamlit run app/streamlit_app.py
 # or: make ui
 ```
@@ -122,11 +132,11 @@ use your matching `GITHUB_TOKEN` or `GROQ_API_KEY`; Ollama needs no generation
 key but must be running with `NL_SQL_OLLAMA_GEN_MODEL` pulled. This setting
 changes SQL/explanation generation only—query embeddings still use Mistral.
 
-Postgres is optional (local/CI). The public HF Space is SQLite-only.
+Postgres is optional (local/CI). The recommended local demo path is SQLite-only.
 
-### B. Full local rebuild (12 DBs)
+### B. Full local data (12 DBs) — required for full-source demo
 
-Download data and rebuild the schema index for all 12 DBs:
+Download data and rebuild the schema index for all 12 DBs (one-time on a clean clone):
 
 ```powershell
 # Download data (one-time)
@@ -137,15 +147,17 @@ uv run python scripts/download_data.py bird-mini-dev
 uv run python scripts/build_index.py --db all
 ```
 
-Then launch the UI as in (A).
+Then prefer the full-source launcher above (`scripts/run_local_demo.py`), not only
+the clone-first `streamlit run`.
 
-Публичный демо — Hugging Face Space (Docker). Как он деплоится (tracked-only + prune),
-см. [`DEPLOY.md`](DEPLOY.md).
+Optional historical HF Docker publish (tracked-only + prune) is documented in
+[`DEPLOY.md`](DEPLOY.md); it is not required for local delivery.
 
 ## Документация
 
 | Файл | Содержание |
 |---|---|
+| [LOCAL_DEMO.md](LOCAL_DEMO.md) | **Рекомендуемая доставка:** full-source local demo со своими ключами |
 | [docs/BACKLOG.md](docs/BACKLOG.md) | Живой трекер: что сделано, что gated, что won't-fix |
 | [docs/00_task.md](docs/00_task.md) | Постановка задачи (что / почему / scope / DoD) |
 | [docs/01_architecture.md](docs/01_architecture.md) | v1 — superseded, оставлен как исторический |
@@ -158,8 +170,8 @@ Then launch the UI as in (A).
 - **Mistral API** (`codestral-latest` для SQL, `mistral-large-latest` для NL caption, `mistral-embed`) + provider abstraction (GitHub Models / Ollama)
 - **Hard budget: $0 external cost.** Primary: Mistral La Plateforme (`codestral-latest` SQL + `mistral-large-latest` NL + `mistral-embed`). Voting layers cycled через free-tier Groq (llama-3.3-70b / qwen3-32b / gpt-oss-20b — TPM/TPD-bounded) + OpenRouter free models (nemotron-3-super-120b — 50/day account-wide) + Sonnet 4.6 via GraceKelly Perplexity bridge (Chrome-gated). См. `docs/v11_saturation_evidence.md` для actual reach × rescues × why-stopped per провайдер.
 - **ChromaDB** — 2 коллекции: `schema_chunks` + `fewshot_qsql`
-- **SQLite** (read-only) — target БД по умолчанию: Chinook + 11 BIRD Mini-Dev slices локально (вся eval на SQLite); на live Space — 9 (три самых больших > 100 MB/файл, см. DEPLOY.md).
-- **Postgres 16** — второй backend с genuinely read-only транзакциями (execution-option, не роль-плацебо); запускается локально через `docker-compose.yml` (profile `postgres`). **Прогнан, а не только заявлен:** `codebase_community` (StackExchange-mini, 741 646 строк) залит из официального BIRD PG-дампа (`scripts/extract_pg_dump_slice.py`), и тот же пайплайн на BIRD-овском **Postgres-gold** даёт **49.0% EA (24/49)** против 44.9% на SQLite для тех же вопросов, validity 100% — движок переносим. Живой прогон нашёл два бага, невидимых на SQLite (`%` в `LIKE` ронял psycopg-путь; `Decimal` из `numeric` занижал скоринг) — оба починены, см. `docs/03_eval_methodology.md` §14. Read-only enforcement проверяется на живом PG16 в CI. На HF Space не тянется (SQLite-only деплой).
+- **SQLite** (read-only) — target БД: Chinook + 11 BIRD Mini-Dev slices в full-source local (вся eval на SQLite); tracked clone-first несёт 9 DB (три самых больших > 100 MB/файл не в GitHub).
+- **Postgres 16** — второй backend с genuinely read-only транзакциями (execution-option, не роль-плацебо); запускается локально через `docker-compose.yml` (profile `postgres`). **Прогнан, а не только заявлен:** `codebase_community` (StackExchange-mini, 741 646 строк) залит из официального BIRD PG-дампа (`scripts/extract_pg_dump_slice.py`), и тот же пайплайн на BIRD-овском **Postgres-gold** даёт **49.0% EA (24/49)** против 44.9% на SQLite для тех же вопросов, validity 100% — движок переносим. Живой прогон нашёл два бага, невидимых на SQLite (`%` в `LIKE` ронял psycopg-путь; `Decimal` из `numeric` занижал скоринг) — оба починены, см. `docs/03_eval_methodology.md` §14. Read-only enforcement проверяется на живом PG16 в CI. В рекомендуемом local SQLite demo Postgres не требуется.
 - **sqlglot** — AST guard, dialect translation
 - **FastAPI + Pydantic v2** — API (X-API-Key + безусловный token-bucket rate-limit)
 - **Streamlit** — UI
@@ -180,7 +192,7 @@ Then launch the UI as in (A).
 | Published SOTA (paid API + fine-tuning) | — | 73–76% (CHESS) |
 | Human expert baseline (BIRD paper) | — | 92.96% |
 
-Все три верхние строки — **один и тот же пайплайн**, отличается только генератор: это и есть главный вывод проекта (см. [анатомию потолка](docs/ceiling_anatomy.md)). Опубликованы они как исследовательские точки: `claude-opus-4-8` едет на личной подписке и в HF Space не вызывается, поэтому продуктовое число — 61.5%.
+Все три верхние строки — **один и тот же пайплайн**, отличается только генератор: это и есть главный вывод проекта (см. [анатомию потолка](docs/ceiling_anatomy.md)). Опубликованы они как исследовательские точки: `claude-opus-4-8` едет на личной подписке и не является product default, поэтому продуктовое число — 61.5%.
 
 Судить эти числа по одному лишь EA не стоит: у BIRD-разметки собственный коридор **±16.6 п.п.** (33 вопроса из 199 меняют вердикт от одной лишь переразметки gold). Устойчивая метрика — «чинит/ломает» на вопросах, где обе разметки согласны.
 
