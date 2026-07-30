@@ -81,8 +81,9 @@ Push, release и любые deploy/Space mutations требуют явного �
 ## Local-first docs alignment (2026-07-30)
 
 - Launcher full-source demo: `34791cf` (`feat(local): add full-source demo launcher`).
-- Документация/runbook WIP (`README.md`, `LOCAL_DEMO.md`, contract tests,
-  closure/backlog/plan handoff) выравнивается под owner decision no-HF delivery.
+- Scoped content commit: `3a3114f` (`docs(local): make full-source demo the delivery path`)
+  — `README.md`, `LOCAL_DEMO.md`, contract tests, and public closure/backlog
+  alignment under owner decision no-HF delivery.
 - **Full quality gate verified** (independent Codex run, 2026-07-30, all exit 0):
   focused contract tests 11 passed; Ruff/format clean on launcher + docs tests;
   `scripts/run_local_demo.py --check` preflight OK (12 SQLite DBs + Chroma,
@@ -91,5 +92,5 @@ Push, release и любые deploy/Space mutations требуют явного �
   (required 85%); `check_repo_hygiene.py` and `check_no_raw_compare.py` OK;
   `git diff --check` exit 0. Windows pytest `atexit` `PermissionError` on
   `pytest-current` cleanup is known non-failing noise (process exit remained 0).
-- **Scoped local commit** of this WIP is still **pending** (no commit hash yet).
-- Push / deploy / release remain **external owner gates** and were not performed.
+- **Local audit-closure scope is complete** with content commit `3a3114f`.
+- Push / deploy / release remain **external owner gates** and were **not** performed.

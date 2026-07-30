@@ -23,11 +23,11 @@ with the owner's own provider keys; product workflow/UI stay unchanged.
 | Item | Status |
 |---|---|
 | Full-source local launcher (`scripts/run_local_demo.py`, all 12 DBs + Chroma) | ✅ implemented (`34791cf`) |
-| Local runbook + README local-first alignment (`LOCAL_DEMO.md`, WIP docs) | ✅ content aligned in working tree (uncommitted; full gate verified 2026-07-30) |
+| Local runbook + README local-first alignment (`LOCAL_DEMO.md`, WIP docs) | ✅ committed (`3a3114f`); full gate verified 2026-07-30 |
 | Historical HF publish hardening (`scripts/deploy_hf.py`, clean-clone deploy) | ✅ implemented (`712f986`, `8c2baf7`) — **superseded as delivery path**, tooling kept optional/historical |
 | HF Space restore / retire / live status claims | ⛔ owner-authorized only; not the active delivery plan |
 | Fresh full repository quality gate on current WIP | ✅ verified 2026-07-30: 606 passed, 14 skipped, coverage 91.06%; Ruff/format/mypy/hygiene/no_raw_compare clean; local demo `--check` OK |
-| Scoped local commit of docs/WIP alignment | ⛔ pending (no commit hash yet) |
+| Scoped local commit of docs/WIP alignment | ✅ complete (`3a3114f` `docs(local): make full-source demo the delivery path`) |
 | Push / release | ⛔ owner gate |
 
 Runbook: [LOCAL_DEMO.md](../LOCAL_DEMO.md). Closure framing:
